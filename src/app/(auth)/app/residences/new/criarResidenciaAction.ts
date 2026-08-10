@@ -1,9 +1,8 @@
 'use server'
 
-import db from "@/lib/prisma";
-import { auth } from "@/auth";
+import { apiFetch, ApiError } from "@/lib/apiClient";
+import { getCurrentUser } from "@/lib/session";
 import { criarResidenciaSchema } from "@/schemas/residencias";
-import { gerarCodigoDisponivel } from "@/lib/residence";
 import type { ActionState } from "@/types/actions";
 
 
@@ -12,8 +11,8 @@ export default async function criarResidenciaAction(_prevState: ActionState<{ na
     const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
     // 1 -> Verifica se o usuário está autenticado
-    const session = await auth();
-    if (!session?.user.email) {
+    const user = await getCurrentUser();
+    if (!user) {
         return {
             message: 'Usuário não autenticado',
             success: false,
@@ -41,64 +40,27 @@ export default async function criarResidenciaAction(_prevState: ActionState<{ na
     //4 -> O formato dos dados está válido, extrai os dados validados
     const payload = parseResult.data;
 
-    //5 -> Consulta o usuário no banco de dados
-    const usuario = await db.user.findUnique({
-        select: { id: true },
-        where: {
-            email: session.user.email,
-        }
-    });
-
-    if (!usuario) {
-        return {
-            message: 'Erro de autenticação',
-            success: false,
-        }
-    }
-
-    //6 -> Gera o código público da residência
-    const codigo = await gerarCodigoDisponivel();
-
-    if (!codigo) {
-        return {
-            message: 'Não foi possível gerar um código para a residência. Tente novamente.',
-            success: false,
-        }
-    }
-
-    //7 -> Cria a residência junto do vínculo do criador como OWNER.
-    //Os dois registros nascem na mesma operação para que nunca exista residência sem dono.
+    //5 -> Cria a residência via API — o vínculo do criador como OWNER já é feito
+    //do lado da API, na mesma operação.
     try {
-        const residencia = await db.residence.create({
-            data: {
-                name: payload.name,
-                code: codigo,
-                ownerId: usuario.id,
-                members: {
-                    create: {
-                        userId: usuario.id,
-                        role: 'OWNER',
-                    }
-                }
-            },
-            select: { name: true, code: true },
-        })
+        const { residence } = await apiFetch<{ residence: { name: string; code: string } }>("/residences", {
+            method: "POST",
+            body: { name: payload.name },
+        });
 
-        // 8 -> Retorna sucesso com os dados exibidos no modal de confirmação
         return {
             success: true,
             message: 'Residência criada com sucesso!',
-            data: residencia,
+            data: residence,
         }
-
     }
     catch (error) {
-        // 9 -> Retorna erro caso ocorra algum problema ao criar a residência
+        if (error instanceof ApiError) {
+            return { message: error.message, success: false };
+        }
         return {
             message: 'Erro ao criar residência. Tente novamente mais tarde.',
             success: false,
         }
     }
-
-
 }

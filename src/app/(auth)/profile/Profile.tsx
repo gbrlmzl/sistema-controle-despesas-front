@@ -2,15 +2,17 @@
 
 import styles from './Profile.module.css';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
-import { useSession } from "next-auth/react";
+import { useCurrentUser } from '@/components/providers/UserProvider';
 import Snackbar from '@/components/ui/Snackbar';
 
 
 
 export default function Profile() {
 
-    const { data: session, update } = useSession();
+    const user = useCurrentUser();
+    const router = useRouter();
     const {
         avatars,
         galleryOpen,
@@ -23,14 +25,17 @@ export default function Profile() {
         snackbarOpen,
         snackbarMsg,
         closeSnackbar,
-        snackbarType
-    } = useProfile({ update });
+        snackbarType,
+        editingName,
+        nameValue,
+        setNameValue,
+        savingName,
+        startEditName,
+        cancelEditName,
+        saveName,
+    } = useProfile({ onProfileUpdated: () => router.refresh() });
 
-    //O layout raiz não passa a sessão pro SessionProvider, então useSession() nasce
-    //undefined até o fetch client-side de /api/auth/session responder — sem essa
-    //guarda, um carregamento direto da URL (sem vir de um Link já com sessão em
-    //cache) quebra aqui.
-    if (!session) {
+    if (!user) {
         return null;
     }
 
@@ -40,7 +45,7 @@ export default function Profile() {
             <div>
                 <div className={styles.profilePictureContainer}>
                     <div className={styles.profilePicture}>
-                        <img src={session.user.profilePic || "/icons/profileIcon.svg"} alt="Perfil" />
+                        <img src={user.profilePic || "/icons/profileIcon.svg"} alt="Perfil" />
                     </div>
                     <button className={styles.profilePictureEdit} onClick={openGallery}>
                         <span className={styles.profilePictureEditIcon}>
@@ -52,15 +57,40 @@ export default function Profile() {
 
 
                 <div className={styles.profileDetails}>
+                    {editingName ? (
+                        <span className={styles.editNameRow}>
+                            <input
+                                className={styles.editNameInput}
+                                type="text"
+                                value={nameValue}
+                                onChange={(e) => setNameValue(e.target.value)}
+                                disabled={savingName}
+                                autoFocus
+                            />
+                            <button className={styles.editNameAction} onClick={cancelEditName} disabled={savingName} type="button">
+                                <img src="/icons/uncheckedIcon.svg" alt="Cancelar" />
+                            </button>
+                            <button className={styles.editNameAction} onClick={saveName} disabled={savingName} type="button">
+                                <img src="/icons/checkedIcon.svg" alt="Confirmar" />
+                            </button>
+                        </span>
+                    ) : (
+                        <span className={styles.editNameRow}>
+                            <strong>Nome:</strong> {user.name}
+                            <button className={styles.editNameAction} onClick={() => startEditName(user.name)} type="button">
+                                <img src="/icons/penEditIcon.svg" alt="Editar nome" />
+                            </button>
+                        </span>
+                    )}
                     <span>
-                        <strong>Nome:</strong> {session.user.name}
+                        <strong>Usuário:</strong> {user.username ?? "—"}
                     </span>
                     <span>
-                        <strong>Email:</strong> {session.user.email}
+                        <strong>Email:</strong> {user.email}
 
                     </span>
                 </div>
-                {session.user.provider === 'credentials' && (
+                {user.hasPassword && (
                     <div className={styles.profileActions}>
                         <Link href="/profile/settings/password" className={styles.changePasswordLinkButton}>Alterar senha</Link>
                     </div>)

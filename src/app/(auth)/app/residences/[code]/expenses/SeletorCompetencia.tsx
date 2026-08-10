@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { nomeDoMes, competenciaTexto } from "@/utils/categorias";
 import styles from "./SeletorCompetencia.module.css";
-import type { Competencia } from "@/lib/expenses";
+import type { Competencia } from "@/types/competencia";
 import type { CompetenciaComDespesas } from "@/types/residencia";
 
 interface SeletorCompetenciaProps {

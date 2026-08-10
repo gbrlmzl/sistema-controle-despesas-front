@@ -1,14 +1,16 @@
 "use client";
 import styles from "./Navbar.module.css"
 import SinoNotificacoes from "./SinoNotificacoes";
-import { useSession } from "next-auth/react";
-import { signOut } from "next-auth/react";
+import { useCurrentUser } from "@/components/providers/UserProvider";
+import { apiFetchClient } from "@/lib/apiClient.client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Navbar() {
 
-  const { data: session, status } = useSession();
+  const user = useCurrentUser();
+  const router = useRouter();
 
   const [showMobileToolbar, setShowMobileToolbar] = useState(false);
   const [showMobileUserOptions, setShowMobileUserOptions] = useState(false);
@@ -25,27 +27,15 @@ export default function Navbar() {
     setShowMobileUserOptions(false);
   }
 
-  if (status === "loading") {
-    // enquanto carrega, renderizar um skeleton simples
-    return (
-      <nav className={styles.navbar}>
-        <div className={styles.skeleton}>
-          <div className={styles.skeletonAvatar} />
-          <div className={styles.skeletonLines}>
-            <div className={styles.skeletonLine} style={{ width: '80px', height: 10 }} />
-            <div className={styles.skeletonLine} style={{ width: '80px', height: 10 }} />
-          </div>
-          {/*<div className={styles.skeletonAvatar} />*/}
-
-          <div className={styles.skeletonLine} style={{ width: '50px', height: 12 }} />
-        </div>
-      </nav>
-    );
+  async function handleLogout() {
+    await apiFetchClient("/auth/logout", { method: "POST", skipAuthRetry: true });
+    router.refresh();
+    router.push('/');
   }
 
   return (
     <nav className={styles.navbar}>
-      {session ? (
+      {user ? (
         <div className={styles.linksContainer}>
           <Link href="/" className={styles.homeLink}>
             <span>
@@ -82,18 +72,18 @@ export default function Navbar() {
 
             <div className={styles.userContainer}>
               <span>
-                <img src={session.user.profilePic || "/icons/profileIcon.svg"} alt="Perfil" width={30} height={30} />
+                <img src={user.profilePic || "/icons/profileIcon.svg"} alt="Perfil" width={30} height={30} />
               </span>
               <div className={styles.userOptionsContainer}>
                 <div className={styles.userInfo}>
-                  <p>{session.user.name}</p>
+                  <p>{user.name}</p>
                 </div>
                 <div className={styles.userActions}>
 
                   <Link href="/profile" className={styles.userActionButton}>
                     Minha conta
                   </Link>
-                  <button onClick={() => signOut({ redirectTo: '/' })} className={styles.userActionButton}>
+                  <button onClick={handleLogout} className={styles.userActionButton}>
                     Sair
                   </button>
                 </div>
@@ -103,19 +93,19 @@ export default function Navbar() {
             <div className={styles.mobileUserContainer}>
               <button onClick={handleShowMobileUserOptions} aria-expanded={showMobileUserOptions} aria-controls="mobile-user-options">
                 <span>
-                  <img src={session.user.profilePic || "/icons/profileIcon.svg"} alt="Perfil" width={30} height={30} />
+                  <img src={user.profilePic || "/icons/profileIcon.svg"} alt="Perfil" width={30} height={30} />
                 </span>
               </button>
               {showMobileUserOptions && (
                 <div className={styles.mobileUserOptionsContainer}>
                   <div className={styles.userInfo}>
-                    <p>{session.user.name}</p>
+                    <p>{user.name}</p>
                   </div>
                   <div className={styles.userActions}>
                     <Link href="/profile" className={styles.userActionButton} onClick={hideMobileToolbars}>
                       Minha conta
                     </Link>
-                    <button onClick={() => { hideMobileToolbars(); signOut({ redirectTo: '/' }); }} className={styles.userActionButton}>
+                    <button onClick={() => { hideMobileToolbars(); handleLogout(); }} className={styles.userActionButton}>
                       Sair
                     </button>
                   </div>

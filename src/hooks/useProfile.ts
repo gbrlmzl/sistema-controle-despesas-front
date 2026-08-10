@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { AVATARS } from "@/lib/avatars";
+import { apiFetchClient } from "@/lib/apiClient.client";
+import { ApiError } from "@/lib/apiError";
 
 interface UseProfileParams {
-    update: (data?: { updateType?: string }) => Promise<unknown>;
+    onProfileUpdated?: () => void;
 }
 
-export const useProfile = ({ update }: UseProfileParams) => {
+export const useProfile = ({ onProfileUpdated }: UseProfileParams) => {
 
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
     const [loadingChangeProfilePicture, setLoadingChangeProfilePicture] = useState(false);
+    const [editingName, setEditingName] = useState(false);
+    const [nameValue, setNameValue] = useState("");
+    const [savingName, setSavingName] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMsg, setSnackbarMsg] = useState("");
     const [snackbarType, setSnackbarType] = useState<"error" | "success">("error");
@@ -42,22 +47,18 @@ export const useProfile = ({ update }: UseProfileParams) => {
         setLoadingChangeProfilePicture(true);
 
         try {
-            const response = await fetch("/api/users/me", {
+            await apiFetchClient("/users/me", {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ avatar: selectedAvatar }),
+                body: { avatar: selectedAvatar },
             });
 
-            if (response.ok) {
-                showSnackbar("Foto de perfil atualizada com sucesso!", "success");
-                //Atualiza a sessão do usuário para refletir a nova foto de perfil
-                await update({ updateType: "profilePicture" });
-                closeGallery();
-            } else {
-                showSnackbar("Erro ao atualizar a foto de perfil.");
-            }
+            showSnackbar("Foto de perfil atualizada com sucesso!", "success");
+            //Atualiza o usuário no contexto (UserProvider) pra refletir a nova foto
+            onProfileUpdated?.();
+            closeGallery();
         } catch (err) {
-            showSnackbar("Erro ao atualizar a foto de perfil.");
+            const message = err instanceof ApiError ? err.message : "Erro ao atualizar a foto de perfil.";
+            showSnackbar(message);
         } finally {
             setLoadingChangeProfilePicture(false);
         }
@@ -66,6 +67,43 @@ export const useProfile = ({ update }: UseProfileParams) => {
     const closeSnackbar = () => {
         setSnackbarOpen(false);
     }
+
+    const startEditName = (currentName: string) => {
+        setNameValue(currentName);
+        setEditingName(true);
+    };
+
+    const cancelEditName = () => {
+        setEditingName(false);
+        setNameValue("");
+    };
+
+    const saveName = async () => {
+        //Mesma regra do nameSchema no backend (min 1 / max 100 caracteres)
+        const trimmed = nameValue.trim();
+        if (trimmed.length === 0 || trimmed.length > 100) {
+            showSnackbar("O nome deve ter entre 1 e 100 caracteres.");
+            return;
+        }
+        if (savingName) return;
+        setSavingName(true);
+
+        try {
+            await apiFetchClient("/users/me", {
+                method: "PATCH",
+                body: { name: trimmed },
+            });
+
+            showSnackbar("Nome atualizado com sucesso!", "success");
+            onProfileUpdated?.();
+            setEditingName(false);
+        } catch (err) {
+            const message = err instanceof ApiError ? err.message : "Erro ao atualizar o nome.";
+            showSnackbar(message);
+        } finally {
+            setSavingName(false);
+        }
+    };
 
     return {
         avatars,
@@ -79,7 +117,14 @@ export const useProfile = ({ update }: UseProfileParams) => {
         closeSnackbar,
         snackbarOpen,
         snackbarMsg,
-        snackbarType
+        snackbarType,
+        editingName,
+        nameValue,
+        setNameValue,
+        savingName,
+        startEditName,
+        cancelEditName,
+        saveName,
 
     };
 }

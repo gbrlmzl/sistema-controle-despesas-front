@@ -1,7 +1,7 @@
 'use server'
 
-import db from "@/lib/prisma";
-import { auth } from "@/auth";
+import { apiFetch, ApiError } from "@/lib/apiClient";
+import { getCurrentUser } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import type { ActionState } from "@/types/actions";
 
@@ -9,68 +9,35 @@ import type { ActionState } from "@/types/actions";
 
 export default async function cancelarSolicitacaoAction(requestId: number): Promise<ActionState> {
     // 1 -> Verifica se o usuário está autenticado
-    const session = await auth();
-    if (!session?.user.email) {
+    const user = await getCurrentUser();
+    if (!user) {
         return {
             message: 'Usuário não autenticado',
             success: false,
         }
     }
 
-    // 2 -> Consulta o usuário no banco de dados
-    const usuario = await db.user.findUnique({
-        select: { id: true },
-        where: { email: session.user.email },
-    });
-
-    if (!usuario) {
-        return {
-            message: 'Erro de autenticação',
-            success: false,
-        }
-    }
-
-    // 3 -> RN-042: o filtro por requesterId garante que ninguém cancela solicitação alheia.
-    //RN-043: só enquanto estiver pendente.
-    const solicitacao = await db.joinRequest.findFirst({
-        where: {
-            id: requestId,
-            requesterId: usuario.id,
-            status: 'PENDING',
-        },
-        select: {
-            id: true,
-            residence: { select: { name: true } },
-        },
-    });
-
-    if (!solicitacao) {
-        return {
-            message: 'Esta solicitação não está mais pendente',
-            success: false,
-        }
-    }
-
+    // 2 -> Cancela a solicitação via API — ela já garante que só o próprio
+    //solicitante cancela (RN-042) e só enquanto pendente (RN-043).
     try {
-        await db.joinRequest.update({
-            where: { id: solicitacao.id },
-            data: { status: 'CANCELLED', respondedAt: new Date() },
-        })
+        const { residenceName } = await apiFetch<{ residenceName: string }>(`/residences/join-requests/${requestId}`, {
+            method: "DELETE",
+        });
 
         revalidatePath('/app/residences');
 
         return {
             success: true,
-            message: `Solicitação para "${solicitacao.residence.name}" cancelada.`,
+            message: `Solicitação para "${residenceName}" cancelada.`,
         }
-
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            return { message: error.message, success: false };
+        }
         return {
             message: 'Erro ao cancelar a solicitação. Tente novamente mais tarde.',
             success: false,
         }
     }
-
-
 }

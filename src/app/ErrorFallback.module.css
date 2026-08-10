@@ -1,0 +1,41 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-height: 60vh;
+    padding: 32px 24px;
+    text-align: center;
+}
+
+.titulo {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.mensagem {
+    max-width: 420px;
+    opacity: 0.8;
+}
+
+.acoes {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.botao {
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: var(--color-secondary);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.botaoSecundario {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid currentColor;
+}

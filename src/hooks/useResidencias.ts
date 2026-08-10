@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { apiFetchClient } from "@/lib/apiClient.client";
+import { ApiError } from "@/lib/apiError";
 
 export interface Residencia {
     name: string;
@@ -24,13 +26,9 @@ export interface SolicitacaoEnviada {
 }
 
 interface RespostaResidencias {
-    success: boolean;
-    message?: string;
-    data: {
-        residencias: Residencia[];
-        convitesRecebidos: ConviteRecebido[];
-        solicitacoesEnviadas: SolicitacaoEnviada[];
-    };
+    residences: Residencia[];
+    receivedInvites: ConviteRecebido[];
+    sentJoinRequests: SolicitacaoEnviada[];
 }
 
 interface Snackbar {
@@ -56,21 +54,15 @@ export default function useResidencias() {
 
     const recarregar = useCallback(async () => {
         try {
-            const resposta = await fetch("/api/residences");
-            const conteudo = await resposta.json() as RespostaResidencias;
+            const conteudo = await apiFetchClient<RespostaResidencias>("/residences");
 
-            if (!resposta.ok || !conteudo.success) {
-                setErro(conteudo.message || "Erro ao buscar residências");
-                return;
-            }
-
-            setResidencias(conteudo.data.residencias);
-            setConvitesRecebidos(conteudo.data.convitesRecebidos);
-            setSolicitacoesEnviadas(conteudo.data.solicitacoesEnviadas);
+            setResidencias(conteudo.residences);
+            setConvitesRecebidos(conteudo.receivedInvites);
+            setSolicitacoesEnviadas(conteudo.sentJoinRequests);
             setErro(null);
 
         } catch (error) {
-            setErro("Erro ao buscar residências");
+            setErro(error instanceof ApiError ? error.message : "Erro ao buscar residências");
         } finally {
             setLoading(false);
         }

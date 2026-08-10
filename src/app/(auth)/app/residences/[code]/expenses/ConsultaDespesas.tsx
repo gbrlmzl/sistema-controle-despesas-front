@@ -15,7 +15,7 @@ import { formatarValor } from "@/utils/dinheiro";
 import { rotuloCategoria, competenciaTexto } from "@/utils/categorias";
 import styles from "./ConsultaDespesas.module.css";
 import type { ActionState } from "@/types/actions";
-import type { Competencia } from "@/lib/expenses";
+import type { Competencia } from "@/types/competencia";
 import type { Residencia, ResumoDespesas, DespesaItem, CompetenciaComDespesas } from "@/types/residencia";
 
 interface Confirmacao {
@@ -93,14 +93,14 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
         titulo: "Fechar o mês",
         mensagem: `As despesas de ${competenciaTexto(competencia.month, competencia.year)} ficarão somente leitura e os novos lançamentos passarão para o mês seguinte. Todos os membros serão avisados.`,
         textoConfirmar: "Fechar mês",
-        onConfirmar: () => executarAcao(() => fecharMesAction(residencia.code)),
+        onConfirmar: () => executarAcao(() => fecharMesAction(residencia.code, competencia.month, competencia.year)),
     });
 
     const confirmarReabertura = () => setConfirmacao({
         titulo: "Reabrir o mês",
         mensagem: `${competenciaTexto(competencia.month, competencia.year)} voltará a aceitar alterações nas despesas.`,
         textoConfirmar: "Reabrir",
-        onConfirmar: () => executarAcao(() => reabrirMesAction(residencia.code)),
+        onConfirmar: () => executarAcao(() => reabrirMesAction(residencia.code, competencia.month, competencia.year)),
     });
 
     return (

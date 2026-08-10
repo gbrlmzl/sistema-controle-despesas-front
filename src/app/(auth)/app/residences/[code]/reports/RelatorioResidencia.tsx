@@ -12,7 +12,7 @@ import { gerarCsv, baixarCsv } from "@/utils/csv";
 import { compartilharResumoDaResidencia } from "@/utils/resumoImagem";
 import Snackbar from "@/components/ui/Snackbar";
 import styles from "./RelatorioResidencia.module.css";
-import type { Competencia } from "@/lib/expenses";
+import type { Competencia } from "@/types/competencia";
 import type { Residencia, CompetenciaComDespesas } from "@/types/residencia";
 import type { RelatorioComDesvios, Comparativo, Evolucao, Rateio, DespesaExportacao } from "@/types/relatorios";
 

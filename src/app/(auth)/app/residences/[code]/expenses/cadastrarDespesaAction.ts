@@ -1,10 +1,8 @@
 'use server'
 
-import db from "@/lib/prisma";
-import { auth } from "@/auth";
+import { apiFetch, ApiError } from "@/lib/apiClient";
+import { getCurrentUser } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { carregarVinculoDoUsuario } from "@/lib/residence";
-import { competenciaAberta } from "@/lib/expenses";
 import { despesaSchema } from "@/schemas/despesas";
 import { parseValorParaCentavos } from "@/utils/dinheiro";
 import { competenciaTexto } from "@/utils/categorias";
@@ -16,33 +14,15 @@ export default async function cadastrarDespesaAction(_prevState: ActionState | n
     const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
     // 1 -> Verifica se o usuário está autenticado
-    const session = await auth();
-    if (!session) {
+    const user = await getCurrentUser();
+    if (!user) {
         return {
             message: 'Usuário não autenticado',
             success: false,
         }
     }
 
-    // 2 -> RN-018: só lança despesa quem é membro da residência
-    const contexto = await carregarVinculoDoUsuario(data.code, session.user.email);
-
-    if (!contexto) {
-        return {
-            message: 'Residência não encontrada',
-            success: false,
-        }
-    }
-
-    // 3 -> Q-9 da US-020: residência arquivada não aceita novas despesas
-    if (contexto.isArchived) {
-        return {
-            message: 'Esta residência está arquivada e não aceita novas despesas.',
-            success: false,
-        }
-    }
-
-    // 4 -> O valor é convertido antes da validação, porque depende do formato digitado
+    // 2 -> O valor é convertido antes da validação, porque depende do formato digitado
     const valueInCents = parseValorParaCentavos(data.value);
 
     if (valueInCents === null) {
@@ -69,39 +49,30 @@ export default async function cadastrarDespesaAction(_prevState: ActionState | n
 
     const payload = parseResult.data;
 
-    // 5 -> RN-020: a despesa cai sempre na competência aberta, nunca numa escolhida pelo usuário
-    const competencia = await competenciaAberta(contexto.residencia.id);
-
-    // 6 -> Cria o lançamento vinculado à residência e ao autor (CA-3)
+    // 3 -> Lança a despesa via API — ela já garante que só membro lança (RN-018),
+    //que residência arquivada não aceita novos lançamentos (Q-9) e que a despesa
+    //cai sempre na competência aberta (RN-020).
     try {
-        await db.expense.create({
-            data: {
-                name: payload.name,
-                valueInCents: payload.valueInCents,
-                category: payload.category,
-                month: competencia.month,
-                year: competencia.year,
-                residenceId: contexto.residencia.id,
-                createdById: contexto.usuario.id,
-                isRecurring: payload.isRecurring,
-            },
-        })
+        const { expense } = await apiFetch<{ expense: { month: number; year: number } }>(`/residences/${data.code}/expenses`, {
+            method: "POST",
+            body: payload,
+        });
 
-        revalidatePath(`/app/residences/${contexto.residencia.code}/expenses`);
-        revalidatePath(`/app/residences/${contexto.residencia.code}/expenses/recurring`);
+        revalidatePath(`/app/residences/${data.code}/expenses`);
+        revalidatePath(`/app/residences/${data.code}/expenses/recurring`);
 
         return {
             success: true,
-            message: `Despesa lançada em ${competenciaTexto(competencia.month, competencia.year)}!`,
+            message: `Despesa lançada em ${competenciaTexto(expense.month, expense.year)}!`,
         }
-
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            return { message: error.message, success: false };
+        }
         return {
             message: 'Erro ao cadastrar a despesa. Tente novamente mais tarde.',
             success: false,
         }
     }
-
-
 }

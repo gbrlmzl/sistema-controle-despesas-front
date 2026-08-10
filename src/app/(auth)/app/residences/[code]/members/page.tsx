@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
-import { auth } from "@/auth";
-import db from "@/lib/prisma";
-import { buscarResidenciaDoMembro } from "@/lib/residence";
+import { getResidenceDetail } from "@/lib/residenceApi";
 import type { ParamsResidencia } from "@/types/routes";
 
 import GerenciarMembros from "./GerenciarMembros";
@@ -10,35 +8,16 @@ import GerenciarMembros from "./GerenciarMembros";
 export default async function Membros({ params }: ParamsResidencia) {
     const { code } = await params;
 
-    const session = await auth();
-    if (!session?.user.email) {
-        notFound();
-    }
-
-    const usuario = await db.user.findUnique({
-        select: { id: true },
-        where: {
-            email: session.user.email,
-        },
-    });
-
-    if (!usuario) {
-        notFound();
-    }
-
     //RN-010 -> quem não é membro recebe o mesmo resultado de código inexistente.
     //Qualquer membro pode ver quem mora na casa; só o owner enxerga as ações de gestão.
-    const residenciaCompleta = await buscarResidenciaDoMembro(code, usuario.id);
-
-    if (!residenciaCompleta) {
+    const detalhe = await getResidenceDetail(code);
+    if (!detalhe) {
         notFound();
     }
-
-    const { id: _residenciaId, ...residencia } = residenciaCompleta;
 
     return (
         <div className="primaryCard">
-            <GerenciarMembros residencia={residencia} />
+            <GerenciarMembros residencia={detalhe.residence} />
         </div>
     )
 

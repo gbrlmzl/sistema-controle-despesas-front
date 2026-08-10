@@ -1,10 +1,8 @@
 'use server'
 
-import db from "@/lib/prisma";
-import { auth } from "@/auth";
+import { apiFetch, ApiError } from "@/lib/apiClient";
+import { getCurrentUser } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { carregarVinculoDoUsuario } from "@/lib/residence";
-import { mesEstaFechado } from "@/lib/expenses";
 import { despesaSchema } from "@/schemas/despesas";
 import { parseValorParaCentavos } from "@/utils/dinheiro";
 import type { ActionState } from "@/types/actions";
@@ -15,59 +13,15 @@ export default async function editarDespesaAction(_prevState: ActionState | null
     const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
     // 1 -> Verifica se o usuário está autenticado
-    const session = await auth();
-    if (!session) {
+    const user = await getCurrentUser();
+    if (!user) {
         return {
             message: 'Usuário não autenticado',
             success: false,
         }
     }
 
-    // 2 -> Carrega o vínculo de quem está editando
-    const contexto = await carregarVinculoDoUsuario(data.code, session.user.email);
-
-    if (!contexto) {
-        return {
-            message: 'Residência não encontrada',
-            success: false,
-        }
-    }
-
-    if (contexto.isArchived) {
-        return {
-            message: 'Esta residência está arquivada e não aceita alterações.',
-            success: false,
-        }
-    }
-
-    // 3 -> Q-5: só o autor edita a própria despesa. O filtro por createdById é o que
-    //garante isso mesmo se alguém chamar a action com o id de um lançamento alheio.
-    const despesa = await db.expense.findFirst({
-        where: {
-            id: data.expenseId,
-            residenceId: contexto.residencia.id,
-            createdById: contexto.usuario.id,
-            deletedAt: null,
-        },
-        select: { id: true, month: true, year: true },
-    });
-
-    if (!despesa) {
-        return {
-            message: 'Você só pode editar as despesas que você mesmo lançou.',
-            success: false,
-        }
-    }
-
-    // 4 -> Competência fechada fica somente leitura
-    if (await mesEstaFechado(contexto.residencia.id, despesa.month, despesa.year)) {
-        return {
-            message: 'Este mês já foi fechado e não aceita mais alterações.',
-            success: false,
-        }
-    }
-
-    // 5 -> Valida os novos dados
+    // 2 -> Valida os novos dados
     const valueInCents = parseValorParaCentavos(data.value);
 
     if (valueInCents === null) {
@@ -94,33 +48,30 @@ export default async function editarDespesaAction(_prevState: ActionState | null
 
     const payload = parseResult.data;
 
-    // 6 -> A competência não muda: editar corrige o lançamento, não o move de mês
+    // 3 -> Edita via API — ela já garante que só o autor edita a própria despesa
+    //(Q-5), que residência arquivada é somente leitura e que mês fechado fica
+    //congelado. A competência não muda: editar corrige o lançamento, não o move de mês.
     try {
-        await db.expense.update({
-            where: { id: despesa.id },
-            data: {
-                name: payload.name,
-                valueInCents: payload.valueInCents,
-                category: payload.category,
-                isRecurring: payload.isRecurring,
-            },
-        })
+        await apiFetch(`/residences/${data.code}/expenses/${data.expenseId}`, {
+            method: "PATCH",
+            body: payload,
+        });
 
-        revalidatePath(`/app/residences/${contexto.residencia.code}/expenses`);
-        revalidatePath(`/app/residences/${contexto.residencia.code}/expenses/recurring`);
+        revalidatePath(`/app/residences/${data.code}/expenses`);
+        revalidatePath(`/app/residences/${data.code}/expenses/recurring`);
 
         return {
             success: true,
             message: 'Despesa atualizada!',
         }
-
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            return { message: error.message, success: false };
+        }
         return {
             message: 'Erro ao atualizar a despesa. Tente novamente mais tarde.',
             success: false,
         }
     }
-
-
 }

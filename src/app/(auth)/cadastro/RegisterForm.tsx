@@ -2,13 +2,13 @@
 import registerAction from "./registerAction";
 import { useActionState, useEffect } from "react";
 import Form from "next/form"
-import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
 import styles from './RegisterForm.module.css';
 
+const GOOGLE_LOGIN_URL = "/api/auth/google";
 
 export default function RegisterForm() {
     const [state, formAction, isPending] = useActionState(registerAction, null);  // Hook para gerenciar o estado da ação do formulário
@@ -19,11 +19,9 @@ export default function RegisterForm() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [googleLoading, setGoogleLoading] = useState(false);
     const [atLeast8Chars, setAtLeast8Chars] = useState(false);
     const [hasNumberOrSymbol, setHasNumberOrSymbol] = useState(false);
     const [passwordsMatch, setPasswordsMatch] = useState(false);
-    const { update } = useSession();
     const router = useRouter();
 
 
@@ -50,20 +48,10 @@ export default function RegisterForm() {
 
     useEffect(() => {
         if (state?.success) {
-            update();              // atualiza a sessão no Session Provider
-            router.push("/login"); // redireciona o usuário para a página de login
+            router.refresh();  // atualiza o usuário no contexto (UserProvider) — o cadastro já loga
+            router.push("/");  // a API já estabelece sessão no registro, não precisa passar por /login
         }
     }, [state?.success, router]);
-
-
-    async function handleGoogleSignIn() {
-        if (googleLoading) return;
-        setGoogleLoading(true);
-
-        await signIn('google');
-
-        setGoogleLoading(false);
-    };
 
     return (
         <div className={styles.container}>
@@ -133,17 +121,9 @@ export default function RegisterForm() {
                 </div>
                 <div className={styles.socialMediaLoginContainer}>
                     <p>Ou crie uma conta com</p>
-                    <div className={styles.socialMediaLogin}>
-                        <button type="button" onClick={handleGoogleSignIn}
-                            disabled={googleLoading}
-                            aria-busy={googleLoading}
-                            aria-disabled={googleLoading}>
-                            <span>
-                                <img src="/icons/googleIcon.svg" alt="Login com Google" />
-                            </span>
-                        </button>
-                    </div>
-
+                    <a href={GOOGLE_LOGIN_URL} className={styles.socialMediaLogin}>
+                        <img src="/icons/googleIcon.svg" alt="Login com Google" />
+                    </a>
                 </div>
                 <div className={styles.submitButtonContainer}>
                     <button type="submit" disabled={isPending || !dadosPreenchidos}>

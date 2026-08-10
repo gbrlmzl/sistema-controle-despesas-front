@@ -1,71 +1,45 @@
 'use server'
 
-import db from "@/lib/prisma";
-import { auth } from "@/auth";
+import { apiFetch, ApiError } from "@/lib/apiClient";
+import { getCurrentUser } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { carregarVinculoDoUsuario } from "@/lib/residence";
 import type { ActionState } from "@/types/actions";
 
 
 
 export default async function arquivarResidenciaAction(code: string, arquivar: boolean): Promise<ActionState> {
     // 1 -> Verifica se o usuário está autenticado
-    const session = await auth();
-    if (!session) {
+    const user = await getCurrentUser();
+    if (!user) {
         return {
             message: 'Usuário não autenticado',
             success: false,
         }
     }
 
-    // 2 -> Carrega o vínculo de quem está pedindo o arquivamento
-    const contexto = await carregarVinculoDoUsuario(code, session.user.email);
-
-    if (!contexto) {
-        return {
-            message: 'Residência não encontrada',
-            success: false,
-        }
-    }
-
-    // 3 -> Q-12 / RN-033: apenas o owner arquiva e desarquiva
-    if (!contexto.isOwner) {
-        return {
-            message: 'Apenas o criador da residência pode arquivá-la.',
-            success: false,
-        }
-    }
-
-    // 4 -> Evita gravar um estado que já é o atual
-    if (arquivar === contexto.isArchived) {
-        return {
-            message: arquivar ? 'Esta residência já está arquivada.' : 'Esta residência não está arquivada.',
-            success: false,
-        }
-    }
-
-    // 5 -> Arquivar é reversível (Q-10): guarda a data ao arquivar e limpa ao desarquivar
+    // 2 -> Arquiva/desarquiva via API — ela já garante que só o owner faz isso
+    //(Q-12/RN-033) e evita gravar um estado que já é o atual.
     try {
-        await db.residence.update({
-            where: { id: contexto.residencia.id },
-            data: { archivedAt: arquivar ? new Date() : null },
-        })
+        await apiFetch(`/residences/${code}`, {
+            method: "PATCH",
+            body: { archived: arquivar },
+        });
 
-        revalidatePath(`/app/residences/${contexto.residencia.code}`);
+        revalidatePath(`/app/residences/${code}`);
         revalidatePath('/app/residences');
 
         return {
             success: true,
             message: arquivar ? 'Residência arquivada.' : 'Residência desarquivada.',
         }
-
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            return { message: error.message, success: false };
+        }
         return {
             message: 'Erro ao arquivar a residência. Tente novamente mais tarde.',
             success: false,
         }
     }
-
-
 }

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import type { NotificationType } from "@/generated/client";
+import { apiFetchClient } from "@/lib/apiClient.client";
+import { ApiError } from "@/lib/apiError";
+import type { NotificationType } from "@/types/notificationType";
 
 interface Notificacao {
     id: number;
@@ -13,18 +15,15 @@ interface Notificacao {
 }
 
 interface RespostaListagem {
-    success: boolean;
-    message?: string;
-    data: {
-        notificacoes: Notificacao[];
-        totalPaginas: number;
-        naoLidas: number;
-    };
+    notifications: Notificacao[];
+    total: number;
+    page: number;
+    totalPages: number;
+    unread: number;
 }
 
 interface RespostaAtualizacao {
-    success: boolean;
-    message?: string;
+    unread: number;
 }
 
 export default function useAlertas() {
@@ -39,21 +38,15 @@ export default function useAlertas() {
     const buscarNotificacoes = useCallback(async (paginaDesejada: number) => {
         setLoading(true);
         try {
-            const resposta = await fetch(`/api/notifications?pagina=${paginaDesejada}`);
-            const conteudo = await resposta.json() as RespostaListagem;
+            const conteudo = await apiFetchClient<RespostaListagem>(`/notifications?page=${paginaDesejada}`);
 
-            if (!resposta.ok || !conteudo.success) {
-                setErro(conteudo.message || "Erro ao buscar notificações");
-                return;
-            }
-
-            setNotificacoes(conteudo.data.notificacoes);
-            setTotalPaginas(conteudo.data.totalPaginas);
-            setNaoLidas(conteudo.data.naoLidas);
+            setNotificacoes(conteudo.notifications);
+            setTotalPaginas(conteudo.totalPages);
+            setNaoLidas(conteudo.unread);
             setErro(null);
 
         } catch (error) {
-            setErro("Erro ao buscar notificações");
+            setErro(error instanceof ApiError ? error.message : "Erro ao buscar notificações");
         } finally {
             setLoading(false);
         }
@@ -67,22 +60,15 @@ export default function useAlertas() {
     //CA-5 da US-021 -> marcar todas como lidas
     const marcarTodasComoLidas = async () => {
         try {
-            const resposta = await fetch("/api/notifications", {
+            await apiFetchClient<RespostaAtualizacao>("/notifications", {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ todas: true }),
+                body: { all: true },
             });
-            const conteudo = await resposta.json() as RespostaAtualizacao;
-
-            if (!resposta.ok || !conteudo.success) {
-                setErro(conteudo.message || "Erro ao atualizar notificações");
-                return;
-            }
 
             await buscarNotificacoes(pagina);
 
         } catch (error) {
-            setErro("Erro ao atualizar notificações");
+            setErro(error instanceof ApiError ? error.message : "Erro ao atualizar notificações");
         }
     }
 

@@ -1,4 +1,4 @@
-import { ExpenseCategory } from "@/generated/client";
+import { ExpenseCategory } from "@/types/expenseCategory";
 
 //FEAT-024 -> categorias fixas. Manter o conjunto igual para todas as residências
 //é o que permite comparar os relatórios futuros (FEAT-026) entre casas diferentes.

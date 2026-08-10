@@ -4,7 +4,7 @@ import { formatarValor } from "@/utils/dinheiro";
 import { rotuloCategoria, competenciaTexto, competenciaCurta } from "@/utils/categorias";
 import { formatarMomento } from "@/utils/formatarMomento";
 import styles from "./ResumoDoMes.module.css";
-import type { Competencia } from "@/lib/expenses";
+import type { Competencia } from "@/types/competencia";
 import type { ResumoCompetencia, AtividadeItem } from "@/types/residencia";
 
 interface ResumoDoMesProps {

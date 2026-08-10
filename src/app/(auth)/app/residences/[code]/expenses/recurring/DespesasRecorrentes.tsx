@@ -13,8 +13,8 @@ import Snackbar from "@/components/ui/Snackbar";
 import { formatarValor } from "@/utils/dinheiro";
 import { CATEGORIAS, rotuloCategoria, competenciaTexto } from "@/utils/categorias";
 import styles from './DespesasRecorrentes.module.css';
-import type { ExpenseCategory } from "@/generated/client";
-import type { Competencia } from "@/lib/expenses";
+import type { ExpenseCategory } from "@/types/expenseCategory";
+import type { Competencia } from "@/types/competencia";
 import type { Residencia, DespesaRecorrente } from "@/types/residencia";
 
 interface Confirmacao {

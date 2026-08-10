@@ -1,49 +1,26 @@
 
 'use client';
 import Form from "next/form";
-import loginAction from "./loginAction";
-import { useActionState } from "react";
-import { useSession, signIn } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useLogin } from "@/hooks/useLogin";
 import Link from 'next/link';
 
 import styles from './LoginForm.module.css';
 
+const GOOGLE_LOGIN_URL = "/api/auth/google";
+
 export default function LoginForm() {
-    const [state, formAction, isPending] = useActionState(loginAction, null);
-    const { update } = useSession();
-    const router = useRouter();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [googleLoading, setGoogleLoading] = useState(false);
-
-    useEffect(() => {
-        if (state?.success) {
-            update();          // atualiza a sessão no Session Provider
-            router.push("/"); // redireciona no client
-        }
-    }, [state?.success, router]);
-
-    const dadosPreenchidos = email.trim().length > 0 && password.trim().length > 0;
-
-    function togglePasswordVisibility() {
-        setShowPassword(prev => !prev);
-    }
-
-
-    async function handleGoogleSignIn() {
-        if (googleLoading) return;
-        setGoogleLoading(true);
-
-        await signIn('google');
-
-        setGoogleLoading(false);
-    };
-
-
-
+    const {
+        state,
+        formAction,
+        isPending,
+        username,
+        setUsername,
+        password,
+        setPassword,
+        showPassword,
+        togglePasswordVisibility,
+        dadosPreenchidos,
+    } = useLogin();
 
     return (
         <div className={styles.container}>
@@ -57,7 +34,7 @@ export default function LoginForm() {
 
             <Form action={formAction}>
                 <div className={styles.formFields}>
-                    <input type="email" name="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <input type="text" name="username" placeholder="Nome de usuário" value={username} onChange={(e) => setUsername(e.target.value)} />
                     <div className={styles.passwordField}>
                         <input type={showPassword ? 'text' : 'password'} name="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
                         <span className={styles.passwordToggle} onClick={togglePasswordVisibility}>
@@ -71,17 +48,9 @@ export default function LoginForm() {
                     </div>
                 </div>
                 <div className={styles.socialMediaLoginContainer}>
-                    <div className={styles.socialMediaLogin}>
-                        <button type="button" onClick={handleGoogleSignIn}
-                            disabled={googleLoading}
-                            aria-busy={googleLoading}
-                            aria-disabled={googleLoading}>
-                            <span>
-                                <img src="/icons/googleIcon.svg" alt="Login com Google" />
-                            </span>
-                        </button>
-                    </div>
-
+                    <a href={GOOGLE_LOGIN_URL} className={styles.socialMediaLogin}>
+                        <img src="/icons/googleIcon.svg" alt="Login com Google" />
+                    </a>
                 </div>
 
                 <div className={styles.submitButtonContainer}>

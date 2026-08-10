@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import type { NotificationType } from "@/generated/client";
+import { apiFetchClient } from "@/lib/apiClient.client";
+import type { NotificationType } from "@/types/notificationType";
 
 //RN-035 -> o painel do sino mostra apenas as 5 mais recentes
 const LIMITE_PAINEL = 5;
@@ -19,18 +20,15 @@ interface Notificacao {
 }
 
 interface RespostaListagem {
-    success: boolean;
-    data: {
-        notificacoes: Notificacao[];
-        naoLidas: number;
-    };
+    notifications: Notificacao[];
+    total: number;
+    page: number;
+    totalPages: number;
+    unread: number;
 }
 
 interface RespostaMarcarLidas {
-    success: boolean;
-    data: {
-        naoLidas: number;
-    };
+    unread: number;
 }
 
 export default function useNotificacoes() {
@@ -41,15 +39,10 @@ export default function useNotificacoes() {
 
     const buscarNotificacoes = useCallback(async () => {
         try {
-            const resposta = await fetch(`/api/notifications?limite=${LIMITE_PAINEL}`);
-            const conteudo = await resposta.json() as RespostaListagem;
+            const conteudo = await apiFetchClient<RespostaListagem>(`/notifications?limit=${LIMITE_PAINEL}`);
 
-            if (!resposta.ok || !conteudo.success) {
-                return;
-            }
-
-            setNotificacoes(conteudo.data.notificacoes);
-            setNaoLidas(conteudo.data.naoLidas);
+            setNotificacoes(conteudo.notifications);
+            setNaoLidas(conteudo.unread);
 
         } catch (error) {
             //Falha ao buscar notificação não deve quebrar a navegação: o sino
@@ -97,16 +90,12 @@ export default function useNotificacoes() {
         }
 
         try {
-            const resposta = await fetch("/api/notifications", {
+            const conteudo = await apiFetchClient<RespostaMarcarLidas>("/notifications", {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ids: idsNaoLidos }),
+                body: { ids: idsNaoLidos },
             });
-            const conteudo = await resposta.json() as RespostaMarcarLidas;
 
-            if (resposta.ok && conteudo.success) {
-                setNaoLidas(conteudo.data.naoLidas);
-            }
+            setNaoLidas(conteudo.unread);
 
         } catch (error) {
             //Não conseguir marcar como lida não impede o usuário de ver o painel

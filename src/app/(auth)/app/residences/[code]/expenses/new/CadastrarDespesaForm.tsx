@@ -9,8 +9,8 @@ import cadastrarDespesaAction from "../cadastrarDespesaAction";
 import Snackbar from "@/components/ui/Snackbar";
 import { CATEGORIAS, competenciaTexto } from "@/utils/categorias";
 import styles from './CadastrarDespesaForm.module.css';
-import type { ExpenseCategory } from "@/generated/client";
-import type { Competencia } from "@/lib/expenses";
+import type { ExpenseCategory } from "@/types/expenseCategory";
+import type { Competencia } from "@/types/competencia";
 import type { Residencia } from "@/types/residencia";
 
 interface CadastrarDespesaFormProps {

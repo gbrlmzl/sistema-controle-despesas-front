@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
-import { auth } from "@/auth";
-import db from "@/lib/prisma";
-import { buscarResidenciaDoMembro } from "@/lib/residence";
-import { competenciaAberta, competenciasDaResidencia, listarDespesasDaCompetencia, ultimoFechamento } from "@/lib/expenses";
+import { getResidenceDetail } from "@/lib/residenceApi";
+import { getResidenceExpenses } from "@/lib/expensesApi";
+import { getCurrentUser } from "@/lib/session";
 
 import ConsultaDespesas from "./ConsultaDespesas";
 
@@ -15,59 +14,31 @@ export default async function Despesas({ params, searchParams }: PageProps) {
     const { code } = await params;
     const { mes, ano } = await searchParams;
 
-    const session = await auth();
-    if (!session?.user.email) {
+    const [detalhe, usuario] = await Promise.all([getResidenceDetail(code), getCurrentUser()]);
+    if (!detalhe || !usuario) {
         notFound();
     }
 
-    const usuario = await db.user.findUnique({
-        select: { id: true },
-        where: {
-            email: session.user.email,
-        },
-    });
+    const { residence: residencia } = detalhe;
 
-    if (!usuario) {
-        notFound();
-    }
-
-    //RN-010 -> quem não é membro recebe o mesmo resultado de código inexistente
-    const residenciaCompleta = await buscarResidenciaDoMembro(code, usuario.id);
-
-    if (!residenciaCompleta) {
-        notFound();
-    }
-
-    const { id: residenciaId, ...residencia } = residenciaCompleta;
-
-    const aberta = await competenciaAberta(residenciaId);
-
-    //O seletor mostra a grade de todos os meses do ano, então basta saber quais
-    //competências têm movimento para destacá-las
-    const competencias = await competenciasDaResidencia(residenciaId);
+    const { competencia: aberta } = await getResidenceExpenses(code);
 
     //Q-2 -> a competência aberta vem pré-selecionada
     const month = Number(mes) || aberta.month;
     const year = Number(ano) || aberta.year;
 
-    const [resumo, fechamentoMaisRecente] = await Promise.all([
-        listarDespesasDaCompetencia(residenciaId, month, year),
-        ultimoFechamento(residenciaId),
-    ]);
+    const { resumo } = await getResidenceExpenses(code, { month, year });
 
-    //Só o fechamento mais recente pode ser desfeito, para não abrir buracos na sequência
-    const podeReabrir = Boolean(
-        fechamentoMaisRecente &&
-        fechamentoMaisRecente.month === month &&
-        fechamentoMaisRecente.year === year
-    );
+    //Só o fechamento mais recente pode ser desfeito — a API valida isso no clique
+    //(botão fica disponível sempre que o mês em exibição está fechado).
+    const podeReabrir = resumo.isClosed;
 
     return (
         <div className="primaryCard">
             <ConsultaDespesas
                 residencia={residencia}
                 usuarioId={usuario.id}
-                competencias={competencias}
+                competencias={[]}
                 competencia={{ month: month, year: year }}
                 resumo={resumo}
                 isCompetenciaAberta={month === aberta.month && year === aberta.year}

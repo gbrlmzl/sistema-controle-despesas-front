@@ -1,22 +1,62 @@
-import type { relatorioComDesvios, compararCompetencias, serieDeEvolucao, calcularRateio } from "@/lib/reports";
-import type { ExpenseCategory } from "@/generated/client";
+import type { ExpenseCategory } from "./expenseCategory";
 
-export type RelatorioComDesvios = Awaited<ReturnType<typeof relatorioComDesvios>>;
-export type CategoriaComDesvio = RelatorioComDesvios["categorias"][number];
+export interface CategoriaComDesvio {
+    category: ExpenseCategory;
+    totalInCents: number;
+    quantidade: number;
+    percentual: number;
+    mediaInCents: number | null;
+    desvio: number | null;
+    acimaDaMedia: boolean | null;
+}
 
-export type Comparativo = Awaited<ReturnType<typeof compararCompetencias>>;
-export type CategoriaComparativo = Comparativo["categorias"][number];
+export interface RelatorioComDesvios {
+    categorias: CategoriaComDesvio[];
+    totalInCents: number;
+}
 
-export type Evolucao = Awaited<ReturnType<typeof serieDeEvolucao>>;
-export type ItemEvolucao = Evolucao[number];
+export interface CategoriaComparativo {
+    category: ExpenseCategory;
+    atualInCents: number;
+    anteriorInCents: number;
+    variacaoInCents: number;
+    isNova: boolean;
+    percentual: number | null;
+}
 
-export type Rateio = Awaited<ReturnType<typeof calcularRateio>>;
-export type Participante = Rateio["participantes"][number];
+export interface Comparativo {
+    totalAtualInCents: number;
+    totalAnteriorInCents: number;
+    variacaoInCents: number;
+    percentual: number | null;
+    temBaseDeComparacao: boolean;
+    categorias: CategoriaComparativo[];
+}
+
+export type Evolucao = { month: number; year: number; totalInCents: number }[];
+
+export interface ParticipanteRateio {
+    userId: number;
+    name: string;
+    gastoInCents: number;
+    cotaInCents: number;
+    saldoInCents: number;
+    recebe: boolean;
+    paga: boolean;
+}
+
+export interface Rateio {
+    cotaInCents: number;
+    totalInCents: number;
+    participantes: ParticipanteRateio[];
+    temRateio: boolean;
+}
 
 export interface DespesaExportacao {
-    createdAt: Date;
+    createdAt: string;
     name: string;
     category: ExpenseCategory;
     valueInCents: number;
+    isRecurring: boolean;
     autor: string;
 }

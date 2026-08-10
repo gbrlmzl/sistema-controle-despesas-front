@@ -2,7 +2,8 @@ import "modern-css-reset/dist/reset.min.css";
 import { Montserrat, Roboto_Condensed, Roboto, Poppins, Russo_One } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
-import SessionProvider from "@/components/providers/SessionProvider";
+import UserProvider from "@/components/providers/UserProvider";
+import { getCurrentUser } from "@/lib/session";
 import type { ReactNode } from "react";
 
 const montserratSemibold = Montserrat({
@@ -39,16 +40,17 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
+  const user = await getCurrentUser();
 
   return (
     <html lang="en">
       <body className={`${montserratSemibold.variable} ${robotoCondensed.variable} ${roboto.variable} ${poppins.variable} ${russoOne.variable}`}>
-        <SessionProvider>
+        <UserProvider user={user}>
           <header>
             <Navbar />
           </header>
           {children}
-        </SessionProvider>
+        </UserProvider>
       </body>
     </html>
   );

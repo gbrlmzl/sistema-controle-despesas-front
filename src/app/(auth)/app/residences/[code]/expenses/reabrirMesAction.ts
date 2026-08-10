@@ -1,81 +1,47 @@
 'use server'
 
-import db from "@/lib/prisma";
-import { auth } from "@/auth";
+import { apiFetch, ApiError } from "@/lib/apiClient";
+import { getCurrentUser } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { carregarVinculoDoUsuario } from "@/lib/residence";
-import { ultimoFechamento } from "@/lib/expenses";
 import { competenciaTexto } from "@/utils/categorias";
 import type { ActionState } from "@/types/actions";
 
 
 
-export default async function reabrirMesAction(code: string): Promise<ActionState> {
+export default async function reabrirMesAction(code: string, month: number, year: number): Promise<ActionState> {
     // 1 -> Verifica se o usuário está autenticado
-    const session = await auth();
-    if (!session) {
+    const user = await getCurrentUser();
+    if (!user) {
         return {
             message: 'Usuário não autenticado',
             success: false,
         }
     }
 
-    // 2 -> Carrega o vínculo de quem está reabrindo
-    const contexto = await carregarVinculoDoUsuario(code, session.user.email);
-
-    if (!contexto) {
-        return {
-            message: 'Residência não encontrada',
-            success: false,
-        }
-    }
-
-    // 3 -> Reabrir é do owner, assim como fechar
-    if (!contexto.isOwner) {
-        return {
-            message: 'Apenas o criador da residência pode reabrir um mês.',
-            success: false,
-        }
-    }
-
-    if (contexto.isArchived) {
-        return {
-            message: 'Esta residência está arquivada. Desarquive-a para reabrir um mês.',
-            success: false,
-        }
-    }
-
-    // 4 -> Só o fechamento mais recente pode ser desfeito. Reabrir um mês do meio
-    //deixaria buracos na sequência de meses fechados, que é o que dá sentido à
-    //ideia de "conta acertada até tal mês".
-    const fechamento = await ultimoFechamento(contexto.residencia.id);
-
-    if (!fechamento) {
-        return {
-            message: 'Não há nenhum mês fechado nesta residência.',
-            success: false,
-        }
-    }
+    // 2 -> Reabre via API — ela já garante que só o owner reabre, que residência
+    //arquivada é somente leitura e que só o fechamento mais recente pode ser
+    //desfeito (evita abrir buracos na sequência de meses fechados).
+    const periodo = `${year}-${String(month).padStart(2, '0')}`;
 
     try {
-        await db.monthClosure.delete({
-            where: { id: fechamento.id },
-        })
+        await apiFetch(`/residences/${code}/expenses/month-closures/${periodo}`, {
+            method: "DELETE",
+        });
 
-        revalidatePath(`/app/residences/${contexto.residencia.code}/expenses`);
+        revalidatePath(`/app/residences/${code}/expenses`);
 
         return {
             success: true,
-            message: `Mês de ${competenciaTexto(fechamento.month, fechamento.year)} reaberto.`,
+            message: `Mês de ${competenciaTexto(month, year)} reaberto.`,
         }
-
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            return { message: error.message, success: false };
+        }
         return {
             message: 'Erro ao reabrir o mês. Tente novamente mais tarde.',
             success: false,
         }
     }
-
-
 }

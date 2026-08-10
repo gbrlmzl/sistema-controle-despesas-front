@@ -2,7 +2,7 @@ import "./app.css";
 import type { ReactNode } from "react";
 
 //A exigência de sessão pra tudo em /app/** é responsabilidade do middleware
-//(src/middleware.js) — ele roda antes desta página renderizar.
+//(src/proxy.ts) — ele roda antes desta página renderizar.
 export default function ControleDespesasLayout({ children }: { children: ReactNode }) {
     return (
         <div className="paginaConteudo">

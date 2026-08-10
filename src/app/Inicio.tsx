@@ -2,13 +2,10 @@
 import Image from 'next/image';
 import styles from './Inicio.module.css';
 import Link from 'next/link';
-import type { Session } from 'next-auth';
+import { useCurrentUser } from '@/components/providers/UserProvider';
 
-interface InicioProps {
-    session: Session | null;
-}
-
-export default function Inicio({ session }: InicioProps) {
+export default function Inicio() {
+    const user = useCurrentUser();
 
     return (
         <div className={styles.container}>
@@ -18,7 +15,7 @@ export default function Inicio({ session }: InicioProps) {
                 <div className={styles.description}>
                     <p>O Cronos te ajuda a organizar as despesas mensais da residência que você divide com seus colegas,
                         registrando cada despesa e determinando quanto cada residente paga e recebe. </p>
-                    {session ? (
+                    {user ? (
                         <div className={styles.contextContainer}>
                             <Link href="/app" className={styles.linkButton}>Começar a utilizar</Link>
                         </div>
@@ -42,7 +39,7 @@ export default function Inicio({ session }: InicioProps) {
                     </div>
 
                 </div>
-                {session ? (
+                {user ? (
                     <div className={styles.contextContainer}>
                         <Link href="/app" className={styles.linkButton}>Começar a utilizar</Link>
                     </div>

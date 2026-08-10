@@ -8,7 +8,7 @@ import ResumoDoMes from "./ResumoDoMes";
 import ConfirmacaoModal from "./ConfirmacaoModal";
 import Snackbar from "@/components/ui/Snackbar";
 import styles from "./PainelResidencia.module.css";
-import type { Competencia } from "@/lib/expenses";
+import type { Competencia } from "@/types/competencia";
 import type { Residencia, SolicitacaoPendente, ConviteEnviado, ResumoCompetencia, AtividadeItem } from "@/types/residencia";
 
 interface PainelResidenciaProps {

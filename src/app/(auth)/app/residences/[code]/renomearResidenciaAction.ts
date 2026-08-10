@@ -1,10 +1,9 @@
 'use server'
 
-import db from "@/lib/prisma";
-import { auth } from "@/auth";
+import { apiFetch, ApiError } from "@/lib/apiClient";
+import { getCurrentUser } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { criarResidenciaSchema } from "@/schemas/residencias";
-import { carregarVinculoDoUsuario } from "@/lib/residence";
 import type { ActionState } from "@/types/actions";
 
 
@@ -13,8 +12,8 @@ export default async function renomearResidenciaAction(_prevState: ActionState |
     const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
     // 1 -> Verifica se o usuário está autenticado
-    const session = await auth();
-    if (!session) {
+    const user = await getCurrentUser();
+    if (!user) {
         return {
             message: 'Usuário não autenticado',
             success: false,
@@ -41,55 +40,29 @@ export default async function renomearResidenciaAction(_prevState: ActionState |
 
     const payload = parseResult.data;
 
-    // 4 -> Carrega o vínculo de quem está pedindo a renomeação
-    const contexto = await carregarVinculoDoUsuario(data.code, session.user.email);
-
-    if (!contexto) {
-        return {
-            message: 'Residência não encontrada',
-            success: false,
-        }
-    }
-
-    // 5 -> RN-031: apenas o owner renomeia
-    if (!contexto.isOwner) {
-        return {
-            message: 'Apenas o criador da residência pode renomeá-la.',
-            success: false,
-        }
-    }
-
-    // 6 -> RN-032: residência arquivada é somente leitura
-    if (contexto.isArchived) {
-        return {
-            message: 'Esta residência está arquivada. Desarquive-a para renomeá-la.',
-            success: false,
-        }
-    }
-
-    // 7 -> RN-030: só o nome muda; o code permanece o mesmo para não invalidar
-    //os códigos que já foram compartilhados.
+    // 4 -> Renomeia via API — ela já garante que só o owner renomeia (RN-031) e que
+    //residência arquivada é somente leitura (RN-032). O code permanece o mesmo.
     try {
-        await db.residence.update({
-            where: { id: contexto.residencia.id },
-            data: { name: payload.name },
-        })
+        await apiFetch(`/residences/${data.code}`, {
+            method: "PATCH",
+            body: { name: payload.name },
+        });
 
-        revalidatePath(`/app/residences/${contexto.residencia.code}`);
+        revalidatePath(`/app/residences/${data.code}`);
         revalidatePath('/app/residences');
 
         return {
             success: true,
             message: 'Nome da residência atualizado!',
         }
-
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            return { message: error.message, success: false };
+        }
         return {
             message: 'Erro ao renomear a residência. Tente novamente mais tarde.',
             success: false,
         }
     }
-
-
 }
