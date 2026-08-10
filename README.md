@@ -2,282 +2,521 @@
 
 > _"O amigo que te ajuda a controlar suas despesas!"_
 
-Aplicação web para **divisão de despesas mensais entre um grupo de pessoas**. O usuário cadastra as pessoas, lança as despesas de cada uma em um determinado mês/ano, e o sistema calcula automaticamente quem **paga** e quem **recebe** para que todos fiquem quites — no melhor estilo "rachar a conta".
+Aplicação web para **controle colaborativo de despesas de uma casa compartilhada**. Cada usuário cria ou entra em uma **residência**, os membros lançam suas despesas ao longo do mês, e o sistema consolida tudo por competência: total por membro, relatórios por categoria, comparativo entre meses e o **rateio** que aponta quem paga e quem recebe para todos ficarem quites.
+
+Este repositório contém o **front-end**. O back-end vive em um projeto separado: [`sistema-controle-despesas-api`](https://github.com/gbrlmzl/sistema-controle-despesas-api).
 
 ---
 
 ## 📑 Índice
 
+- [Arquitetura geral](#-arquitetura-geral)
 - [Funcionalidades](#-funcionalidades)
 - [Stack & Tecnologias](#-stack--tecnologias)
-- [Arquitetura](#-arquitetura)
-- [Modelo de Dados](#-modelo-de-dados)
+- [Estrutura do front-end](#-estrutura-do-front-end)
+- [Rotas do front-end](#-rotas-do-front-end)
+- [Autenticação e sessão](#-autenticação-e-sessão)
 - [API REST](#-api-rest)
-- [Autenticação](#-autenticação)
-- [Frontend: páginas, componentes e hooks](#-frontend-páginas-componentes-e-hooks)
-- [Convenções de código](#-convenções-de-código)
+- [Modelo de dados](#-modelo-de-dados)
+- [Regras de negócio](#-regras-de-negócio)
+- [Testes](#-testes)
 - [Como rodar](#-como-rodar)
 - [Variáveis de ambiente](#-variáveis-de-ambiente)
+- [Convenções de código](#-convenções-de-código)
+- [Documentação complementar](#-documentação-complementar)
+- [Pendências conhecidas](#-pendências-conhecidas)
+
+---
+
+## 🏗️ Arquitetura geral
+
+Na V1 o projeto era um monolito Next.js (Route Handlers + Server Actions + Prisma no mesmo repositório). Na **V2.0** o back-end foi extraído para uma **API Express independente**, e o Next.js passou a ser um consumidor dela — mantendo, porém, SSR e React Server Components. A decisão e as alternativas consideradas estão em [`docs/decisao-arquitetura-frontend.md`](docs/decisao-arquitetura-frontend.md).
+
+```
+┌───────────────┐   /api/:path*      ┌──────────────────┐   Prisma    ┌────────────┐
+│   Navegador   │ ─── rewrite ─────► │  Next.js (front) │ ──────────► │            │
+│               │                    │   :3000          │  fetch      │            │
+│  cookies do   │ ◄──────────────────│                  │ ──────────► │ API Express│ ──► PostgreSQL
+│  domínio do   │                    └──────────────────┘             │   :3001    │
+│    front      │                                                     └────────────┘
+└───────────────┘
+```
+
+Dois pontos que definem essa integração:
+
+- **Proxy same-origin.** O navegador nunca fala direto com a API. O `rewrite` de `/api/:path*` em [`next.config.ts`](next.config.ts) encaminha as chamadas do cliente para a API no servidor. Assim não há CORS no navegador e os cookies de sessão pertencem ao domínio do front — o que é essencial para o [`src/proxy.ts`](src/proxy.ts) conseguir enxergá-los.
+- **Server Components chamam a API direto.** Páginas e Server Actions usam [`lib/apiClient.ts`](src/lib/apiClient.ts), que fala com a API server-to-server e repassa os cookies manualmente (o `fetch` do servidor não faz isso sozinho para outra origem).
 
 ---
 
 ## ✨ Funcionalidades
 
+Organizadas pelos épicos do [documento de requisitos da V2.0](docs/release-v2.0-requisitos.md).
+
+### Conta e identidade
+
 | Funcionalidade | Descrição |
 |---|---|
-| **Autenticação** | Login por credenciais (email + senha com hash bcrypt) ou via **Google OAuth**. Cadastro de novo usuário. |
-| **Cadastro de pessoas** | Registra de 2 a 9 pessoas (nome + email) vinculadas ao usuário autenticado. |
-| **Cadastro de despesas** | Lança as despesas de cada pessoa para um mês/ano específico. Detecta se o mês já tem lançamentos e permite sobrescrever. |
-| **Consulta de despesas** | Visualiza os lançamentos de um mês, com detalhamento por pessoa e navegação entre meses. |
-| **Resumo de despesas** | Cálculo do rateio: total, valor por pessoa, e quem paga / quem recebe. |
-| **Cálculo de acerto** | Divide o total igualmente e determina o saldo de cada pessoa (`saldo = médiaPorPessoa − totalGastoPessoa`). |
-| **Compartilhamento** | Gera uma **imagem PNG** (via SVG → Canvas) do resumo/detalhes para compartilhar (Web Share API) ou baixar. |
-| **Foto de perfil** | Escolha entre **20 avatares SVG pré-definidos**; login via Google traz a foto da conta Google. |
-| **Alterar senha** | Troca de senha para contas de credenciais (valida senha atual). |
-| **Formatar sistema** | Reseta os dados da conta (pessoas + despesas) via **soft delete**, preservando histórico para auditoria. |
+| **Cadastro e login** | Conta com nome, `username`, e-mail e senha. O **login é feito pelo `username`**, não pelo e-mail. |
+| **Login com Google** | OAuth via Google (opcional — a API funciona sem ele). Gera um `username` automático a partir do e-mail. |
+| **Identificador público (`username`)** | Campo único e público que permite convidar alguém sem expor o e-mail. |
+| **Perfil** | Edição do nome e escolha entre **20 avatares SVG**; conta Google traz a foto da conta. |
+| **Alterar senha** | Só para contas com senha local (contas só-Google não têm o que trocar). |
+
+### Residências
+
+| Funcionalidade | Descrição |
+|---|---|
+| **Criar residência** | Nome livre; o sistema gera um **código curto e único** que identifica a casa. |
+| **Listar residências** | Todas as residências das quais o usuário é membro, com criador e ação de copiar o código. |
+| **Painel da residência** | Visão geral com resumo do mês, membros e atalhos para despesas e relatórios. |
+| **Renomear / arquivar** | Só o owner. Residência arquivada fica **somente leitura**. |
+| **Sair da residência** | Membro sai por vontade própria; o owner precisa **transferir a propriedade** antes. |
+| **Remover membro** | Só o owner, e nunca a si mesmo. |
+| **Transferir propriedade** | Passa o papel de owner para outro membro, em transação única. |
+| **Regenerar código** | Invalida o código anterior (útil se ele vazou) e derruba as solicitações pendentes. |
+
+### Acesso: convites e solicitações
+
+Dois fluxos simétricos de entrada:
+
+| Fluxo | Como funciona |
+|---|---|
+| **De fora para dentro** — solicitação | O usuário digita o **código** da residência e gera uma solicitação, que o owner aceita ou recusa. |
+| **De dentro para fora** — convite | O owner convida alguém pelo **`username`**; o convidado aceita ou recusa. Convites expiram em **7 dias**. |
+
+Complementos: **cancelamento** pelo próprio autor enquanto pendente, **central de notificações** (sino na navbar + tela dedicada) e **proteção contra tentativa em massa** de códigos.
+
+### Despesas colaborativas
+
+| Funcionalidade | Descrição |
+|---|---|
+| **Lançar despesa** | Qualquer membro lança, de forma incremental, a qualquer momento do mês. Valor guardado **em centavos**. |
+| **Categoria** | Obrigatória, com cinco valores fixos: Alimentação, Contas domésticas, Assinaturas, Lazer e Outros. |
+| **Consultar por competência** | Agrupamento por membro, com total por membro e total geral, navegando entre meses. |
+| **Editar / excluir** | Apenas os próprios lançamentos, com exclusão lógica (`deletedAt`). |
+| **Despesa recorrente** | Marcada para ser recriada na competência seguinte quando o owner fecha o mês. Tela dedicada de gestão. |
+| **Fechar / reabrir mês** | O owner fecha a conta do mês; a competência fechada fica somente leitura e a aberta passa a ser a seguinte. |
+
+### Relatórios e análise
+
+| Funcionalidade | Descrição |
+|---|---|
+| **Relatório por categoria** | Quanto foi gasto em cada categoria, em duas abas: **da residência** e **pessoal**. |
+| **Comparativo entre meses** | Variação absoluta e percentual entre duas competências, no total e por categoria. |
+| **Gráficos** | Composição por categoria e evolução das últimas 6 competências (Recharts). |
+| **Rateio entre membros** | Divisão igual do total entre os membros atuais, apontando quem paga e quem recebe. |
+| **Média e variação** | Compara a competência atual com a média das 3 anteriores, sinalizando desvios. |
+| **Exportar CSV** | Baixa os lançamentos da competência em planilha pronta para o Excel em português. |
+| **Compartilhar imagem** | Gera um PNG do resumo do mês (SVG desenhado à mão → canvas) para enviar no grupo da casa. |
 
 ---
 
 ## 🧰 Stack & Tecnologias
 
+### Front-end (este repositório)
+
 | Camada | Tecnologia |
 |---|---|
-| **Framework** | Next.js 15.4 (App Router) + React 19 |
-| **Linguagem** | JavaScript (ES Modules) + TypeScript nos schemas de validação |
-| **Autenticação** | NextAuth v5 (beta) — Credentials + Google Provider |
-| **ORM / Banco** | Prisma 7 + PostgreSQL 16 (driver adapter `@prisma/adapter-pg`) |
+| **Framework** | Next.js 16 (App Router, Turbopack) + React 19 |
+| **Linguagem** | TypeScript (`strict`) |
+| **Estilo** | CSS Modules + `modern-css-reset` + `next/font` |
 | **Validação** | Zod 4 |
-| **Hash de senha** | bcrypt |
-| **Estilo** | **CSS Modules** + `modern-css-reset` + `next/font` (fontes do Google) |
+| **Gráficos** | Recharts 3 |
 | **Datas** | date-fns, react-datepicker |
-| **Geração de imagem** | SVG + Canvas nativo (com `html2canvas` / `dom-to-image-more` como dependências auxiliares) |
-| **Infra dev** | Docker + Docker Compose (Postgres + app) |
+| **Testes** | Jest 30 + Testing Library + `next/jest` (SWC) |
+
+### API ([repositório separado](https://github.com/gbrlmzl/sistema-controle-despesas-api))
+
+| Camada | Tecnologia |
+|---|---|
+| **Runtime** | Node.js 24 + Express 5 |
+| **Linguagem** | TypeScript (ESM), executado com `tsx` em dev |
+| **ORM / Banco** | Prisma 7 + PostgreSQL (adapter `@prisma/adapter-pg`) |
+| **Autenticação** | JWT (`jsonwebtoken`) + refresh token rotativo + Passport (Google OIDC) |
+| **Hash de senha** | bcrypt |
+| **Validação** | Zod 4 |
+| **Testes** | Jest 30 + Supertest (unitários + integração) |
 
 ---
 
-## 🏗️ Arquitetura
-
-Aplicação **Next.js App Router** monolítica: o mesmo projeto serve o frontend (React Server/Client Components) e o backend (Route Handlers em `src/app/api`). O acesso a dados é centralizado no Prisma Client (`src/lib/prisma.js`, singleton).
-
-### Estrutura de diretórios
+## 📁 Estrutura do front-end
 
 ```
 src/
 ├── app/
-│   ├── layout.js              # Root layout: fontes, reset, Navbar, SessionProvider
-│   ├── page.js                # Landing page (Início)
-│   ├── globals.css            # Variáveis CSS globais + reset de button/a
-│   ├── (auth)/                # Route group das telas "de aplicação"
-│   │   ├── app/               # Área protegida (redireciona p/ /login sem sessão)
-│   │   │   ├── layout.js      # Guarda de rota (auth() + redirect) + footer
-│   │   │   └── page.js        # Monta <ControleDespesas/>
-│   │   ├── login/             # Tela de login (form + Google)
-│   │   ├── cadastro/          # Cadastro de usuário (Server Action)
-│   │   ├── profile/           # Perfil + galeria de avatares
-│   │   │   └── settings/password/  # Troca de senha (Server Action)
-│   │   └── (logout)/
-│   └── api/                   # Backend (Route Handlers)
-│       ├── auth/[...nextauth]/route.js   # Handlers do NextAuth
-│       ├── expenses/route.js             # GET / POST despesas
-│       ├── persons/route.js              # GET / POST pessoas
-│       └── users/me/
-│           ├── route.js                  # PATCH (avatar)
-│           └── data/route.js             # DELETE (formatar sistema)
-├── components/                # Componentes de UI e de feature
-│   ├── ControleDespesas.jsx   # Orquestrador central (roteia entre telas via estado)
-│   ├── ControleDespesasMenu.jsx
-│   ├── cadastraPessoa/  cadastraDespesa/  consultarDespesas/
-│   ├── resumoDespesas/  formatarSistema/  sistema/  shared/
-│   ├── providers/SessionProvider.jsx
-│   └── ui/                    # Navbar, Snackbar, Loading, LogoutButton
-├── hooks/                     # Lógica de estado por feature (padrão "1 hook por fluxo")
-├── lib/                       # prisma.js, user.js, avatars.js
-├── schemas/                   # Schemas Zod (gastos, pessoas, usuarios)
-├── utils/                     # compartilharDespesas.js (geração de imagem)
-└── generated/                 # Prisma Client gerado (output custom)
+│   ├── layout.tsx                  # Root layout: fontes, Navbar, UserProvider (resolve a sessão)
+│   ├── page.tsx / Inicio.tsx       # Landing page
+│   ├── error.tsx / global-error.tsx
+│   └── (auth)/                     # Route group das telas de aplicação
+│       ├── login/  cadastro/       # Autenticação (Server Actions)
+│       ├── profile/                # Perfil, avatares e troca de senha
+│       └── app/
+│           ├── page.tsx            # Menu principal
+│           ├── alerts/             # Central de notificações
+│           └── residences/
+│               ├── page.tsx        # Lista + pendências de acesso
+│               ├── new/  join/     # Criar / entrar por código
+│               └── [code]/         # Contexto da residência
+│                   ├── page.tsx    # Painel
+│                   ├── members/    # Gestão de membros
+│                   ├── settings/   # Renomear, arquivar, regenerar código
+│                   ├── expenses/   # Consulta, cadastro (new/) e recorrentes (recurring/)
+│                   └── reports/    # Relatórios e gráficos
+├── components/
+│   ├── providers/UserProvider.tsx  # Contexto de "quem está logado" (substitui o useSession)
+│   ├── residencias/                # ResidenciasMenu
+│   └── ui/                         # Navbar, Snackbar, Loading, SinoNotificacoes
+├── hooks/                          # useLogin, useProfile, useResidencias, useAlertas, useNotificacoes
+├── lib/
+│   ├── apiClient.ts                # Cliente HTTP server-side (repassa cookies, retry de refresh)
+│   ├── apiClient.client.ts         # Cliente HTTP client-side (refresh deduplicado + cooldown)
+│   ├── apiError.ts                 # ApiError + parse do envelope de erro
+│   ├── session.ts                  # getCurrentUser() — substitui o auth() do NextAuth
+│   ├── expensesApi.ts / reportsApi.ts / residenceApi.ts
+│   └── avatars.ts / residenceCode.ts
+├── schemas/                        # Schemas Zod (despesas, residências, usuários)
+├── types/                          # Tipos compartilhados (auth, residencia, competencia, …)
+├── utils/                          # dinheiro (centavos), categorias, csv, resumoImagem, formatarMomento
+└── proxy.ts                        # Guarda de rota (middleware do Next.js)
 
-prisma/
-├── schema.prisma
-└── migrations/                # Histórico de migrations versionadas
 public/
-├── avatars/                   # avatar-01.svg … avatar-20.svg
-├── icons/  fonts/  assets/
+├── avatars/                        # avatar-01.svg … avatar-20.svg
+└── icons/  fonts/  assets/
 ```
 
-### Fluxo de navegação interna
-
-A área logada (`/app`) usa um **orquestrador por estado** em vez de sub-rotas: o componente [`ControleDespesas.jsx`](src/components/ControleDespesas.jsx) mantém `opcaoMenu` (via `useControleDespesas`) e renderiza condicionalmente a tela correspondente:
-
-```
-menu → { consultaDespesa | cadastraDespesa | resumoDespesa | sistema | cadastraPessoas | formatarSistema }
-```
-
-`useControleDespesas` é o hook "raiz": ao montar, busca pessoas (`GET /api/persons`) e despesas (`GET /api/expenses`), guarda em `listaPessoas` / `listaDespesas` e distribui para as telas filhas junto com as funções de atualização.
+Cada página é um **Server Component** que busca dados via `lib/*Api.ts` e delega a interação a um Client Component irmão. As mutações são **Server Actions** (arquivos `*Action.ts`), que validam com Zod, chamam a API e disparam `revalidatePath`.
 
 ---
 
-## 🗄️ Modelo de Dados
+## 🗺️ Rotas do front-end
 
-Definido em [`prisma/schema.prisma`](prisma/schema.prisma). PostgreSQL.
-
-```
-User ────< UserAuthProvider        (1 usuário → N provedores de auth)
-  │
-  └──────< Person ────< Expense    (1 usuário → N pessoas → N despesas)
-```
-
-| Model | Campos principais | Observações |
+| Rota | Descrição | Protegida |
 |---|---|---|
-| **User** | `id`, `name`, `email` (único), `password?`, `profilePic?`, `createdAt` | `password` nulo para contas só-Google. `profilePic` guarda URL do Google **ou** caminho de avatar local (`/avatars/avatar-XX.svg`). |
-| **UserAuthProvider** | `id`, `userId`, `provider`, `providerId`, `createdAt` | Único por `(provider, providerId)`. `provider` = `google` \| `local`. FK com `onDelete: Cascade`. |
-| **Person** | `id`, `name`, `email`, `userId`, **`deletedAt?`** | Vinculada ao usuário. `deletedAt` = soft delete. |
-| **Expense** | `id` (uuid), `name`, `value`, `month`, `year`, `personId`, **`deletedAt?`** | Vinculada à pessoa. `deletedAt` = soft delete. |
+| `/` | Landing page | — |
+| `/login` | Login por `username` + senha | só deslogado |
+| `/cadastro` | Criação de conta | só deslogado |
+| `/profile` | Perfil e galeria de avatares | ✅ |
+| `/profile/settings/password` | Troca de senha | ✅ |
+| `/app` | Menu principal | ✅ |
+| `/app/alerts` | Histórico de notificações | ✅ |
+| `/app/residences` | Lista de residências + pendências | ✅ |
+| `/app/residences/new` | Criar residência | ✅ |
+| `/app/residences/join` | Entrar por código | ✅ |
+| `/app/residences/[code]` | Painel da residência | ✅ |
+| `/app/residences/[code]/members` | Gerenciar membros | ✅ |
+| `/app/residences/[code]/settings` | Configurações da residência | ✅ |
+| `/app/residences/[code]/expenses` | Consulta por competência | ✅ |
+| `/app/residences/[code]/expenses/new` | Lançar despesa | ✅ |
+| `/app/residences/[code]/expenses/recurring` | Despesas recorrentes | ✅ |
+| `/app/residences/[code]/reports` | Relatórios e gráficos | ✅ |
 
-### Soft delete
+---
 
-Exclusões **não removem** registros: marcam `deletedAt = now()`. Todas as leituras filtram `deletedAt: null`. Isso mantém o histórico auditável (ex.: sobrescrita de um mês de despesas marca as antigas como deletadas e cria as novas).
+## 🔐 Autenticação e sessão
+
+O NextAuth foi removido na V2.0. Hoje a sessão é inteiramente da API, e o front apenas transporta cookies.
+
+### Os dois tokens
+
+| Token | Formato | Vida | Cookie |
+|---|---|---|---|
+| **Access token** | JWT stateless (HS256) | 15 min | `JWT` — `httpOnly`, `sameSite: lax` |
+| **Refresh token** | Valor opaco aleatório (40 bytes) | 7 dias | `refreshToken` — `httpOnly`, `sameSite: strict`, `path=/auth` |
+
+O refresh token **não é um JWT de propósito**: ele não carrega claim nenhuma, e o banco é a única fonte de verdade sobre validade. Só o **hash SHA-256** é guardado, nunca o valor em texto puro.
+
+### Rotação com detecção de reuso
+
+Cada refresh gera um token novo e revoga o anterior, todos agrupados por um `familyId` (a cadeia de rotação de um mesmo login). Se um token **já revogado** for apresentado de novo, é sinal de roubo: a **família inteira é revogada**, forçando login novo. Ver `rotateRefreshToken` no `authService` da API.
+
+### Como o front participa
+
+```
+1. proxy.ts (Edge)     → só checa a PRESENÇA do cookie JWT, sem validar assinatura
+2. layout.tsx          → getCurrentUser() chama GET /users/me a cada render
+3. apiClient           → em 401, tenta POST /auth/refresh uma vez e repete a chamada
+```
+
+Três detalhes que valem atenção:
+
+- **O `proxy.ts` não é autorização.** Ele roda no Edge Runtime, onde a biblioteca de JWT da API não funciona, então só resolve "tem cookie ou não" antes da página renderizar. A autorização de verdade é sempre da API, a cada chamada — um cookie presente mas expirado passa pelo proxy e falha depois.
+- **O `apiClient` do servidor repassa os cookies na mão** e reaplica os `Set-Cookie` da API via `next/headers`, porque nada disso é automático em `fetch` server-to-server.
+- **O `apiClient.client` deduplica o refresh**: se duas chamadas tomam 401 ao mesmo tempo, a segunda espera a promise que a primeira já disparou. Há ainda um cooldown de 30s após uma falha, para não entrar em loop.
 
 ---
 
 ## 🔌 API REST
 
-Todas as rotas exigem sessão autenticada (via `auth()`) e retornam o envelope padronizado `{ success, message, data }`.
+Base local: `http://localhost:3001`. Do front, tudo passa por `/api/*` (rewrite). Erros sempre respondem `{ message }` com o status apropriado.
 
-| Método | Rota | Descrição | Body / Query |
-|---|---|---|---|
-| `GET` | `/api/persons` | Lista pessoas ativas do usuário | — |
-| `POST` | `/api/persons` | Cadastra pessoas | `{ listaPessoasACadastrar: [{nome, email}] }` (Zod: 2–9) |
-| `GET` | `/api/expenses` | Lista despesas ativas (opcionalmente por mês/ano) | `?mes=&ano=` |
-| `POST` | `/api/expenses` | Registra despesas de um mês (soft-delete das antigas + cria novas) | `{ lista, mes, ano }` (Zod) |
-| `PATCH` | `/api/users/me` | Atualiza a foto de perfil | `{ avatar: "/avatars/avatar-XX.svg" }` (validado contra whitelist) |
-| `DELETE` | `/api/users/me/data` | Formata o sistema (soft-delete de pessoas + despesas) | `{ textoConfirmacao: "FORMATAR SISTEMA" }` |
-| `GET/POST` | `/api/auth/[...nextauth]` | Handlers do NextAuth | — |
+### Autenticação — `/auth` (público)
 
-**Segurança:** o e-mail do usuário vem sempre da **sessão** (nunca do body). O `PATCH` de avatar valida contra a whitelist `isValidAvatar()` para impedir gravação de valores arbitrários.
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/auth/register` | Cria a conta e já estabelece a sessão |
+| `POST` | `/auth/login` | Login por `username` + `password` |
+| `POST` | `/auth/refresh` | Rotaciona o refresh token e emite novo access token |
+| `POST` | `/auth/logout` | Revoga o refresh token e limpa os cookies |
+| `GET` | `/auth/google` | Início do OAuth _(só se o Google estiver configurado)_ |
+| `GET` | `/auth/google/callback` | Callback do OAuth |
+
+### Usuários — `/users` 🔒
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/users/me` | Usuário da sessão |
+| `PATCH` | `/users/me` | Atualiza nome e/ou avatar |
+| `PATCH` | `/users/me/password` | Troca a senha (valida a atual) |
+
+### Residências — `/residences` 🔒
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/residences` | Residências do usuário + pendências de acesso |
+| `POST` | `/residences` | Cria residência (gera o código) |
+| `GET` | `/residences/:code` | Detalhe + convites enviados + solicitações pendentes |
+| `PATCH` | `/residences/:code` | Renomeia / arquiva / desarquiva _(owner)_ |
+| `POST` | `/residences/:code/code` | Regenera o código _(owner)_ |
+| `POST` | `/residences/:code/invites` | Convida por `username` _(owner)_ |
+| `PUT` | `/residences/:code/owner` | Transfere a propriedade _(owner)_ |
+| `DELETE` | `/residences/:code/members/me` | Sair da residência |
+| `DELETE` | `/residences/:code/members/:userId` | Remove membro _(owner)_ |
+| `POST` | `/residences/join-requests` | Solicita entrada por código |
+| `PATCH` | `/residences/join-requests/:id` | Aceita / recusa solicitação _(owner)_ |
+| `DELETE` | `/residences/join-requests/:id` | Cancela a própria solicitação |
+| `PATCH` | `/residences/invites/:id` | Aceita / recusa convite recebido |
+| `DELETE` | `/residences/invites/:id` | Cancela convite enviado _(owner)_ |
+
+### Despesas — `/residences/:code/expenses` 🔒
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/expenses?month=&year=` | Despesas da competência, agrupadas por membro _(sem query: a competência aberta)_ |
+| `POST` | `/expenses` | Lança despesa na competência aberta |
+| `PATCH` | `/expenses/:expenseId` | Edita a própria despesa |
+| `DELETE` | `/expenses/:expenseId` | Exclui (lógico) a própria despesa |
+| `GET` | `/expenses/recurring` | Recorrentes do próprio usuário |
+| `DELETE` | `/expenses/:expenseId/recurrence` | Para a recorrência sem excluir o lançamento |
+| `POST` | `/expenses/month-closures` | Fecha o mês _(owner)_ |
+| `DELETE` | `/expenses/month-closures/:period` | Reabre o mês _(owner)_ |
+
+### Relatórios e notificações 🔒
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/residences/:code/reports?month=&year=&tab=` | Relatório da competência. `tab` = `residence` (padrão) ou `personal` |
+| `GET` | `/notifications` | Notificações do usuário (paginadas) |
+| `PATCH` | `/notifications` | Marca notificações como lidas |
+| `GET` | `/health` | Health check (público) |
 
 ---
 
-## 🔐 Autenticação
+## 🗄️ Modelo de dados
 
-Configurada em [`src/auth.js`](src/auth.js) com **NextAuth v5**:
+PostgreSQL via Prisma. O schema vive na API (`prisma/schema.prisma`).
 
-- **Credentials Provider** — valida email/senha via `findUserByCredentials` ([`src/lib/user.js`](src/lib/user.js)), comparando o hash bcrypt.
-- **Google Provider** — no callback `signIn`, cria o usuário se não existir (com a foto do Google), ou vincula o provider Google a um usuário existente. A foto do Google **só** preenche `profilePic` se ele estiver nulo (não sobrescreve avatar escolhido pelo usuário).
-- **Callbacks `jwt` / `session`** — propagam `dbId`, `profilePic` e `provider` para o token e a sessão. `update({ updateType: "profilePicture" })` recarrega a foto do banco após troca de avatar.
+```
+User ──< UserAuthProvider          (provedores de login: local | google)
+ │  └──< RefreshToken              (sessões, com rotação por familyId)
+ │
+ ├──< Membership >── Residence     (N:N com papel OWNER | MEMBER)
+ ├──< Invite      >── Residence    (convite: de dentro para fora)
+ ├──< JoinRequest >── Residence    (solicitação: de fora para dentro)
+ ├──< Expense     >── Residence    (lançamento numa competência)
+ ├──< MonthClosure>── Residence    (fechamento do mês)
+ ├──< Notification                 (avisos genéricos)
+ └──< JoinAttempt                  (rate limit de entrada por código)
+```
 
-**Proteção de rota:** o layout [`(auth)/app/layout.js`](src/app/(auth)/app/layout.js) é um Server Component que chama `auth()` e faz `redirect("/login")` quando não há sessão.
+| Model | Campos-chave | Observações |
+|---|---|---|
+| **User** | `name`, `email` (único), `username` (único), `password?`, `profilePic?` | `password` nulo em contas só-Google. `username` é o identificador **público** e o login. |
+| **RefreshToken** | `tokenHash` (único), `familyId`, `expiresAt`, `revokedAt?` | Nunca guarda o token em texto puro. |
+| **Residence** | `name`, `code` (único), `ownerId`, `archivedAt?` | Arquivada = somente leitura. |
+| **Membership** | `userId` + `residenceId` (único), `role` | `OWNER` \| `MEMBER`. |
+| **Invite** / **JoinRequest** | `status`, `expiresAt` (convite), `respondedAt?` | `PENDING` \| `ACCEPTED` \| `DECLINED` \| `CANCELLED` \| `EXPIRED`. |
+| **Expense** | `name`, **`valueInCents`**, `category`, `month`, `year`, `isRecurring`, `deletedAt?` | Valor **em centavos**: ponto flutuante acumularia erro na soma e o rateio depende de totais exatos. |
+| **MonthClosure** | `residenceId` + `year` + `month` (único), `closedById` | Fechamento da conta do mês. |
+| **Notification** | `type`, `title`, `message`, `linkTo?`, `readAt?` | Catálogo extensível; qualquer área publica aqui. |
+| **JoinAttempt** | `userId`, `createdAt` | Contador persistido, para sobreviver a restart e múltiplas instâncias. |
 
-**Registro e troca de senha** usam **Server Actions** (`'use server'`):
-- [`cadastro/registerAction.js`](src/app/(auth)/cadastro/registerAction.js) — valida com Zod, checa duplicidade, cria `User` + `UserAuthProvider` (provider `local`).
-- [`profile/settings/password/changePasswordAction.js`](src/app/(auth)/profile/settings/password/changePasswordAction.js) — confere a senha atual e grava a nova (hash bcrypt).
+**Enums:** `MembershipRole`, `AccessStatus`, `ExpenseCategory` (`ALIMENTACAO`, `DOMESTICAS`, `ASSINATURAS`, `LAZER`, `OUTROS`) e `NotificationType` (convite recebido, solicitação recebida/aceita/recusada, membro removido, propriedade transferida, mês fechado).
 
 ---
 
-## 🖥️ Frontend: páginas, componentes e hooks
+## 📋 Regras de negócio
 
-### Páginas (App Router)
+As regras (`RN-XXX`) são catalogadas em [`docs/release-v2.0-requisitos.md`](docs/release-v2.0-requisitos.md) e referenciadas em comentários no código da API. As mais estruturantes:
 
-| Rota | Arquivo | Tipo |
-|---|---|---|
-| `/` | `app/page.js` | Landing / Início |
-| `/app` | `(auth)/app/page.js` | Área protegida (orquestrador) |
-| `/login` | `(auth)/login/page.js` | Login |
-| `/cadastro` | `(auth)/cadastro/page.js` | Cadastro de usuário |
-| `/profile` | `(auth)/profile/page.js` | Perfil + avatares |
-| `/profile/settings/password` | `(auth)/profile/settings/password/page.js` | Troca de senha |
+### Competência (mês/ano)
 
-### Componentes (por feature)
+- **A competência aberta é o mês corrente**; se o owner já o fechou, passa a ser o seguinte (RN-020).
+- Toda despesa cai **sempre na competência aberta** — nunca numa escolhida pelo cliente.
+- Reabrir um mês passado o destrava para edição, mas **não muda** onde os novos lançamentos caem.
 
-| Grupo | Componentes | Responsabilidade |
-|---|---|---|
-| **Orquestração** | `ControleDespesas`, `ControleDespesasMenu` | Roteamento interno da área logada |
-| **cadastraPessoa/** | `CadastraPessoa`, `SeletorNumeroPessoas`, `PessoaInfo`, `ConfirmaPessoas`, `ExistemPessoasCadastradas`, `ResultadoCadastro` | Fluxo de cadastro de pessoas por etapas |
-| **cadastraDespesa/** | `CadastraDespesa`, `DespesaInfo`, `ConfirmaDespesa`, `SobrescreveDespesa`, `ResumoPagamento`, `ResultadoCadastro`, `PessoasNaoCadastradas` | Fluxo de lançamento de despesas |
-| **consultarDespesas/** | `ConsultarDespesas`, `DespesasResumo`, `DespesasDetalhes` | Consulta e detalhamento por mês |
-| **resumoDespesas/** | `ResumoDespesas`, `DespesasInfoResumo`, `DespesasNaoCadastradas` | Rateio e resumo |
-| **formatarSistema/** | `FormatarSistema`, `Aviso`, `Confirmacao`, `ResumoFormatacao` | Fluxo de reset de dados |
-| **sistema/** | `Sistema` | Submenu "Sistema" (formatar etc.) |
-| **shared/** | `SeletorData`, `DespesasNaoCadastradas` | Reuso entre fluxos |
-| **ui/** | `Navbar`, `Snackbar`, `Loading`, `LogoutButton` | UI base |
-| **providers/** | `SessionProvider` | Wrapper do `SessionProvider` do NextAuth |
+### Acesso e visibilidade
 
-### Hooks customizados
+- Só membros veem uma residência. Quem não é membro recebe **404**, igual a residência inexistente (RN-009 / RN-010) — não dá para descobrir se um código existe.
+- Uma solicitação recusada só pode ser refeita **depois de uma hora** (RN-013).
+- Convites expiram em **7 dias** (RN-015).
+- **10 tentativas** malsucedidas de código em 15 minutos bloqueiam por 15 minutos, contadas **por usuário autenticado** (RN-049 / RN-051).
+- Regenerar o código derruba as solicitações pendentes (nasceram do código antigo), mas **não toca nos membros atuais** (RN-047 / RN-048).
 
-O projeto segue o padrão **"um hook por fluxo"** — toda a lógica de estado/negócio de uma feature fica em um hook, deixando o componente focado em renderização.
+### Propriedade e saída
 
-| Hook | Responsabilidade |
+- O owner **não pode sair** sem antes transferir a propriedade — a residência nunca fica sem dono (RN-021 / RN-017).
+- A transferência acontece em **transação única**, para nunca haver zero ou dois owners.
+- Quem sai (ou é removido) **leva junto os lançamentos da competência aberta** (RN-022 / RN-026), para o rateio não ficar inflado por gastos de quem não está mais na casa.
+
+### Rateio e relatórios
+
+- Divisão **igual** do total pelo número de membros atuais (FEAT-029).
+- A sobra da divisão em centavos é distribuída **de um em um centavo** entre os primeiros participantes (RN-066) — assim a soma das cotas bate com o total e a soma dos saldos dá exatamente zero.
+- Lançamentos excluídos ficam de fora do relatório (RN-057).
+- O gráfico de evolução mostra as **últimas 6 competências** (RN-062); a média usa as **3 anteriores** (RN-068).
+- A aba pessoal olha **só para a residência atual**, nunca soma as outras (RN-060).
+
+---
+
+## 🧪 Testes
+
+### Front-end
+
+Jest 30 + Testing Library, com a transformação via **`next/jest`** — que usa o mesmo SWC do Next.js, sem Babel. A configuração já cobre CSS Modules, imagens, `next/font` e o alias `@/*`.
+
+```bash
+npm test
+```
+
+| Arquivo | Papel |
 |---|---|
-| [`useControleDespesas`](src/hooks/useControleDespesas.jsx) | Hook raiz: carrega pessoas e despesas do backend, mantém `opcaoMenu` e distribui dados/atualizadores |
-| [`useCadastroPessoas`](src/hooks/useCadastroPessoas.jsx) | Etapas de cadastro de pessoas, validação de email, `POST /api/persons` |
-| [`useCadastroDespesas`](src/hooks/useCadastroDespesas.jsx) | Etapas de lançamento, detecção/sobrescrita de mês, cálculo de acerto, `GET/POST /api/expenses` |
-| [`useConsultarDespesas`](src/hooks/useConsultarDespesas.jsx) | Busca local por mês/ano, navegação entre meses, detalhamento por pessoa |
-| [`useResumoDespesas`](src/hooks/useResumoDespesas.jsx) | Cálculo do rateio e compartilhamento do resumo |
-| [`useFormatarSistema`](src/hooks/useFormatarSistema.jsx) | Fluxo de confirmação + `DELETE /api/users/me/data` |
-| [`useProfile`](src/hooks/useProfile.jsx) | Galeria de avatares, seleção e `PATCH /api/users/me` |
+| [`jest.config.ts`](jest.config.ts) | Config via `nextJest({ dir })` + `moduleNameMapper` do alias e `testEnvironment: jsdom` |
+| [`jest.setup.ts`](jest.setup.ts) | Importa `@testing-library/jest-dom` |
+| `.env.test` | Necessário porque o Next.js **não carrega `.env.local` em `NODE_ENV=test`**, e o `next.config.ts` exige `API_URL` |
 
-### Utilitários
+> Testes ficam junto do código, em arquivos `*.test.tsx` / `*.spec.tsx` ou dentro de `__tests__/`.
 
-- [`utils/compartilharDespesas.js`](src/utils/compartilharDespesas.js) — gera imagens PNG (tabelas de detalhes, resumo e acerto) montando um **SVG** com a fonte Roboto Condensed embutida como data URL, rasterizando em `<canvas>` a 2x e compartilhando via **Web Share API** (com fallback para download).
-- [`lib/avatars.js`](src/lib/avatars.js) — `AVATARS` (lista dos 20 caminhos) + `isValidAvatar()` (whitelist usada no front e no back).
+### API
 
----
+Jest + Supertest, separados em `tests/unit` (services e schemas) e `tests/integration` (rotas de ponta a ponta).
 
-## 📐 Convenções de código
-
-- **CSS Modules** por componente (`*.module.css`), com algumas variáveis globais em `globals.css` e fontes injetadas via `next/font` como CSS vars (`--font-roboto`, `--font-poppins`, etc.).
-- **Um hook por fluxo** — separa lógica de UI (ver TODO em `useCadastroPessoas` sobre separar responsabilidades).
-- **Validação com Zod** em toda entrada de API e Server Action.
-- **Envelope de resposta** padronizado nas rotas: `{ success, message, data }`.
-- **Soft delete** em `Person` e `Expense` — nunca `delete` físico.
-- Models e rotas em **inglês**; parte da UI, hooks e schemas ainda em **português** (dívida de padronização conhecida).
+```bash
+npm test
+```
 
 ---
 
 ## 🚀 Como rodar
 
-### Com Docker (recomendado)
+São **dois processos** — a API precisa estar no ar para o front funcionar.
 
-O `docker-compose.yml` sobe o Postgres e o app. Na subida, o container roda automaticamente `npm install`, `prisma generate` e `prisma migrate deploy`.
+### 1. Banco de dados
+
+Um PostgreSQL acessível. A forma mais rápida:
 
 ```bash
-docker compose up --build
+docker run --name cronos-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=sistema_controle_despesas -p 5432:5432 -d postgres:16-alpine
 ```
 
-App em `http://localhost:3000`, Postgres em `localhost:5432`.
+### 2. API
 
-> **Fluxo de dev (WSL + Windows):** o projeto é editado no Windows mas os containers rodam no WSL — arquivos novos criados no host podem não propagar ao container já em execução. O fluxo é: editar → `git commit` → `git pull` no WSL → `docker compose up`.
+```bash
+cd ../sistema-controle-despesas-api
+npm install
+cp .env.example .env    # preencha DATABASE_URL e JWT_SECRET
+npx prisma migrate dev  # aplica as migrations e gera o client
+npm run dev             # sobe em http://localhost:3001
+```
 
-### Local (sem Docker)
+> `JWT_SECRET` precisa de no mínimo 32 caracteres. Gere um com:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+> ```
+
+### 3. Front-end
 
 ```bash
 npm install
-npx prisma migrate dev     # aplica migrations e gera o client
-npm run dev
+cp .env.example .env.local   # ajuste API_URL para a porta onde a API subiu
+npm run dev                  # sobe em http://localhost:3000
 ```
 
-### Scripts npm
+### Scripts
 
-| Script | Ação |
-|---|---|
-| `npm run dev` | Servidor de desenvolvimento (Turbopack) |
-| `npm run build` | Build de produção |
-| `npm run start` | Servidor de produção |
-| `npm run lint` | ESLint |
-| `npm run prisma:generate` | Gera o Prisma Client |
-| `npm run prisma:migrate` | `prisma migrate dev` |
-| `npm run prisma:studio` | Abre o Prisma Studio |
+| Projeto | Script | Ação |
+|---|---|---|
+| **Front** | `npm run dev` | Servidor de desenvolvimento (Turbopack) |
+| | `npm run build` / `npm start` | Build e servidor de produção |
+| | `npm run lint` | ESLint |
+| | `npm test` | Jest |
+| **API** | `npm run dev` | `tsx watch` em `src/server.ts` |
+| | `npm run build` / `npm start` | Compila para `dist/` e executa |
+| | `npm test` | Jest (unitários + integração) |
+| | `npm run prisma:generate` | Gera o Prisma Client |
 
 ---
 
 ## 🔑 Variáveis de ambiente
 
-| Arquivo | Variáveis |
-|---|---|
-| `.env` | `DATABASE_URL` (usado pelo Prisma). Opcional: `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` para o compose (senão usa defaults). |
-| `.env.local` | `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_TRUST_HOST` |
+### Front-end
 
-> Dentro do Docker, `DATABASE_URL` aponta para o host `db` (`postgresql://…@db:5432/…`); fora do Docker, para `localhost:5432`. Arquivos `.env*` são ignorados pelo git.
+| Variável | Descrição |
+|---|---|
+| `API_URL` | URL base da API, usada pelo rewrite e pelo `apiClient` server-side. **Obrigatória** — o `next.config.ts` falha na subida sem ela. |
+
+Definida em `.env.local` (desenvolvimento) e `.env.test` (testes, versionado por não conter segredo).
+
+### API
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `DATABASE_URL` | — | **Obrigatória.** Conexão do PostgreSQL. |
+| `JWT_SECRET` | — | **Obrigatória.** Mínimo de 32 caracteres. |
+| `PORT` | `3001` | Porta do servidor. |
+| `NODE_ENV` | `development` | `development` \| `test` \| `production`. |
+| `FRONTEND_URL` | `http://localhost:3000` | Origem do front (CORS com credenciais + redirect do OAuth). |
+| `JWT_EXPIRES_IN` | `15m` | Vida do access token. |
+| `REFRESH_TOKEN_EXPIRES_IN` | `7d` | Vida do refresh token. |
+| `GOOGLE_CLIENT_ID`<br>`GOOGLE_CLIENT_SECRET`<br>`GOOGLE_CALLBACK_URL`<br>`COOKIE_SESSION_SECRET` | — | Login com Google. **Opcionais, mas tudo ou nada**: ou as quatro são preenchidas, ou nenhuma. Sem elas a API sobe normalmente só com login por credenciais. |
+
+As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://github.com/gbrlmzl/sistema-controle-despesas-api/blob/master/src/config/env.ts)): se algo estiver faltando ou malformado, a API falha imediatamente com a mensagem do erro, em vez de quebrar mais tarde.
 
 ---
 
-_Projeto de [github.com/gbrlmzl](https://github.com/gbrlmzl)._
+## 📐 Convenções de código
+
+- **CSS Modules por componente** (`*.module.css`), com variáveis globais em `globals.css` e fontes injetadas via `next/font` como CSS vars.
+- **Server Components buscam, Client Components interagem.** A página resolve os dados e passa para um componente cliente irmão.
+- **Mutação é Server Action.** Arquivos `*Action.ts` com `'use server'`, retornando o `ActionState` comum (`{ success, message, data? }`) e chamando `revalidatePath`.
+- **Zod em toda entrada**, tanto nas Server Actions quanto nas rotas da API.
+- **Dinheiro em centavos** (inteiro) de ponta a ponta; a formatação para exibição fica em `utils/dinheiro.ts`.
+- **Exclusão lógica** em `Expense` (`deletedAt`) — leituras sempre filtram `deletedAt: null`.
+- **Comentários explicam o porquê, não o quê.** O código da API é denso em comentários que justificam decisões e citam a regra de negócio correspondente.
+- Models, rotas e campos em **inglês**; UI, hooks, schemas e mensagens em **português**.
+
+---
+
+## 📚 Documentação complementar
+
+| Documento | Conteúdo |
+|---|---|
+| [`docs/release-v2.0-requisitos.md`](docs/release-v2.0-requisitos.md) | Backlog completo, estórias de usuário e cenários BDD da V2.0 |
+| [`docs/decisao-arquitetura-frontend.md`](docs/decisao-arquitetura-frontend.md) | Por que o Next.js foi mantido em vez de virar SPA com Vite |
+| [`docs/plano-api-node-express.md`](docs/plano-api-node-express.md) | Plano de extração da API para Node/Express |
+| [`docs/plano-integracao-frontend-api.md`](docs/plano-integracao-frontend-api.md) | Plano de integração do front com a API |
+| [`docs/estrategia-tratamento-erros-api.md`](docs/estrategia-tratamento-erros-api.md) | Estratégia de tratamento de erros nas chamadas à API |
+| [`docs/migracao-typescript.md`](docs/migracao-typescript.md) | Registro da migração de JavaScript para TypeScript |
+| [`docs/relatorios/RELATORIO_V1.1.md`](docs/relatorios/RELATORIO_V1.1.md) | Relatório da versão anterior |
+
+---
+
+## ⚠️ Pendências conhecidas
+
+- **O setup Docker está quebrado.** Continua sendo o do monolito da V1: o [`docker-compose.yml`](docker-compose.yml) sobe um Postgres, define `DATABASE_URL` e roda `prisma generate && prisma migrate deploy` no front — que não tem mais Prisma nem acessa banco. E o [`Dockerfile.dev`](Dockerfile.dev) faz `COPY prisma ./prisma`, uma pasta que não existe mais aqui, então **a imagem sequer constrói**. Precisa ser reescrito para orquestrar front + API + Postgres, ou removido. Por isso as instruções acima sobem os serviços manualmente.
+- **`NEXT_PUBLIC_API_URL` não é usada** por nenhum código — resquício em `.env.local` que pode ser removido.
+- **Épico de administração e auditoria** (papel ADMIN, trilha de auditoria, monitoramento de acessos) está fora do escopo da V2.0 e não iniciado.
+
+---
+
+_Projeto de [github.com/gbrlmzl](https://github.com/gbrlmzl) — front-end e [API](https://github.com/gbrlmzl/sistema-controle-despesas-api)._
