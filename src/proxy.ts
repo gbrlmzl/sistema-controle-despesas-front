@@ -13,7 +13,7 @@ export default function proxy(req: NextRequest) {
     const estaLogado = req.cookies.has("JWT");
     const { pathname } = req.nextUrl;
 
-    const precisaLogin = pathname.startsWith("/app") || pathname.startsWith("/profile");
+    const precisaLogin = pathname.startsWith("/dashboard") || pathname.startsWith("/profile");
 
     if (precisaLogin && !estaLogado) {
         return NextResponse.redirect(new URL("/login", req.nextUrl));
@@ -27,5 +27,5 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/app/:path*", "/profile/:path*", "/login", "/cadastro"],
+    matcher: ["/dashboard/:path*", "/profile/:path*", "/login", "/cadastro"],
 };
