@@ -2,6 +2,7 @@
 //Client Component. Não deve ser importado fora de Server Actions/Components.
 import { cookies } from "next/headers";
 import { ApiError, parseApiResponse } from "./apiError";
+import { parseSetCookie } from "./setCookie";
 
 const API_URL = process.env.API_URL;
 
@@ -29,40 +30,21 @@ async function cookieHeader(): Promise<string> {
     return cookieStore.getAll().map(c => `${c.name}=${c.value}`).join("; ");
 }
 
-//Um Set-Cookie da API vira um cookie no navegador só se a gente o repetir aqui —
-//parse manual porque next/headers não aceita a string crua de Set-Cookie.
-function applySetCookie(rawSetCookie: string, cookieStore: Awaited<ReturnType<typeof cookies>>): void {
-    const parts = rawSetCookie.split(";").map(p => p.trim());
-    const [name, ...valueParts] = parts[0].split("=");
-    const value = valueParts.join("=");
-
-    const options: Record<string, unknown> = {};
-    for (const attr of parts.slice(1)) {
-        const [rawKey, rawVal] = attr.split("=");
-        const key = rawKey.toLowerCase();
-        switch (key) {
-            case "path":
-                options.path = rawVal;
-                break;
-            case "max-age":
-                options.maxAge = Number(rawVal);
-                break;
-            case "expires":
-                options.expires = new Date(rawVal);
-                break;
-            case "samesite":
-                options.sameSite = rawVal.toLowerCase();
-                break;
-            case "secure":
-                options.secure = true;
-                break;
-            case "httponly":
-                options.httpOnly = true;
-                break;
+//Um Set-Cookie da API vira um cookie no navegador só se a gente o repetir aqui.
+//Fora de Server Action/Route Handler (ex.: getCurrentUser rodando durante o render de
+//um Server Component), o Next.js proíbe escrever cookie e cookieStore.set() lança —
+//nesse caso o proxy.ts (middleware) já devia ter renovado a sessão antes do render (é
+//o único ponto do fluxo onde dá pra persistir cookie a tempo); se mesmo assim sobrar um
+//401 aqui, só falha graciosamente em vez de derrubar a página inteira.
+function applySetCookies(rawSetCookies: string[], cookieStore: Awaited<ReturnType<typeof cookies>>): void {
+    try {
+        for (const raw of rawSetCookies) {
+            const { name, value, options } = parseSetCookie(raw);
+            cookieStore.set(name, value, options);
         }
+    } catch {
+        // ver comentário acima
     }
-
-    cookieStore.set(name, value, options);
 }
 
 async function doFetch(path: string, init: RequestInit): Promise<Response> {
@@ -89,20 +71,14 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
 
     if (res.status === 401 && !skipAuthRetry && !path.startsWith("/auth")) {
         const refreshed = await doFetch("/auth/refresh", { method: "POST" });
-        const cookieStore = await cookies();
-        for (const setCookie of refreshed.headers.getSetCookie()) {
-            applySetCookie(setCookie, cookieStore);
-        }
+        applySetCookies(refreshed.headers.getSetCookie(), await cookies());
 
         if (refreshed.ok) {
             res = await doFetch(path, init);
         }
     }
 
-    const cookieStore = await cookies();
-    for (const setCookie of res.headers.getSetCookie()) {
-        applySetCookie(setCookie, cookieStore);
-    }
+    applySetCookies(res.headers.getSetCookie(), await cookies());
 
     return parseApiResponse<T>(res);
 }
