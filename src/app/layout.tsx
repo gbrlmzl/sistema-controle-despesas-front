@@ -1,7 +1,9 @@
 import "modern-css-reset/dist/reset.min.css";
 import { Montserrat, Roboto } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import UserProvider from "@/components/providers/UserProvider";
+import ThemeProvider, { SCRIPT_INICIALIZACAO_TEMA } from "@/components/providers/ThemeProvider";
 import { getCurrentUser } from "@/lib/session";
 import type { ReactNode } from "react";
 
@@ -31,12 +33,20 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   //próprio, /dashboard e /profile usam o AppShell, e (auth) não tem nenhuma).
   return (
     /* As variáveis de fonte ficam no <html>, não no <body>: os tokens de globals.css
-       moram em :root e uma custom property só é visível de si para baixo na árvore. */
-    <html lang="pt-BR" className={`${montserrat.variable} ${roboto.variable}`}>
+       moram em :root e uma custom property só é visível de si para baixo na árvore.
+       suppressHydrationWarning é necessário porque o script abaixo escreve
+       data-theme no <html> antes do React hidratar — sem isso, React reclamaria
+       de um atributo que ele não gerou. */
+    <html lang="pt-BR" className={`${montserrat.variable} ${roboto.variable}`} suppressHydrationWarning>
       <body>
-        <UserProvider user={user}>
-          {children}
-        </UserProvider>
+        <Script id="tema-inicial" strategy="beforeInteractive">
+          {SCRIPT_INICIALIZACAO_TEMA}
+        </Script>
+        <ThemeProvider>
+          <UserProvider user={user}>
+            {children}
+          </UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

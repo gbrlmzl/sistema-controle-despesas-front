@@ -156,7 +156,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     padding: 0.5rem 0.4rem 0.75rem;
-    background: rgba(15, 22, 40, 0.94);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
     backdrop-filter: blur(14px);
     border-top: 1px solid var(--border);
 }

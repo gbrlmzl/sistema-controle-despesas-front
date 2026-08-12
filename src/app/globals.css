@@ -1,7 +1,24 @@
 /* Design tokens do Cronos.
    Os nomes são semânticos (--surface, --ink) e não literais (--azul, --cinza-claro):
-   trocar de tema passa a ser reescrever este bloco, sem tocar em componente nenhum. */
+   trocar de tema passa a ser reescrever este bloco, sem tocar em componente nenhum.
+   Por isso os tokens de cor moram em blocos por tema — [data-theme] no <html>,
+   controlado pelo ThemeProvider — e os que não mudam com o tema (raio, fonte)
+   ficam soltos em :root. */
 :root {
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  --font-display: var(--font-montserrat);
+  --font-body: var(--font-roboto);
+}
+
+/* Escuro é o tema original do Cronos (ver docs/prototipos/2-nocturne.html) e o
+   padrão enquanto o atributo ainda não foi aplicado pelo script anti-flash. */
+:root,
+:root[data-theme="dark"] {
   color-scheme: dark;
 
   --bg: #080D1B;
@@ -43,15 +60,51 @@
   --cat-3-bg: rgba(167, 139, 250, 0.16);
   --cat-4-bg: rgba(251, 113, 133, 0.16);
   --cat-5-bg: rgba(100, 116, 139, 0.18);
+}
 
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 22px;
-  --r-full: 999px;
+/* Claro reaproveita o mesmo --accent e as mesmas famílias de --cat-N do escuro
+   (identidade visual do Cronos), só reescrevendo o que muda com o fundo: tons mais
+   escuros onde a cor vira texto, para manter contraste em cima de branco. */
+:root[data-theme="light"] {
+  color-scheme: light;
 
-  --font-display: var(--font-montserrat);
-  --font-body: var(--font-roboto);
+  --bg: #F3F5FA;
+  --surface: #FFFFFF;
+  --surface-2: #F1F4FA;
+  --surface-3: #E6EBF5;
+
+  --border: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+
+  --ink: #10162B;
+  --ink-2: #5B6478;
+  --ink-3: #8A93AA;
+
+  --accent: #2E5FE0;
+  --accent-hover: #244CBD;
+  --accent-bg: #E3EBFE;
+  --accent-contrast: #FFFFFF;
+
+  --pos: #0E8F63;
+  --pos-bg: rgba(14, 143, 99, 0.12);
+  --neg: #D6285A;
+  --neg-bg: rgba(214, 40, 90, 0.10);
+  --amber: #B4650A;
+  --amber-bg: rgba(217, 119, 6, 0.12);
+  --amber-border: rgba(217, 119, 6, 0.25);
+  --amber-ink: #8A4B08;
+
+  --cat-1: #2E5FE0;
+  --cat-2: #0E8F63;
+  --cat-3: #7C3AED;
+  --cat-4: #D6285A;
+  --cat-5: #55617A;
+
+  --cat-1-bg: rgba(46, 95, 224, 0.10);
+  --cat-2-bg: rgba(14, 143, 99, 0.10);
+  --cat-3-bg: rgba(124, 58, 237, 0.10);
+  --cat-4-bg: rgba(214, 40, 90, 0.10);
+  --cat-5-bg: rgba(85, 97, 122, 0.12);
 }
 
 body {

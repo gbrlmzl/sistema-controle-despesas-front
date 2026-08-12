@@ -6,12 +6,14 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 
 import { useCurrentUser } from "@/components/providers/UserProvider";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import useNotificacoes from "@/hooks/useNotificacoes";
 import SinoNotificacoes from "@/components/ui/SinoNotificacoes";
 import CadastrarDespesaModal from "@/components/despesas/CadastrarDespesaModal";
 import {
     IconePainel, IconeDespesas, IconeRelatorios, IconeMembros,
     IconeResidencias, IconeConfiguracoes, IconeConta, IconeMais, IconeSino,
+    IconeSol, IconeLua,
 } from "./Icones";
 import styles from "./AppShell.module.css";
 
@@ -51,6 +53,23 @@ function iniciaisDoNome(nome: string): string {
         .slice(0, 2)
         .map(parte => parte[0]?.toUpperCase() ?? '')
         .join('');
+}
+
+interface BotaoTemaProps {
+    className: string;
+}
+
+//Compartilhado entre o rail (desktop) e o header (mobile) — os dois precisam do
+//mesmo botão, só com a classe de tamanho/formato trocada por CSS Module.
+function BotaoTema({ className }: BotaoTemaProps) {
+    const { tema, alternarTema } = useTheme();
+    const rotulo = tema === "dark" ? "Ativar tema claro" : "Ativar tema escuro";
+
+    return (
+        <button type="button" className={className} onClick={alternarTema} title={rotulo} aria-label={rotulo}>
+            {tema === "dark" ? <IconeSol /> : <IconeLua />}
+        </button>
+    );
 }
 
 interface AppShellProps {
@@ -121,6 +140,7 @@ export default function AppShell({ children }: AppShellProps) {
                 </div>
 
                 <div className={styles.railRodape}>
+                    <BotaoTema className={styles.railLink} />
                     <SinoNotificacoes {...notificacoes} />
                     <Link href="/profile" className={styles.avatar} title={usuario?.name ?? "Minha conta"}
                         aria-label="Minha conta">
@@ -136,6 +156,7 @@ export default function AppShell({ children }: AppShellProps) {
                     <span className={styles.marca}>C</span>
                     Cronos
                 </Link>
+                <BotaoTema className={styles.botaoIcone} />
                 <SinoNotificacoes {...notificacoes} />
                 <Link href="/profile" className={styles.avatar} aria-label="Minha conta">
                     {usuario?.profilePic
