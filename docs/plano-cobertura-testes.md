@@ -61,14 +61,16 @@ jest.mock("next/cache", () => ({ revalidatePath: jest.fn() }));
 
 ## Etapa 2 — Hooks
 
-- [ ] `src/hooks/useResidencias.ts` — inclui fallback de `navigator.clipboard` negado
-- [ ] `src/hooks/useNotificacoes.ts`
-- [ ] `src/hooks/useProfile.ts`
-- [ ] `src/hooks/useAlertas.ts`
-- [ ] `src/hooks/useCompetenciaAberta.ts`
-- [ ] `src/hooks/useLogout.ts` (mais simples — bom aquecimento antes dos maiores)
+- [x] `src/hooks/useResidencias.ts` — inclui fallback de `navigator.clipboard` negado
+- [x] `src/hooks/useNotificacoes.ts`
+- [x] `src/hooks/useProfile.ts`
+- [x] `src/hooks/useAlertas.ts`
+- [x] `src/hooks/useCompetenciaAberta.ts`
+- [x] `src/hooks/useLogout.ts` (mais simples — bom aquecimento antes dos maiores)
 
 Mockar `apiFetchClient` (mesma fronteira do `LoginForm.test.tsx`), usar `renderHook` do Testing Library.
+
+**Etapa 2 concluída:** os 6 hooks estão em 100% statements/funcs/lines (branches 87,5–100%, poucos ramos residuais não testáveis, ex. cleanup de efeito já coberto indiretamente). 44 suites, 271 testes, todos passando.
 
 ## Etapa 3 — Hook composto de UI
 
@@ -105,6 +107,6 @@ e atualizar a tabela abaixo.
 | Baseline (pós-config) | 18,43% | 16,38% | 19,02% | 17,79% | 17 | 110 |
 | Pós `cadastrarDespesaAction` | 20,08% | 17,43% | 19,28% | 19,54% | 18 | 118 |
 | Pós Etapa 1 | 40,23% | 35,13% | 24,67% | 40,90% | 38 | 223 |
-| Pós Etapa 2 | | | | | | |
+| Pós Etapa 2 | 52,93% | 40,29% | 34,96% | 53,85% | 44 | 271 |
 | Pós Etapa 3 | | | | | | |
 | Pós Etapa 4 | | | | | | |
