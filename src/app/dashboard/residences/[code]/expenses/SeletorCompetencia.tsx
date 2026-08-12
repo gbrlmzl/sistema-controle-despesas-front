@@ -14,7 +14,7 @@ interface SeletorCompetenciaProps {
 }
 
 const MESES_CURTOS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-const QUANTIDADE_ATALHOS = 3;
+const QUANTIDADE_ATALHOS = 4;
 
 //Os meses mais recentes cobrem a consulta do dia a dia; o calendário continua ao lado
 //para alcançar qualquer mês/ano anterior.
@@ -36,8 +36,13 @@ export default function SeletorCompetencia({ competencia, competencias, onSeleci
     const [aberto, setAberto] = useState(false);
     const [anoExibido, setAnoExibido] = useState(competencia.year);
 
-    const mesesComDespesas = new Set(
-        competencias.filter(item => item.temDespesas).map(item => `${item.year}-${item.month}`)
+    //Competência com lançamentos em aberto entra em verde; com o mês já fechado,
+    //em destaque neutro. As duas são mutuamente exclusivas por competência.
+    const mesesAbertos = new Set(
+        competencias.filter(item => item.temDespesas && !item.isClosed).map(item => `${item.year}-${item.month}`)
+    );
+    const mesesFechados = new Set(
+        competencias.filter(item => item.temDespesas && item.isClosed).map(item => `${item.year}-${item.month}`)
     );
 
     const atalhos = competenciasRecentes(competencia, QUANTIDADE_ATALHOS);
@@ -55,30 +60,14 @@ export default function SeletorCompetencia({ competencia, competencias, onSeleci
     return (
         <div className={styles.container}>
             <div className={styles.atalhos}>
-                {atalhos.map(item => {
-                    const selecionado = item.month === competencia.month && item.year === competencia.year;
-
-                    return (
-                        <button key={`${item.year}-${item.month}`} type="button"
-                            className={`${styles.atalho} ${selecionado ? styles.atalhoAtivo : ''}`}
-                            aria-pressed={selecionado}
-                            title={competenciaTexto(item.month, item.year)}
-                            onClick={() => onSelecionar(item.month, item.year)}>
-                            {MESES_CURTOS[item.month - 1]}
-                            {/* O ano só aparece quando difere do mês em exibição, para não repetir "2026" três vezes */}
-                            {item.year !== competencia.year && <span className={styles.atalhoAno}>/{String(item.year).slice(-2)}</span>}
-                        </button>
-                    );
-                })}
-
                 <button type="button" className={styles.gatilho} onClick={alternarPainel}
                     aria-expanded={aberto} aria-haspopup="dialog" title="Escolher outro mês">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
                         strokeLinecap="round" aria-hidden="true">
                         <rect x="3" y="5" width="18" height="16" rx="2" />
                         <path d="M8 3v4M16 3v4M3 10h18" />
                     </svg>
-                    Outro mês
+                    <span className={styles.gatilhoTexto}>{competenciaTexto(competencia.month, competencia.year)}</span>
                 </button>
             </div>
 
@@ -96,14 +85,16 @@ export default function SeletorCompetencia({ competencia, competencias, onSeleci
                         <div className={styles.grade}>
                             {MESES_CURTOS.map((rotulo, indice) => {
                                 const mes = indice + 1;
-                                const temDespesas = mesesComDespesas.has(`${anoExibido}-${mes}`);
+                                const chave = `${anoExibido}-${mes}`;
+                                const aberto = mesesAbertos.has(chave);
+                                const fechado = mesesFechados.has(chave);
                                 const selecionado = mes === competencia.month && anoExibido === competencia.year;
 
                                 return (
                                     <button key={mes} type="button"
                                         className={[
                                             styles.mes,
-                                            temDespesas ? styles.comDespesas : styles.semDespesas,
+                                            aberto ? styles.mesAberto : fechado ? styles.mesFechado : styles.semDespesas,
                                             selecionado ? styles.selecionado : '',
                                         ].join(' ')}
                                         onClick={() => selecionar(mes)}

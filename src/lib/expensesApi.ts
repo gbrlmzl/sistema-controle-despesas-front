@@ -1,6 +1,6 @@
 import { apiFetch } from "./apiClient";
 import type { Competencia } from "@/types/competencia";
-import type { ResumoDespesas, DespesaRecorrente } from "@/types/residencia";
+import type { ResumoDespesas, DespesaRecorrente, CompetenciaComDespesas } from "@/types/residencia";
 import type { ExpenseCategory } from "@/types/expenseCategory";
 
 interface ExpensesApiResponse {
@@ -52,6 +52,26 @@ export async function getResidenceExpenses(code: string, competencia?: Competenc
             })),
         },
     };
+}
+
+interface CompetencyApiResponse {
+    month: number;
+    year: number;
+    isClosed: boolean;
+}
+
+//GET /residences/:code/expenses/competencies — só as competências com ao menos uma
+//despesa lançada, já com o status de fechamento. Usado para destacar o seletor de
+//competência sem precisar consultar mês a mês.
+export async function getResidenceCompetencies(code: string): Promise<CompetenciaComDespesas[]> {
+    const data = await apiFetch<CompetencyApiResponse[]>(`/residences/${code}/expenses/competencies`);
+
+    return data.map(item => ({
+        month: item.month,
+        year: item.year,
+        temDespesas: true,
+        isClosed: item.isClosed,
+    }));
 }
 
 interface RecurringExpensesApiResponse {

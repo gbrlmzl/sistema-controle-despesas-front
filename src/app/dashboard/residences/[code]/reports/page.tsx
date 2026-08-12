@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getResidenceDetail } from "@/lib/residenceApi";
-import { getResidenceExpenses } from "@/lib/expensesApi";
+import { getResidenceExpenses, getResidenceCompetencies } from "@/lib/expensesApi";
 import { getResidenceReport } from "@/lib/reportsApi";
 
 import RelatorioResidencia from "./RelatorioResidencia";
@@ -14,7 +14,7 @@ export default async function Relatorios({ params, searchParams }: PageProps) {
     const { code } = await params;
     const { mes, ano, aba } = await searchParams;
 
-    const detalhe = await getResidenceDetail(code);
+    const [detalhe, competencias] = await Promise.all([getResidenceDetail(code), getResidenceCompetencies(code)]);
     if (!detalhe) {
         notFound();
     }
@@ -39,7 +39,7 @@ export default async function Relatorios({ params, searchParams }: PageProps) {
             <RelatorioResidencia
                 residencia={residencia}
                 competencia={competencia}
-                competencias={[]}
+                competencias={competencias}
                 abaAtiva={abaAtiva}
                 relatorio={relatorio}
                 comparativo={comparativo}

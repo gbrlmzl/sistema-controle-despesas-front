@@ -79,6 +79,7 @@ export interface CompetenciaComDespesas {
     month: number;
     year: number;
     temDespesas: boolean;
+    isClosed: boolean;
 }
 
 export interface DespesaRecorrente {

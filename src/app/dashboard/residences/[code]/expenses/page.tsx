@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getResidenceDetail } from "@/lib/residenceApi";
-import { getResidenceExpenses } from "@/lib/expensesApi";
+import { getResidenceExpenses, getResidenceCompetencies } from "@/lib/expensesApi";
 import { getCurrentUser } from "@/lib/session";
 
 import ConsultaDespesas from "./ConsultaDespesas";
@@ -14,7 +14,11 @@ export default async function Despesas({ params, searchParams }: PageProps) {
     const { code } = await params;
     const { mes, ano } = await searchParams;
 
-    const [detalhe, usuario] = await Promise.all([getResidenceDetail(code), getCurrentUser()]);
+    const [detalhe, usuario, competencias] = await Promise.all([
+        getResidenceDetail(code),
+        getCurrentUser(),
+        getResidenceCompetencies(code),
+    ]);
     if (!detalhe || !usuario) {
         notFound();
     }
@@ -38,7 +42,7 @@ export default async function Despesas({ params, searchParams }: PageProps) {
             <ConsultaDespesas
                 residencia={residencia}
                 usuarioId={usuario.id}
-                competencias={[]}
+                competencias={competencias}
                 competencia={{ month: month, year: year }}
                 resumo={resumo}
                 isCompetenciaAberta={month === aberta.month && year === aberta.year}
