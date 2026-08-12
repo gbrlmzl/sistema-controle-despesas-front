@@ -5,20 +5,19 @@ import Link from "next/link";
 import useAcoesResidencia from "../useAcoesResidencia";
 import ConfirmacaoModal from "../ConfirmacaoModal";
 import RenomearResidenciaModal from "../RenomearResidenciaModal";
-import ConvidarUsuarioModal from "../ConvidarUsuarioModal";
 import Snackbar from "@/components/ui/Snackbar";
 import styles from "./ConfiguracoesResidencia.module.css";
 import type { Residencia } from "@/types/residencia";
 
 interface ConfiguracoesResidenciaProps {
     residencia: Residencia;
-    abrirConviteInicial: boolean;
 }
 
 //Tela de configurações da residência, acessível pela engrenagem do painel.
 //O owner encontra aqui a administração completa; o membro comum, apenas ver os
-//membros e sair da residência.
-export default function ConfiguracoesResidencia({ residencia, abrirConviteInicial }: ConfiguracoesResidenciaProps) {
+//membros e sair da residência. Convidar usuário mora em /members (junto da lista
+//que o convite alimenta), não aqui.
+export default function ConfiguracoesResidencia({ residencia }: ConfiguracoesResidenciaProps) {
     const {
         confirmacao,
         fecharConfirmacao,
@@ -26,15 +25,12 @@ export default function ConfiguracoesResidencia({ residencia, abrirConviteInicia
         renomeando,
         abrirRenomear,
         fecharRenomear,
-        convidando,
-        abrirConvidar,
-        fecharConvidar,
         confirmarSaida,
         confirmarArquivamento,
         confirmarRegeneracao,
         snackbar,
         fecharSnackbar,
-    } = useAcoesResidencia(residencia, abrirConviteInicial);
+    } = useAcoesResidencia(residencia);
 
     //RN-032 -> enquanto arquivada, a única ação de escrita do owner é desarquivar
     const somenteLeitura = residencia.isArchived;
@@ -42,7 +38,7 @@ export default function ConfiguracoesResidencia({ residencia, abrirConviteInicia
     return (
         <div className={styles.container}>
             <div className={styles.cabecalho}>
-                <Link href={`/app/residences/${residencia.code}`} className={styles.botaoCanto}
+                <Link href={`/dashboard/residences/${residencia.code}`} className={styles.botaoCanto}
                     aria-label="Retornar à residência" title="Retornar à residência">
                     <img src="/icons/voltarIcon.svg" alt="Retornar à residência" width={22} height={22} />
                 </Link>
@@ -65,15 +61,12 @@ export default function ConfiguracoesResidencia({ residencia, abrirConviteInicia
             )}
 
             <div className={styles.opcoesContainer}>
-                <Link href={`/app/residences/${residencia.code}/members`} className={styles.botaoOpcao}>
+                <Link href={`/dashboard/residences/${residencia.code}/members`} className={styles.botaoOpcao}>
                     {residencia.isOwner ? "Gerenciar membros" : "Ver membros"}
                 </Link>
 
                 {residencia.isOwner && (
                     <>
-                        <button type="button" className={styles.botaoOpcao} onClick={abrirConvidar} disabled={somenteLeitura}>
-                            Convidar usuário
-                        </button>
                         <button type="button" className={styles.botaoOpcao} onClick={abrirRenomear} disabled={somenteLeitura}>
                             Renomear residência
                         </button>
@@ -107,10 +100,6 @@ export default function ConfiguracoesResidencia({ residencia, abrirConviteInicia
 
             {renomeando && residencia.isOwner && (
                 <RenomearResidenciaModal residencia={residencia} onFechar={fecharRenomear} />
-            )}
-
-            {convidando && residencia.isOwner && (
-                <ConvidarUsuarioModal residencia={residencia} onFechar={fecharConvidar} />
             )}
 
             <Snackbar

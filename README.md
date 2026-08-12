@@ -207,7 +207,6 @@ Cada página é um **Server Component** que busca dados via `lib/*Api.ts` e dele
 | `/app/residences/[code]/members` | Gerenciar membros | ✅ |
 | `/app/residences/[code]/settings` | Configurações da residência | ✅ |
 | `/app/residences/[code]/expenses` | Consulta por competência | ✅ |
-| `/app/residences/[code]/expenses/new` | Lançar despesa | ✅ |
 | `/app/residences/[code]/expenses/recurring` | Despesas recorrentes | ✅ |
 | `/app/residences/[code]/reports` | Relatórios e gráficos | ✅ |
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { IconeMais } from "@/components/layout/Icones";
 import styles from './ListaMembros.module.css';
 import type { MembroResidencia } from "@/types/residencia";
 
@@ -8,15 +9,25 @@ interface ListaMembrosProps {
     podeGerenciar: boolean;
     onRemover: (membro: MembroResidencia) => void;
     onTransferir: (membro: MembroResidencia) => void;
+    onConvidar?: () => void;
 }
 
 //CA-1 da US-014 -> lista de membros da residência.
 //As ações de gestão só aparecem para o owner e nunca sobre ele mesmo (CA-5 da US-014).
-export default function ListaMembros({ membros, podeGerenciar, onRemover, onTransferir }: ListaMembrosProps) {
+export default function ListaMembros({ membros, podeGerenciar, onRemover, onTransferir, onConvidar }: ListaMembrosProps) {
 
     return (
         <div className={styles.container}>
-            <h3>Membros</h3>
+            <div className={styles.cabecalhoLista}>
+                <h3>Membros</h3>
+                {/* US-007 -> convidar mora junto da lista que o convite alimenta */}
+                {podeGerenciar && onConvidar && (
+                    <button type="button" className={styles.botaoConvidar} onClick={onConvidar}
+                        aria-label="Convidar usuário" title="Convidar usuário">
+                        <IconeMais size={16} />
+                    </button>
+                )}
+            </div>
             <ul className={styles.lista}>
                 {membros.map(membro => (
                     <li key={membro.userId} className={styles.membroContainer}>

@@ -26,7 +26,7 @@ export default async function responderSolicitacaoAction(code: string, requestId
             body: { status: aceitar ? "accepted" : "declined" },
         });
 
-        revalidatePath(`/app/residences/${code}`);
+        revalidatePath(`/dashboard/residences/${code}`);
 
         return {
             success: true,

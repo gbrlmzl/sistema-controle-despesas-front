@@ -5,6 +5,7 @@ import Link from "next/link";
 import useAlertas from "@/hooks/useAlertas";
 import Loading from "@/components/ui/Loading";
 import { formatarMomento } from "@/utils/formatarMomento";
+import { linkNotificacao } from "@/utils/linkNotificacao";
 import styles from "./ListaAlertas.module.css";
 
 //FEAT-017 / US-021 -> histórico completo de notificações do usuário.
@@ -13,7 +14,7 @@ export default function ListaAlertas() {
 
     const cabecalho = (
         <div className={styles.cabecalho}>
-            <Link href="/app" className={styles.botaoCanto} aria-label="Retornar ao menu" title="Retornar ao menu">
+            <Link href="/dashboard/residences" className={styles.botaoCanto} aria-label="Retornar ao menu" title="Retornar ao menu">
                 <img src="/icons/voltarIcon.svg" alt="Retornar ao menu" width={22} height={22} />
             </Link>
             <h2>Notificações</h2>
@@ -54,7 +55,7 @@ export default function ListaAlertas() {
                 <ul className={styles.lista}>
                     {notificacoes.map(notificacao => (
                         <li key={notificacao.id} className={notificacao.isRead ? styles.item : styles.itemNaoLido}>
-                            <Link href={notificacao.linkTo || "/app"}>
+                            <Link href={linkNotificacao(notificacao.linkTo)}>
                                 <span className={styles.itemTitulo}>{notificacao.title}</span>
                                 <span className={styles.itemMensagem}>{notificacao.message}</span>
                                 <span className={styles.itemData}>{formatarMomento(notificacao.createdAt)}</span>

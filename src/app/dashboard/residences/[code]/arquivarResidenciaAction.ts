@@ -25,7 +25,7 @@ export default async function arquivarResidenciaAction(code: string, arquivar: b
             body: { archived: arquivar },
         });
 
-        revalidatePath(`/app/residences/${code}`);
+        revalidatePath(`/dashboard/residences/${code}`);
         revalidatePath('/app/residences');
 
         return {

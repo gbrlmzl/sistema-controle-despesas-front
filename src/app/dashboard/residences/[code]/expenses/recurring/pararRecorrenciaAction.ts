@@ -27,8 +27,8 @@ export default async function pararRecorrenciaAction(code: string, expenseId: st
             method: "DELETE",
         });
 
-        revalidatePath(`/app/residences/${code}/expenses/recurring`);
-        revalidatePath(`/app/residences/${code}/expenses`);
+        revalidatePath(`/dashboard/residences/${code}/expenses/recurring`);
+        revalidatePath(`/dashboard/residences/${code}/expenses`);
 
         return {
             success: true,

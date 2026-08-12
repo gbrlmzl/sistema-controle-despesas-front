@@ -19,13 +19,13 @@ export default async function DespesasRecorrentesPage({ params }: ParamsResidenc
 
     //Residência arquivada é somente leitura: não há o que gerenciar aqui
     if (residencia.isArchived) {
-        redirect(`/app/residences/${residencia.code}/expenses`);
+        redirect(`/dashboard/residences/${residencia.code}/expenses`);
     }
 
     const { competencia, despesasRecorrentes } = await getResidenceRecurringExpenses(code);
 
     return (
-        <div className="primaryCard">
+        <div className="superficie">
             <DespesasRecorrentes
                 residencia={residencia}
                 competencia={competencia}

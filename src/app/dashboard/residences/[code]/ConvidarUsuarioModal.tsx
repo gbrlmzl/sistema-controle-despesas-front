@@ -62,9 +62,9 @@ export default function ConvidarUsuarioModal({ residencia, onFechar }: ConvidarU
                     <input type="text" name="username" placeholder="Nome de usuário" value={username}
                         onChange={handleUsernameChange} autoComplete="off" />
 
-                    <div className="botoesContainer">
-                        <button type="button" className="botaoTexto" onClick={onFechar} disabled={isPending}>Fechar</button>
-                        <button type="submit" className="botaoTexto" disabled={isPending || !usernameValido}>Convidar</button>
+                    <div className={styles.botoesContainer}>
+                        <button type="button" className={styles.botaoSecundario} onClick={onFechar} disabled={isPending}>Fechar</button>
+                        <button type="submit" className={styles.botaoPrimario} disabled={isPending || !usernameValido}>Convidar</button>
                     </div>
                 </Form>
             </div>

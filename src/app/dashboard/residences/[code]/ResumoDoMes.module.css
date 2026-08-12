@@ -1,176 +1,303 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.85rem;
     width: 100%;
-    margin-top: 1.75rem;
+    margin-top: 1.25rem;
 }
 
-.secao {
+.linhaCards {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.rotulo {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* ============================================================
+   CARD DE SALDO — o número que o usuário abriu o app pra ver
+   ============================================================ */
+.cardSaldo {
+    position: relative;
+    overflow: hidden;
+    padding: 1.4rem 1.25rem;
+    border-radius: var(--r-xl);
+    background: linear-gradient(150deg, var(--surface-2), var(--surface) 60%);
+    border: 1px solid var(--border-strong);
+}
+
+/* Halo difuso no canto: dá relevo ao card principal sem sombra dura */
+.cardSaldo::after {
+    content: '';
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(79, 142, 247, 0.22), transparent 62%);
+    pointer-events: none;
+}
+
+.cardSaldo > * {
+    position: relative;
+    z-index: 1;
+}
+
+.saldoValor {
+    margin: 0.5rem 0 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 2.1rem;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+}
+
+.positivo {
+    color: var(--pos);
+}
+
+.negativo {
+    color: var(--neg);
+}
+
+.saldoDetalhe {
+    margin: 0.6rem 0 0;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+}
+
+.saldoDetalhe strong {
+    font-weight: 500;
+    color: var(--ink);
+}
+
+/* ============================================================
+   CARD DE TOTAL DA CASA — número + histórico das competências
+   ============================================================ */
+.cardTotal {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
+    padding: 1.4rem 1.25rem;
+    border-radius: var(--r-xl);
+    background: var(--surface);
+    border: 1px solid var(--border);
 }
 
-.secao h3 {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1rem;
-    font-weight: 600;
-    color: black;
-}
-
-.tituloSecao {
+.cardTotalTopo {
     display: flex;
-    flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
 }
 
 .seloFechado {
-    font-family: var(--font-roboto-condensed);
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--r-full);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber-ink);
     font-size: 0.65rem;
-    color: #7A5C00;
-    background: #FFF3CD;
-    border: 1px solid #FFE69C;
-    border-radius: 1rem;
-    padding: 0.1rem 0.5rem;
-}
-
-.totalContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.1rem;
 }
 
 .totalValor {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1.75rem;
+    margin: 0.5rem 0 0;
+    font-family: var(--font-display);
     font-weight: 600;
-    color: #2497F3;
+    font-size: 1.85rem;
+    letter-spacing: -0.03em;
+    color: var(--ink);
 }
 
 .totalDetalhe {
-    font-size: 0.75rem;
-    color: #5A5A5A;
+    margin: 0.35rem 0 0;
+    font-size: 0.76rem;
+    color: var(--ink-3);
+}
+
+.variacaoAlta {
+    color: var(--neg);
+    font-weight: 500;
+}
+
+.variacaoBaixa {
+    color: var(--pos);
+    font-weight: 500;
+}
+
+.grafico {
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+.sparkline {
+    display: block;
+    width: 100%;
+    height: 3.5rem;
+    overflow: visible;
+}
+
+.graficoRotulos {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.35rem;
+    font-size: 0.65rem;
+    color: var(--ink-3);
+}
+
+/* Só o mês corrente fica legível: os anteriores são referência, não leitura */
+.graficoRotulos span:last-child {
+    color: var(--ink-2);
+    font-weight: 500;
+}
+
+/* ============================================================
+   SEÇÕES DE LISTA
+   ============================================================ */
+.secao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.secao h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.vazio {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ink-3);
 }
 
 .listaMembros {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     padding: 0;
-    margin: 0.25rem 0 0 0;
+    margin: 0;
     list-style: none;
 }
 
 .membro {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.35rem;
 }
 
 .membroTopo {
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     gap: 0.5rem;
     font-size: 0.85rem;
 }
 
 .membroNome {
+    color: var(--ink);
     overflow-wrap: anywhere;
 }
 
 .membroValor {
-    font-family: var(--font-roboto-condensed);
-    font-weight: 600;
+    font-weight: 500;
+    color: var(--ink);
     white-space: nowrap;
 }
 
 .barraFundo {
     width: 100%;
-    height: 0.35rem;
-    border-radius: 1rem;
-    background: #E5E5E5;
+    height: 0.3rem;
+    border-radius: var(--r-full);
+    background: rgba(255, 255, 255, 0.08);
     overflow: hidden;
 }
 
 .barraPreenchida {
     height: 100%;
-    border-radius: 1rem;
-    background: #2497F3;
+    border-radius: var(--r-full);
+    background: var(--accent);
 }
 
-/* A rolagem fica contida aqui: sem isso a lista empurra a altura do cartão inteiro
-   e quem rola é o painel da residência, levando o cabeçalho junto. 4rem mostra um
-   item por vez (com uma prévia do próximo) — medido para caber sem estourar os
-   75vh do cartão em telas de 800px a 812px de altura. */
 .listaAtividade {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
     padding: 0;
     margin: 0;
     list-style: none;
-    max-height: 8rem;
-    overflow-y: auto;
-    /* espaço para a barra de rolagem não encostar no conteúdo */
-    padding-right: 0.25rem;
-}
-
-/* No celular a barra ocupa espaço e polui um bloco pequeno. O conteúdo continua
-   rolando por toque — que é como se navega em tela sensível de qualquer forma. */
-@media (max-width: 767px) {
-    .listaAtividade {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* Edge legado */
-        padding-right: 0; /* sem barra visível, o espaço reservado a ela deixa de fazer sentido */
-    }
-
-    .listaAtividade::-webkit-scrollbar {
-        display: none; /* Chrome, Safari e derivados */
-    }
 }
 
 .atividade {
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.6rem;
-    background: #F0F0F0;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--border);
 }
 
-.atividadeTexto {
-    font-size: 0.82rem;
-    overflow-wrap: anywhere;
+.atividade:first-child {
+    padding-top: 0;
+    border-top: none;
 }
 
-.atividadeCategoria {
-    color: #5A5A5A;
+.atividade:last-child {
+    padding-bottom: 0;
 }
 
-.atividadeLado {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.1rem;
+.atividadeDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
     flex-shrink: 0;
 }
 
-.atividadeValor {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.9rem;
-    font-weight: 600;
-    white-space: nowrap;
+.atividadeGrow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1;
 }
 
-.atividadeMomento {
-    font-size: 0.68rem;
-    color: #8A8A8A;
+.atividadeTitulo {
+    font-size: 0.85rem;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.atividadeMeta {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    overflow-wrap: anywhere;
+}
+
+.atividadeValor {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
     white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (min-width: 900px) {
+    /* Saldo maior que o total: a hierarquia entre os dois vem do tamanho */
+    .linhaCards {
+        grid-template-columns: 1.15fr 1fr;
+        align-items: stretch;
+    }
+
+    .saldoValor {
+        font-size: 2.5rem;
+    }
 }

@@ -15,7 +15,7 @@ jest.mock("next/navigation", () => ({
 const mockApiFetchClient = apiFetchClient as jest.MockedFunction<typeof apiFetchClient>;
 
 function getSubmitButton() {
-    return screen.getByRole("button", { name: "Login" });
+    return screen.getByRole("button", { name: "Entrar" });
 }
 
 beforeEach(() => {

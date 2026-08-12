@@ -22,19 +22,19 @@ export default function CriarResidenciaForm() {
     //Ao confirmar o modal, o usuário é levado ao painel da residência recém-criada.
     //Só é chamado quando o modal está montado, e o modal só monta com state.data presente.
     const handleConfirmar = () => {
-        router.push(`/app/residences/${state!.data!.code}`);
+        router.push(`/dashboard/residences/${state!.data!.code}`);
     }
 
-    //CA-1 da US-007 -> convidar leva às configurações da residência com o modal de
+    //CA-1 da US-007 -> convidar leva à lista de membros da residência com o modal de
     //convite já aberto, evitando manter duas cópias da mesma tela de convite.
     const handleConvidar = () => {
-        router.push(`/app/residences/${state!.data!.code}/settings?convidar=1`);
+        router.push(`/dashboard/residences/${state!.data!.code}/members?convidar=1`);
     }
 
     return (
         <div className={styles.container}>
             <div className={styles.cabecalho}>
-                <Link href="/app" className={styles.botaoCanto} aria-label="Retornar ao menu" title="Retornar ao menu">
+                <Link href="/dashboard/residences" className={styles.botaoCanto} aria-label="Retornar ao menu" title="Retornar ao menu">
                     <img src="/icons/voltarIcon.svg" alt="Retornar ao menu" width={22} height={22} />
                 </Link>
                 <h2>Criar residência</h2>

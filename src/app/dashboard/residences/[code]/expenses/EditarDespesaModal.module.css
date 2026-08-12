@@ -4,7 +4,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(5, 7, 15, 0.72);
     z-index: 10;
     padding: 1rem;
 }
@@ -17,14 +17,14 @@
     width: 100%;
     max-width: 22rem;
     padding: 1.5rem 1.25rem;
-    border-radius: 1.25rem;
-    background: #FFF;
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-    color: black;
+    border-radius: var(--r-xl);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--ink);
 }
 
 .modal h3 {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1.2rem;
     font-weight: 600;
 }
@@ -39,12 +39,12 @@
 
 .form input[type="text"],
 .form select {
-    background-color: #CFCFCF;
+    background-color: var(--surface-3);
     border: none;
     padding: 10px;
     border-radius: 5px;
     width: 100%;
-    font-family: var(--font-roboto);
+    font-family: var(--font-body);
     font-size: 1rem;
 }
 
@@ -62,12 +62,55 @@
 }
 
 .errorMessage {
-    background-color: #F8D7DA;
-    border: 1px solid #F5C2C7;
-    color: #842029;
+    background-color: var(--neg-bg);
+    border: 1px solid rgba(251, 113, 133, 0.25);
+    color: var(--neg);
     padding: 8px 12px;
     border-radius: 5px;
     width: 100%;
     text-align: center;
     font-size: 0.85rem;
+}
+
+.botoesContainer {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+}
+
+.botaoSecundario,
+.botaoPrimario {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border-radius: var(--r-md);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.botaoSecundario {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.botaoSecundario:hover:not(:disabled) {
+    border-color: var(--ink-3);
+}
+
+.botaoPrimario {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.botaoPrimario:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.botaoSecundario:disabled,
+.botaoPrimario:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

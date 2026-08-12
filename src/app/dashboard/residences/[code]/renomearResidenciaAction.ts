@@ -48,7 +48,7 @@ export default async function renomearResidenciaAction(_prevState: ActionState |
             body: { name: payload.name },
         });
 
-        revalidatePath(`/app/residences/${data.code}`);
+        revalidatePath(`/dashboard/residences/${data.code}`);
         revalidatePath('/app/residences');
 
         return {

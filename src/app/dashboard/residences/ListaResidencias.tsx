@@ -43,16 +43,18 @@ export default function ListaResidencias() {
     }
 
     const abrirResidencia = (code: string) => {
-        router.push(`/app/residences/${code}`);
+        router.push(`/dashboard/residences/${code}`);
     }
 
+    //Criar e entrar viviam na tela-menu de /dashboard, que deixou de existir:
+    //passaram a acompanhar a própria lista, que é onde o usuário chega.
     const cabecalho = (
         <div className={styles.cabecalho}>
-            <Link href="/app" className={styles.botaoCanto} aria-label="Retornar ao menu" title="Retornar ao menu">
-                <img src="/icons/voltarIcon.svg" alt="Retornar ao menu" width={22} height={22} />
-            </Link>
-            <h2>Residências</h2>
-            <span className={styles.espacoCanto} />
+            <h1>Residências</h1>
+            <div className={styles.cabecalhoAcoes}>
+                <Link href="/dashboard/residences/new" className={styles.botaoPrimario}>Criar residência</Link>
+                <Link href="/dashboard/residences/join" className={styles.botaoSecundario}>Entrar em residência</Link>
+            </div>
         </div>
     );
 
@@ -83,7 +85,7 @@ export default function ListaResidencias() {
                         <img src="/icons/copiarIcon.svg" alt="Copiar código da residência" />
                     </span>
                 </button>
-                <Link href={`/app/residences/${residencia.code}`} title="Ver residência"
+                <Link href={`/dashboard/residences/${residencia.code}`} title="Ver residência"
                     onClick={(e) => e.stopPropagation()}>
                     <span className={styles.botaoAcao}>
                         <img src="/icons/avancarIcon.svg" alt="Ver residência" />

@@ -82,7 +82,7 @@ export default function DespesasRecorrentes({ residencia, competencia, despesasR
     return (
         <div className={styles.container}>
             <div className={styles.cabecalho}>
-                <Link href={`/app/residences/${residencia.code}/expenses/new`} className={styles.botaoCanto}
+                <Link href={`/dashboard/residences/${residencia.code}/expenses`} className={styles.botaoCanto}
                     aria-label="Retornar" title="Retornar">
                     <img src="/icons/voltarIcon.svg" alt="Retornar" width={22} height={22} />
                 </Link>

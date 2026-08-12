@@ -3,15 +3,13 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: 100%;
-    color: black;
-    font-family: var(--font-roboto);
-    overflow-y: auto;
+    color: var(--ink);
+    font-family: var(--font-body);
 }
 
 .container h2 {
-    color: black;
-    font-family: var(--font-montserrat_semibold);
+    color: var(--ink);
+    font-family: var(--font-display);
     font-weight: 600;
     font-size: 1.4rem;
 }
@@ -19,22 +17,22 @@
 .listaVazia {
     margin-top: 3rem;
     text-align: center;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1.1rem;
-    color: #5A5A5A;
+    color: var(--ink-3);
 }
 
 .botaoMarcarTodas {
     align-self: flex-end;
     margin-top: 0.5rem;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 0.8rem;
-    color: #2497F3;
+    color: var(--accent);
     text-decoration: underline;
 }
 
 .botaoMarcarTodas:hover {
-    color: #1E7ACC;
+    color: var(--accent-hover);
     cursor: pointer;
 }
 
@@ -51,13 +49,13 @@
 .item,
 .itemNaoLido {
     border-radius: 0.75rem;
-    background: #F0F0F0;
+    background: var(--surface-2);
 }
 
 /* CA-3 -> as não lidas se distinguem visualmente das já lidas */
 .itemNaoLido {
-    background: #E3F1FD;
-    border-left: 4px solid #2497F3;
+    background: var(--accent-bg);
+    border-left: 4px solid var(--accent);
 }
 
 .item a,
@@ -66,29 +64,29 @@
     flex-direction: column;
     gap: 0.2rem;
     padding: 0.75rem 0.9rem;
-    color: black;
+    color: var(--ink);
 }
 
 .item a:hover,
 .itemNaoLido a:hover {
-    background: #E5E5E5;
+    background: var(--surface-2);
     border-radius: 0.75rem;
 }
 
 .itemTitulo {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
 }
 
 .itemMensagem {
     font-size: 0.85rem;
-    color: #5A5A5A;
+    color: var(--ink-3);
 }
 
 .itemData {
     font-size: 0.7rem;
-    color: #8A8A8A;
+    color: var(--ink-3);
 }
 
 .paginacao {
@@ -97,30 +95,30 @@
     align-items: center;
     gap: 1rem;
     margin-top: 1.25rem;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 0.85rem;
 }
 
 .paginacao button {
-    color: #2497F3;
+    color: var(--accent);
     text-decoration: underline;
 }
 
 .paginacao button:hover:not(:disabled) {
-    color: #1E7ACC;
+    color: var(--accent-hover);
     cursor: pointer;
 }
 
 .paginacao button:disabled {
-    color: #B3B3B3;
+    color: var(--ink-3);
     text-decoration: none;
     cursor: default;
 }
 
 .errorMessage {
-    background-color: #F8D7DA;
-    border: 1px solid #F5C2C7;
-    color: #842029;
+    background-color: var(--neg-bg);
+    border: 1px solid rgba(251, 113, 133, 0.25);
+    color: var(--neg);
     padding: 10px 15px;
     border-radius: 5px;
     margin-top: 15px;
@@ -161,6 +159,6 @@
 }
 
 .botaoCanto:hover {
-    background: #E5E5E5;
+    background: var(--surface-2);
     cursor: pointer;
 }

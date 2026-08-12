@@ -1,197 +1,104 @@
-.paginaConteudo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100vh;
-  max-width: 100vw;
-}
+/* Classes compartilhadas pelas telas de /dashboard/**.
+   O antigo `.primaryCard` era travado em 75vh e larguras em vw — o conteúdo maior do
+   redesign não cabia. Agora a superfície cresce com o conteúdo e a largura é limitada
+   em rem, para o texto não esticar em monitor largo. */
 
-
-
-.primaryCard {
-  display: flex;
-  height: 75vh;
+.superficie {
+  width: 100%;
   padding: 1.5rem 1.25rem;
-  flex-direction: column;
-  justify-content: center;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.cabecalhoPagina {
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 0.9375rem;
-  border-radius: 1.25rem;
-  background: #FFF;
-  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-  margin-top: 2rem;
-  
-
-}
-
-.primaryCard h1 {
-  font-family: var(--font-russo-one);
-  font-size: 2.5rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.25rem;
   margin-bottom: 1rem;
-
 }
 
-@media (min-width: 300px) {
-  .primaryCard {
-    width: 90vw;
-    background-color: white;
-
-  }
-
+.cabecalhoPagina h2 {
+  flex: 1;
+  text-align: center;
+  font-size: 1.35rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
-@media (min-width: 600px) {
-  .primaryCard {
-    width: 60vw;
-  }
+.botaoCanto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-2);
 }
 
-@media (min-width: 1024px) {
-  .primaryCard {
-    width: 40vw;
-  }
+.botaoCanto:hover {
+  color: var(--ink);
+  border-color: var(--border-strong);
 }
 
-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  box-shadow: none;
-  outline: none;
-  color: inherit;
-  font: inherit;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-
+/* Preserva a centralização do título quando não há botão do lado direito */
+.espacoCanto {
+  width: 2.25rem;
+  flex-shrink: 0;
 }
-button:hover {
-  background: none;
-  cursor: default;
-}
-
-
-button:disabled .botaoIcone {
-    background-color: #66B2FF; 
-    cursor: auto;
-    opacity: 0.9;
-}
-
-
 
 .botaoPrimario {
-  display: flex;
-  justify-content: center;
+  display: inline-flex;
   align-items: center;
-  background-color: #2497F3;
-  border-radius: 40px;
-  width: 4rem;
-  padding: 0.75rem 3rem;
-  font-family: var(--font-roboto-condensed);
-  font-size: 1rem;
-  color: rgb(255, 255, 255);
-}
-
-.botaoPrimario:hover{
-  background: #0069D9;
-  cursor: pointer;
-
-
-}
-
-.botoesContainer {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 1rem;
-}
-
-.botaoTexto {
-    border-radius: 1.875rem;
-    background: #2497F3;
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-    padding: 0.5rem 1.5rem;
-    color: #FFF;
-    text-align: center;
-    font-family: "Roboto Condensed";
-    font-size: 1rem;
-    font-weight: 400;
-    margin-top: 0.5rem;
-}
-
-.botaoTexto:hover {
-    background: #1E7ACC;
-    cursor: pointer;
-}
-
-.botaoTexto:disabled {
-    background: #66B2FF;
-    box-shadow: none;
-    cursor: default;
-}
-
-
-
-.botaoIcone {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #2497F3;
-    border-radius: 40px;
-    height: 60px;
-    width: 60px;
-    padding: 5px;
-}
-
-.botaoIcone:hover {
-    background-color: #1A78C2;
-    cursor: pointer;
-}
-
-.botaoIcone img {
-    width: 80%;
-    height: 80%;
-}
-
-
-.botoesContainer button:disabled .botaoIcone {
-    background-color: #66B2FF;
-    cursor: auto;
-    opacity: 0.9;
-}
-
-
-
-.botaoNavegacaoIcone{
-  display: flex;
-  width: 3rem;
-  padding: 0.8125rem 0.4375rem;
   justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.botaoPrimario:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.botaoPrimario:disabled {
+  background: var(--surface-3);
+  color: var(--ink-3);
+}
+
+.botaoSecundario {
+  display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
-
-  border-radius: 1.875rem;
-  background: #FFF;
-  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  text-align: center;
 }
 
-.botaoNavegacaoIcone:hover {
-  background: #EDEDED;
-  cursor: pointer;
+.botaoSecundario:hover:not(:disabled) {
+  border-color: var(--ink-3);
 }
 
-button:disabled .botaoNavegacaoIcone {
-  display: none;
-  cursor: default;
-
+.botaoSecundario:disabled {
+  color: var(--ink-3);
+  border-color: var(--border);
 }
-
-footer{
-  margin-top: 0.75rem;
-  
-}
-
-

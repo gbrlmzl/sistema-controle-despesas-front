@@ -26,7 +26,7 @@ export default async function transferirPropriedadeAction(code: string, novoOwne
             body: { userId: novoOwnerUserId },
         });
 
-        revalidatePath(`/app/residences/${code}`);
+        revalidatePath(`/dashboard/residences/${code}`);
         revalidatePath('/app/residences');
 
         return {

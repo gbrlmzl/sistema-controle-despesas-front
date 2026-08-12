@@ -45,9 +45,9 @@ export default function RenomearResidenciaModal({ residencia, onFechar }: Renome
                     <input type="text" name="name" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
                     <span className={styles.fieldHint}>De 3 a 40 caracteres, apenas letras, números e espaços</span>
 
-                    <div className="botoesContainer">
-                        <button type="button" className="botaoTexto" onClick={onFechar} disabled={isPending}>Cancelar</button>
-                        <button type="submit" className="botaoTexto" disabled={isPending || !nomePreenchido}>Salvar</button>
+                    <div className={styles.botoesContainer}>
+                        <button type="button" className={styles.botaoSecundario} onClick={onFechar} disabled={isPending}>Cancelar</button>
+                        <button type="submit" className={styles.botaoPrimario} disabled={isPending || !nomePreenchido}>Salvar</button>
                     </div>
                 </Form>
             </div>

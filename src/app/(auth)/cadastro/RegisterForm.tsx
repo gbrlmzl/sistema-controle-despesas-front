@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
-import styles from './RegisterForm.module.css';
+import styles from '../authForm.module.css';
 
 const GOOGLE_LOGIN_URL = "/api/auth/google";
 
@@ -53,88 +53,70 @@ export default function RegisterForm() {
         }
     }, [state?.success, router]);
 
+    const condicao = (atendida: boolean, texto: string) => (
+        <li className={`${styles.condicao} ${atendida ? styles.condicaoAtendida : ''}`}>
+            <img src={atendida ? "/icons/checkedIcon.svg" : "/icons/uncheckedIcon.svg"}
+                alt={atendida ? "Condição atendida" : "Condição não atendida"} />
+            {texto}
+        </li>
+    );
+
     return (
-        <div className={styles.container}>
-            <h1>Crie sua conta</h1>
+        <div>
+            <h1 className={styles.titulo}>Crie sua conta</h1>
+            <p className={styles.subtitulo}>Depois é só entrar na residência com o código.</p>
+
             {state?.success === false && (
-                <div className={styles.errorMessage}>
-                    <span className={styles.errorMessageText}>{state?.message}</span>
+                <div className={styles.erro}>
+                    <span>{state?.message}</span>
                 </div>
             )}
+
             <Form action={formAction}>
-                <div className={styles.formFields}>
-                    <input type="text" name="name" placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} />
-                    <input type="text" name="username" placeholder="Nome de usuário" value={username} onChange={handleUsernameChange} />
-                    <input type="email" name="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                    <div className={styles.passwordField}>
-                        <input type={showPassword ? 'text' : 'password'} name="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <div className={styles.campos}>
+                    <input type="text" name="name" placeholder="Nome" value={name}
+                        onChange={(e) => setName(e.target.value)} autoComplete="name" />
 
-                        <span className={styles.passwordToggle} onClick={togglePasswordVisibility}>
-                            {showPassword ? (
-                                <img src="/icons/olhoIcon.svg" alt="Mostrar/Ocultar senha" />
-                            ) : (
-                                <img src="/icons/olhoCortadoIcon.svg" alt="Mostrar/Ocultar senha" />)
-                            }
+                    <input type="text" name="username" placeholder="Nome de usuário" value={username}
+                        onChange={handleUsernameChange} autoComplete="username" />
 
+                    <input type="email" name="email" placeholder="Email" value={email}
+                        onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+
+                    <div className={styles.campoSenha}>
+                        <input type={showPassword ? 'text' : 'password'} name="password" placeholder="Senha"
+                            value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
+                        <span className={styles.alternarSenha} onClick={togglePasswordVisibility}>
+                            <img src={showPassword ? "/icons/olhoIcon.svg" : "/icons/olhoCortadoIcon.svg"}
+                                alt="Mostrar/Ocultar senha" />
                         </span>
+                    </div>
 
-                    </div>
-                    <input type={showPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirmar Senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                </div>
-                <div className={styles.passwordConditionsContainer}>
-                    <div className={styles.passwordCondition}>
-                        {atLeast8Chars ? (
-                            <span>
-                                <img src="/icons/checkedIcon.svg" alt="Condição atendida" />
-                            </span>
-                        ) : (
-                            <span>
-                                <img src="/icons/uncheckedIcon.svg" alt="Condição não atendida" />
-                            </span>
-                        )}
-                        <p>Ao menos 8 caracteres</p>
-                    </div>
-                    <div className={styles.passwordCondition}>
-                        {hasNumberOrSymbol ? (
-                            <span>
-                                <img src="/icons/checkedIcon.svg" alt="Condição atendida" />
-                            </span>
-                        ) : (
-                            <span>
-                                <img src="/icons/uncheckedIcon.svg" alt="Condição não atendida" />
-                            </span>
-                        )}
-                        <p>Deve conter um número ou símbolo </p>
-                    </div>
-                    <div className={styles.passwordCondition}>
-                        {passwordsMatch ? (
-                            <span>
-                                <img src="/icons/checkedIcon.svg" alt="Condição atendida" />
-                            </span>
-                        ) : (
-                            <span>
-                                <img src="/icons/uncheckedIcon.svg" alt="Condição não atendida" />
-                            </span>
-                        )}
-                        <p>As senhas devem coincidir</p>
-                    </div>
-                </div>
-                <div className={styles.socialMediaLoginContainer}>
-                    <p>Ou crie uma conta com</p>
-                    <a href={GOOGLE_LOGIN_URL} className={styles.socialMediaLogin}>
-                        <img src="/icons/googleIcon.svg" alt="Login com Google" />
-                    </a>
-                </div>
-                <div className={styles.submitButtonContainer}>
-                    <button type="submit" disabled={isPending || !dadosPreenchidos}>
-                        <span>
-                            <img src="/icons/avancarIcon.svg" alt="Login" />
-                        </span>
-                    </button>
+                    <input type={showPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirmar Senha"
+                        value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" />
                 </div>
 
+                <ul className={styles.condicoes}>
+                    {condicao(atLeast8Chars, "Ao menos 8 caracteres")}
+                    {condicao(hasNumberOrSymbol, "Deve conter um número ou símbolo")}
+                    {condicao(passwordsMatch, "As senhas devem coincidir")}
+                </ul>
+
+                <button type="submit" className={styles.botaoEnviar} disabled={isPending || !dadosPreenchidos}>
+                    {isPending ? "Criando conta..." : "Criar conta"}
+                </button>
             </Form>
-            <Link href="/login" className={styles.loginLink}>Já possuo uma conta</Link>
+
+            <div className={styles.separador}>ou</div>
+
+            <a href={GOOGLE_LOGIN_URL} className={styles.botaoGoogle}>
+                <img src="/icons/googleIcon.svg" alt="" />
+                Continuar com Google
+            </a>
+
+            <p className={styles.rodape}>
+                Já possuo uma conta. <Link href="/login">Entrar</Link>
+            </p>
         </div>
     )
 }

@@ -142,9 +142,9 @@ Testam **comportamento visível ao usuário**: o que aparece na tela e como o co
 | [`src/app/(auth)/cadastro/RegisterForm.test.tsx`](<../src/app/(auth)/cadastro/RegisterForm.test.tsx>) | `RegisterForm` | Botão de envio desabilitado até o formulário ficar válido; normalização do username ao digitar; alternância de visibilidade da senha (afeta senha e confirmação); checklist de condições de senha atualiza em tempo real; submissão chama a action com os dados corretos e redireciona em caso de sucesso; mensagem de erro exibida em caso de falha |
 | [`src/app/(auth)/login/LoginForm.test.tsx`](<../src/app/(auth)/login/LoginForm.test.tsx>) | `LoginForm` (+ hook `useLogin`) | Botão de envio desabilitado até username e senha preenchidos; alternância de visibilidade da senha; chamada à API com o corpo correto e redirecionamento em caso de sucesso; mensagem de erro da API exibida em caso de falha |
 | [`src/app/dashboard/residences/join/EntrarResidenciaForm.test.tsx`](<../src/app/dashboard/residences/join/EntrarResidenciaForm.test.tsx>) | `EntrarResidenciaForm` | Normalização do código digitado (maiúsculas, filtro de caracteres inválidos, limite de 6); botão de envio só habilita com 6 caracteres; mensagens de sucesso e de erro devolvidas pela action |
-| [`src/app/dashboard/residences/[code]/expenses/new/CadastrarDespesaForm.test.tsx`](<../src/app/dashboard/residences/[code]/expenses/new/CadastrarDespesaForm.test.tsx>) | `CadastrarDespesaForm` | Exibe a competência recebida por props; botão de envio exige nome, valor **e** categoria; em sucesso, limpa os campos e mostra a confirmação; em erro, mantém os campos preenchidos e mostra a mensagem |
+| [`src/components/despesas/CadastrarDespesaModal.test.tsx`](../src/components/despesas/CadastrarDespesaModal.test.tsx) | `CadastrarDespesaModal` | Não renderiza nada fechado; exibe a competência aberta quando aberto; chama `onFechar` ao clicar em fechar; botão de envio exige nome, valor **e** categoria; preenche a descrição a partir de uma sugestão; em sucesso, limpa os campos e mostra a confirmação; em erro, mantém os campos preenchidos e mostra a mensagem |
 
-**Total:** 5 arquivos, 25 casos de teste.
+**Total:** 5 arquivos, 28 casos de teste.
 
 ---
 

@@ -39,7 +39,7 @@ export default async function convidarUsuarioAction(_prevState: ActionState | nu
             body: { username },
         });
 
-        revalidatePath(`/app/residences/${data.code}`);
+        revalidatePath(`/dashboard/residences/${data.code}`);
 
         return {
             success: true,

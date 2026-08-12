@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cronos · Protótipo 3 — Bento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Roboto+Condensed:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PROTÓTIPO 3 — "BENTO"
+   Grid modular de blocos de tamanhos diferentes. A hierarquia
+   vem do TAMANHO do bloco, não de borda ou sombra. Cada bloco
+   responde a uma pergunta. Navegação horizontal no topo.
+   Fontes: Poppins (títulos) + Roboto Condensed (números) + Roboto (corpo)
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+:root {
+  --bg:      #F1F1EF;
+  --tile:    #FFFFFF;
+  --ink:     #18181B;
+  --ink-2:   #52525B;
+  --ink-3:   #A1A1AA;
+  --line:    #E4E4E7;
+  --accent:  #18181B;
+
+  --pos-bg: #DCFCE7;  --pos: #166534;
+  --neg-bg: #FFE4E6;  --neg: #9F1239;
+
+  --c1: #F97316; --c1-bg: #FFF1E6;  /* Alimentação       */
+  --c2: #0EA5E9; --c2-bg: #E6F6FE;  /* Contas domésticas  */
+  --c3: #8B5CF6; --c3-bg: #F1EBFE;  /* Assinaturas       */
+  --c4: #EC4899; --c4-bg: #FDECF5;  /* Lazer             */
+  --c5: #71717A; --c5-bg: #F1F1F2;  /* Outros            */
+
+  --r: 22px; --r-sm: 12px; --r-full: 999px;
+  --f-display: 'Poppins', system-ui, sans-serif;
+  --f-num:     'Roboto Condensed', system-ui, sans-serif;
+  --f-body:    'Roboto', system-ui, sans-serif;
+}
+
+body { background: #D4D4D8; font-family: var(--f-body); color: var(--ink); }
+
+/* ---------- barra do protótipo ---------- */
+.protobar {
+  position: sticky; top: 0; z-index: 90;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  padding: 10px 16px; background: #18181B; color: #FAFAFA;
+}
+.protobar .tag { font-family: var(--f-display); font-weight: 600; font-size: 13px; }
+.protobar .tag small { display: block; font-weight: 400; font-size: 11px; color: #A1A1AA; font-family: var(--f-body); }
+.protobar .group { display: flex; gap: 3px; background: #27272A; padding: 3px; border-radius: var(--r-full); }
+.protobar button { font: 500 12px/1 var(--f-body); color: #D4D4D8; background: none; border: 0; padding: 7px 13px; border-radius: var(--r-full); cursor: pointer; }
+.protobar button[aria-pressed="true"] { background: #FAFAFA; color: #18181B; }
+.protobar .spacer { margin-left: auto; }
+
+/* ---------- palco ---------- */
+.stage { display: flex; justify-content: center; padding: 24px 16px 48px; }
+.frame {
+  container-type: inline-size;
+  width: 100%; max-width: 1240px; min-height: 800px;
+  background: var(--bg); border-radius: 26px; overflow: hidden;
+  box-shadow: 0 20px 60px -22px rgba(0,0,0,.35);
+}
+.stage[data-device="mobile"] .frame { max-width: 390px; border-radius: 34px; min-height: 820px; border: 8px solid #18181B; }
+.screen { display: none; }
+.screen[data-active] { display: block; }
+
+/* ============================================================
+   CASCA — barra horizontal no topo (desktop), tab bar (mobile)
+   ============================================================ */
+.shell { position: relative; display: flex; flex-direction: column; min-height: 800px; }
+
+.topnav { display: flex; align-items: center; gap: 12px; padding: 16px 18px; }
+@container (min-width: 900px) { .topnav { padding: 20px 28px; } }
+
+.logo { display: flex; align-items: center; gap: 9px; font: 600 17px var(--f-display); letter-spacing: -.02em; }
+.logo .mark { width: 28px; height: 28px; border-radius: 9px; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 13px; }
+
+/* seletor de residência: troca de casa em 1 clique, de qualquer tela */
+.switcher {
+  display: flex; align-items: center; gap: 9px; cursor: pointer; font: inherit; color: inherit;
+  background: var(--tile); border: 1px solid var(--line); border-radius: var(--r-full); padding: 6px 14px 6px 7px;
+}
+.switcher .init { width: 26px; height: 26px; border-radius: 50%; background: var(--c2-bg); color: var(--c2); display: grid; place-items: center; font: 600 11px var(--f-display); flex-shrink: 0; }
+.switcher b { font: 500 13px var(--f-body); }
+.switcher .code { font: 500 11px var(--f-num); color: var(--ink-3); letter-spacing: .08em; }
+
+.navlinks { display: none; }
+@container (min-width: 900px) {
+  .navlinks { display: flex; gap: 2px; margin-left: 8px; }
+  .navlinks a { padding: 8px 15px; border-radius: var(--r-full); text-decoration: none; color: var(--ink-2); font-size: 14px; }
+  .navlinks a:hover { background: rgba(0,0,0,.045); color: var(--ink); }
+  .navlinks a[aria-current] { background: var(--ink); color: #fff; }
+}
+.topnav .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.iconbtn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--tile); color: var(--ink-2); display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+.iconbtn.badge { position: relative; }
+.iconbtn.badge::after { content: ''; position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: #EF4444; border: 2px solid var(--tile); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 500 11px var(--f-body); color: #fff; flex-shrink: 0; }
+
+/* botão de lançar despesa no header do desktop — ação sempre à mão */
+.addbtn { display: none; }
+@container (min-width: 900px) {
+  .addbtn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 17px;
+    background: var(--ink); color: #fff; border: 0; border-radius: var(--r-full);
+    font: 500 13.5px var(--f-body); cursor: pointer;
+  }
+  .addbtn:hover { background: #3F3F46; }
+}
+
+.content { flex: 1; min-width: 0; padding: 4px 18px 96px; }
+@container (min-width: 900px) { .content { padding: 6px 28px 36px; } }
+
+.tabbar {
+  position: sticky; bottom: 0; z-index: 20;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  padding: 8px 6px 12px; background: rgba(241,241,239,.94); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+}
+@container (min-width: 900px) { .tabbar { display: none; } }
+.tabbar a { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: var(--ink-3); font-size: 10px; padding: 5px 0; }
+.tabbar a[aria-current] { color: var(--ink); }
+.fab {
+  position: absolute; right: 18px; bottom: 78px; z-index: 25;
+  width: 54px; height: 54px; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--ink); color: #fff; display: grid; place-items: center;
+  box-shadow: 0 8px 22px -6px rgba(0,0,0,.5);
+}
+@container (min-width: 900px) { .fab { display: none; } }
+
+/* ============================================================
+   O GRID BENTO
+   mobile: 2 colunas · desktop: 4 colunas
+   ============================================================ */
+.bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@container (min-width: 900px) { .bento { grid-template-columns: repeat(4, 1fr); gap: 13px; } }
+
+.tile {
+  background: var(--tile); border-radius: var(--r); padding: 18px;
+  grid-column: span 2; display: flex; flex-direction: column;
+}
+.tile.w1 { grid-column: span 1; }
+.tile.w2 { grid-column: span 2; }
+.tile.w3 { grid-column: span 2; }
+.tile.w4 { grid-column: span 2; }
+@container (min-width: 900px) {
+  .tile.w1 { grid-column: span 1; }
+  .tile.w2 { grid-column: span 2; }
+  .tile.w3 { grid-column: span 3; }
+  .tile.w4 { grid-column: span 4; }
+}
+
+/* tile-herói: um por seção, marcado por cor e tamanho */
+.tile.hero { background: var(--ink); color: #fff; }
+.tile.hero .label { color: #A1A1AA; }
+.tile.soft-pos { background: var(--pos-bg); }
+.tile.soft-c1  { background: var(--c1-bg); }
+.tile.soft-c2  { background: var(--c2-bg); }
+
+.label { font: 500 11px var(--f-body); text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); }
+.big   { font: 700 30px var(--f-num); letter-spacing: -.01em; margin-top: auto; padding-top: 12px; }
+.big.xl { font-size: 42px; }
+@container (min-width: 900px) { .big.xl { font-size: 50px; } }
+.note  { font: 400 12px var(--f-body); color: var(--ink-3); margin: 6px 0 0; }
+.tile.hero .note { color: #A1A1AA; }
+
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; margin: 0; letter-spacing: -.02em; }
+.tile h3 { font-size: 14px; margin-bottom: 14px; }
+.tile .h-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.tile .h-row h3 { margin: 0; }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.link { color: var(--ink-2); font-size: 12px; text-decoration: none; border-bottom: 1px solid var(--line); }
+.link:hover { color: var(--ink); border-color: var(--ink); }
+.pos { color: var(--pos); } .neg { color: var(--neg); }
+
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--r-full); font: 500 11.5px var(--f-body); }
+.pill.up   { background: var(--neg-bg); color: var(--neg); }
+.pill.down { background: var(--pos-bg); color: var(--pos); }
+.pill.flat { background: #F4F4F5; color: var(--ink-3); }
+
+.rows { list-style: none; margin: 0; padding: 0; }
+.rows li { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-top: 1px solid var(--line); }
+.rows li:first-child { border-top: 0; padding-top: 0; }
+.rows li:last-child { padding-bottom: 0; }
+.rows .grow { flex: 1; min-width: 0; }
+.rows .t { font-size: 13.5px; display: block; }
+.rows .m { font-size: 11.5px; color: var(--ink-3); display: block; margin-top: 2px; }
+.rows .v { font: 500 14px var(--f-num); text-align: right; white-space: nowrap; }
+
+.ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; }
+.bar { height: 6px; border-radius: var(--r-full); background: #F1F1F2; overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: var(--r-full); }
+
+.seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--tile); border: 1px solid var(--line); border-radius: var(--r-full); }
+.seg button { border: 0; background: none; cursor: pointer; padding: 7px 15px; border-radius: var(--r-full); font: 500 12.5px var(--f-body); color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: var(--r-full); border: 1px solid transparent; font: 500 14px var(--f-body); cursor: pointer; text-decoration: none; }
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { background: #3F3F46; }
+.btn-ghost { background: var(--tile); border-color: var(--line); color: var(--ink-2); }
+.btn-ghost:hover { border-color: var(--ink-3); }
+.btn-block { width: 100%; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font: 500 12px var(--f-body); color: var(--ink-2); margin-bottom: 6px; }
+.field input, .field select { width: 100%; padding: 13px 15px; font: 400 15px var(--f-body); color: var(--ink); background: var(--tile); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.field input::placeholder { color: var(--ink-3); }
+.field input:focus { outline: 0; border-color: var(--ink); }
+.field .hint { font-size: 11.5px; color: var(--ink-3); margin: 5px 0 0; }
+
+.pagehead { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 10px 0 14px; }
+.pagehead h1 { font-size: 22px; }
+@container (min-width: 900px) { .pagehead h1 { font-size: 27px; } }
+.pagehead .sub { font-size: 12.5px; color: var(--ink-3); margin: 4px 0 0; }
+
+/* ============================================================
+   CADASTRO — o próprio formulário vira um bento
+   ============================================================ */
+.authwrap { padding: 18px; }
+@container (min-width: 900px) { .authwrap { padding: 26px 28px; } }
+.authgrid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+@container (min-width: 900px) { .authgrid { grid-template-columns: 1fr 1fr; gap: 13px; align-items: stretch; } }
+
+.pitchtile { display: none; }
+@container (min-width: 900px) {
+  .pitchtile { display: flex; flex-direction: column; gap: 13px; }
+}
+.pitchtile .main { background: var(--ink); color: #fff; border-radius: var(--r); padding: 30px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.pitchtile .main h2 { font-size: 29px; line-height: 1.22; }
+.pitchtile .main p { font-size: 14px; line-height: 1.6; color: #A1A1AA; margin: 14px 0 0; max-width: 34ch; }
+.pitchtile .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+.checks { list-style: none; margin: 2px 0 18px; padding: 0; display: grid; gap: 7px; }
+.checks li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); }
+.checks li.ok { color: var(--pos); }
+.checks li i { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 9px; font-style: normal; flex-shrink: 0; }
+.checks li.ok i { background: var(--pos); border-color: var(--pos); color: #fff; }
+.divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--ink-3); font-size: 12px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* ============================================================
+   NOVA DESPESA
+   ============================================================ */
+.amount-tile { text-align: center; padding: 26px 18px; }
+.amount-input { display: flex; align-items: baseline; justify-content: center; gap: 6px; font-family: var(--f-num); font-weight: 700; }
+.amount-input .cur { font-size: 20px; color: #A1A1AA; }
+.amount-input .val { font-size: 54px; letter-spacing: -.02em; }
+@container (min-width: 900px) { .amount-input .val { font-size: 64px; } }
+
+.catgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(94px, 1fr)); gap: 8px; }
+.catgrid button {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+  padding: 14px 8px; border-radius: var(--r-sm); border: 2px solid transparent;
+  background: #F7F7F8; cursor: pointer; font: 400 12px var(--f-body); color: var(--ink-2);
+}
+.catgrid button[aria-pressed="true"] { border-color: var(--ink); background: var(--tile); color: var(--ink); font-weight: 500; }
+.sugg { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+.sugg button { border: 1px solid var(--line); background: var(--tile); cursor: pointer; padding: 6px 12px; border-radius: var(--r-full); font-size: 12px; color: var(--ink-2); }
+.sugg button:hover { border-color: var(--ink); color: var(--ink); }
+.switch { width: 40px; height: 23px; border-radius: 999px; background: var(--line); position: relative; display: inline-block; flex-shrink: 0; }
+.switch::after { content: ''; position: absolute; top: 2.5px; left: 2.5px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+
+/* ============================================================
+   RELATÓRIOS
+   ============================================================ */
+.settle { list-style: none; margin: 0; padding: 0; }
+.settle li { display: flex; align-items: center; gap: 11px; padding: 13px 0; border-top: 1px solid var(--line); }
+.settle li:first-child { border-top: 0; padding-top: 0; }
+.settle .who { flex: 1; min-width: 0; }
+.settle .who b { display: block; font: 400 13.5px var(--f-body); }
+.settle .who span { display: block; font: 400 11.5px var(--f-num); color: var(--ink-3); margin-top: 2px; }
+.tag-v { font: 500 12.5px var(--f-num); padding: 5px 11px; border-radius: var(--r-full); white-space: nowrap; }
+.tag-v.r { background: var(--pos-bg); color: var(--pos); }
+.tag-v.p { background: var(--neg-bg); color: var(--neg); }
+</style>
+</head>
+<body>
+
+<div class="protobar">
+  <div class="tag">Protótipo 3 — Bento<small>Grid modular · hierarquia pelo tamanho do bloco</small></div>
+  <div class="group" id="screens">
+    <button data-go="cadastro" aria-pressed="false">Cadastro</button>
+    <button data-go="painel" aria-pressed="true">Painel</button>
+    <button data-go="despesa" aria-pressed="false">Nova despesa</button>
+    <button data-go="relatorio" aria-pressed="false">Relatórios</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="group" id="device">
+    <button data-dev="desktop" aria-pressed="true">Desktop</button>
+    <button data-dev="mobile" aria-pressed="false">Mobile</button>
+  </div>
+</div>
+
+<div class="stage" data-device="desktop" id="stage">
+<div class="frame">
+
+<!-- ==================== CADASTRO ==================== -->
+<section class="screen" data-screen="cadastro">
+  <div class="authwrap">
+    <div class="logo" style="margin-bottom:20px"><span class="mark">C</span> Cronos</div>
+    <div class="authgrid">
+
+      <div class="pitchtile">
+        <div class="main">
+          <div>
+            <h2>Divida a casa,<br>não a amizade.</h2>
+            <p>Cada morador lança o que pagou. No fim do mês o Cronos diz exatamente quem paga quem — e quanto.</p>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:26px">
+            <span class="avatar" style="background:var(--c1);border:2px solid #18181B">GM</span>
+            <span class="avatar" style="background:var(--c2);border:2px solid #18181B;margin-left:-14px">MC</span>
+            <span class="avatar" style="background:var(--c3);border:2px solid #18181B;margin-left:-14px">TS</span>
+            <span class="avatar" style="background:var(--c4);border:2px solid #18181B;margin-left:-14px">LR</span>
+            <span style="align-self:center;margin-left:8px;font-size:12.5px;color:#A1A1AA">4 pessoas, 1 número</span>
+          </div>
+        </div>
+        <div class="duo">
+          <div class="tile soft-pos" style="grid-column:auto">
+            <span class="label" style="color:var(--pos)">Marina recebe</span>
+            <div class="big pos">R$ 214,10</div>
+          </div>
+          <div class="tile soft-c1" style="grid-column:auto">
+            <span class="label" style="color:var(--c1)">Tempo por lançamento</span>
+            <div class="big" style="color:var(--c1)">~8 s</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tile" style="grid-column:auto;padding:26px 24px">
+        <h1 style="font-size:23px;margin-bottom:5px">Crie sua conta</h1>
+        <p style="font-size:13px;color:var(--ink-3);margin:0 0 22px">Depois é só entrar na residência com o código.</p>
+
+        <div class="field"><label for="p3-nome">Nome</label><input id="p3-nome" type="text" value="Gabriel Mizael"></div>
+        <div class="field">
+          <label for="p3-user">Nome de usuário</label>
+          <input id="p3-user" type="text" value="gbrlmzl">
+          <p class="hint">minúsculas, números e _ · 3 a 20 caracteres</p>
+        </div>
+        <div class="field"><label for="p3-mail">E-mail</label><input id="p3-mail" type="email" value="gabriel@email.com"></div>
+        <div class="field"><label for="p3-pass">Senha</label><input id="p3-pass" type="password" value="senhaforte1"></div>
+
+        <ul class="checks">
+          <li class="ok"><i>✓</i> Ao menos 8 caracteres</li>
+          <li class="ok"><i>✓</i> Contém um número ou símbolo</li>
+          <li><i></i> Confirme a senha abaixo</li>
+        </ul>
+
+        <div class="field"><label for="p3-pass2">Confirmar senha</label><input id="p3-pass2" type="password" placeholder="Repita a senha"></div>
+
+        <button class="btn btn-primary btn-block">Criar conta</button>
+        <div class="divider">ou</div>
+        <button class="btn btn-ghost btn-block">
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"/><path fill="#FBBC05" d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6v-3H1.8a12 12 0 0 0 0 10.6l3.8-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.6 0 3.7 2.6 1.8 6.1l3.8 3C6.5 6.7 9 4.8 12 4.8z"/></svg>
+          Continuar com Google
+        </button>
+        <p style="font-size:12.5px;color:var(--ink-3);text-align:center;margin:20px 0 0">Já tem conta? <a href="#" class="link">Entrar</a></p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAINEL ==================== -->
+<section class="screen" data-screen="painel" data-active>
+  <div class="shell">
+    <header class="topnav">
+      <div class="logo" style="display:none"><span class="mark">C</span></div>
+      <button class="switcher">
+        <span class="init">VM</span>
+        <span><b>Rep. Vila Mariana</b> <span class="code">VLM-4827</span></span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <nav class="navlinks">
+        <a href="#" aria-current="page">Painel</a>
+        <a href="#">Despesas</a>
+        <a href="#">Relatórios</a>
+        <a href="#">Membros</a>
+      </nav>
+      <div class="right">
+        <button class="addbtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 5v14M5 12h14"/></svg> Lançar despesa</button>
+        <button class="iconbtn badge" aria-label="Notificações"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <span class="avatar" style="background:var(--c1)">GM</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="pagehead">
+        <div><h1>Agosto de 2026</h1><p class="sub">Mês aberto · fecha em 12 dias · 24 lançamentos</p></div>
+        <div class="seg"><button aria-pressed="true">A casa</button><button aria-pressed="false">Só eu</button></div>
+      </div>
+
+      <div class="bento">
+        <!-- HERÓI 1: o número que importa -->
+        <div class="tile hero w2" style="min-height:170px">
+          <span class="label">Seu saldo na casa</span>
+          <div class="big xl" style="color:#4ADE80">+ R$ 326,72</div>
+          <p class="note">Você pagou R$ 1.147,90 · cota de R$ 821,18</p>
+        </div>
+
+        <!-- HERÓI 2: total da casa com contexto -->
+        <div class="tile w2" style="min-height:170px">
+          <div class="h-row"><span class="label">Total da residência</span><span class="pill up">▲ 11,3%</span></div>
+          <div class="big xl">R$ 3.284,70</div>
+          <svg viewBox="0 0 200 30" preserveAspectRatio="none" style="width:100%;height:30px;margin-top:12px;display:block">
+            <polyline points="0,20 40,15 80,17 120,9 160,11 200,3" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="200" cy="3" r="2.6" fill="var(--ink)"/>
+          </svg>
+          <p class="note">R$ 333,40 acima de julho · mar → ago</p>
+        </div>
+
+        <!-- linha de números pequenos -->
+        <div class="tile w1"><span class="label">Cota por pessoa</span><div class="big">R$ 821,18</div><p class="note">4 membros</p></div>
+        <div class="tile w1"><span class="label">Projeção do mês</span><div class="big">R$ 3.610</div><p class="note">no ritmo atual</p></div>
+        <div class="tile w1 soft-c1">
+          <span class="label" style="color:var(--c1)">Maior categoria</span>
+          <div class="big" style="color:var(--c1);font-size:22px">Alimentação</div>
+          <p class="note" style="color:var(--c1)">39,1% do total</p>
+        </div>
+        <div class="tile w1 soft-c2">
+          <span class="label" style="color:var(--c2)">Pendências</span>
+          <div class="big" style="color:var(--c2)">2</div>
+          <p class="note" style="color:var(--c2)">recorrentes não lançadas</p>
+        </div>
+
+        <!-- categorias -->
+        <div class="tile w2">
+          <div class="h-row"><h3>Onde o dinheiro foi</h3><a href="#" class="link">Relatório</a></div>
+          <ul class="rows">
+            <li>
+              <span class="ic" style="background:var(--c1-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c1)" stroke-width="1.9"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 9v13M18 2c-1.7 0-3 2.7-3 6s1.3 5 3 5v9"/></svg></span>
+              <span class="grow"><span class="t">Alimentação</span><span class="bar" style="margin-top:7px"><i style="width:39.1%;background:var(--c1)"></i></span></span>
+              <span class="v">R$ 1.284,50</span>
+            </li>
+            <li>
+              <span class="ic" style="background:var(--c2-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c2)" stroke-width="1.9"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
+              <span class="grow"><span class="t">Contas domésticas</span><span class="bar" style="margin-top:7px"><i style="width:30.1%;background:var(--c2)"></i></span></span>
+              <span class="v">R$ 987,20</span>
+            </li>
+            <li>
+              <span class="ic" style="background:var(--c3-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c3)" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="m9 12 2 2 5-5"/></svg></span>
+              <span class="grow"><span class="t">Assinaturas</span><span class="bar" style="margin-top:7px"><i style="width:12.5%;background:var(--c3)"></i></span></span>
+              <span class="v">R$ 412,00</span>
+            </li>
+            <li>
+              <span class="ic" style="background:var(--c4-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c4)" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></span>
+              <span class="grow"><span class="t">Lazer</span><span class="bar" style="margin-top:7px"><i style="width:11.8%;background:var(--c4)"></i></span></span>
+              <span class="v">R$ 386,00</span>
+            </li>
+            <li>
+              <span class="ic" style="background:var(--c5-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c5)" stroke-width="1.9"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></span>
+              <span class="grow"><span class="t">Outros</span><span class="bar" style="margin-top:7px"><i style="width:6.5%;background:var(--c5)"></i></span></span>
+              <span class="v">R$ 215,00</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- quem lançou -->
+        <div class="tile w2">
+          <div class="h-row"><h3>Quem lançou quanto</h3></div>
+          <ul class="rows">
+            <li><span class="avatar" style="background:var(--c1)">GM</span><span class="grow"><span class="t">Gabriel <span style="font-size:11px;color:var(--ink-3)">· você</span></span><span class="bar" style="margin-top:7px"><i style="width:100%;background:var(--ink)"></i></span></span><span class="v">R$ 1.147,90</span></li>
+            <li><span class="avatar" style="background:var(--c2)">MC</span><span class="grow"><span class="t">Marina</span><span class="bar" style="margin-top:7px"><i style="width:84%;background:#D4D4D8"></i></span></span><span class="v">R$ 968,40</span></li>
+            <li><span class="avatar" style="background:var(--c3)">TS</span><span class="grow"><span class="t">Thiago</span><span class="bar" style="margin-top:7px"><i style="width:62%;background:#D4D4D8"></i></span></span><span class="v">R$ 712,50</span></li>
+            <li><span class="avatar" style="background:var(--c4)">LR</span><span class="grow"><span class="t">Letícia</span><span class="bar" style="margin-top:7px"><i style="width:40%;background:#D4D4D8"></i></span></span><span class="v">R$ 455,90</span></li>
+          </ul>
+        </div>
+
+        <!-- atividade, largura total -->
+        <div class="tile w4">
+          <div class="h-row"><h3>Atividade recente</h3><a href="#" class="link">Ver todas</a></div>
+          <ul class="rows">
+            <li><span class="ic" style="background:var(--c1-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c1)" stroke-width="1.9"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 9v13M18 2c-1.7 0-3 2.7-3 6s1.3 5 3 5v9"/></svg></span><span class="grow"><span class="t">Feira do mês</span><span class="m">Marina · Alimentação · há 2h</span></span><span class="v">R$ 342,80</span></li>
+            <li><span class="ic" style="background:var(--c2-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c2)" stroke-width="1.9"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="grow"><span class="t">Conta de luz</span><span class="m">Você · Contas domésticas · há 5h</span></span><span class="v">R$ 187,40</span></li>
+            <li><span class="ic" style="background:var(--c2-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c2)" stroke-width="1.9"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="grow"><span class="t">Internet fibra</span><span class="m">Thiago · Contas domésticas · ontem</span></span><span class="v">R$ 129,90</span></li>
+            <li><span class="ic" style="background:var(--c3-bg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c3)" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="m9 12 2 2 5-5"/></svg></span><span class="grow"><span class="t">Netflix + Spotify</span><span class="m">Letícia · Assinaturas · ontem</span></span><span class="v">R$ 89,80</span></li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <button class="fab" aria-label="Lançar despesa"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg></button>
+
+    <nav class="tabbar">
+      <a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Painel</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Despesas</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Conta</a>
+    </nav>
+  </div>
+</section>
+
+<!-- ==================== NOVA DESPESA ==================== -->
+<section class="screen" data-screen="despesa">
+  <div class="shell">
+    <header class="topnav">
+      <button class="switcher"><span class="init">VM</span><span><b>Rep. Vila Mariana</b> <span class="code">VLM-4827</span></span></button>
+      <nav class="navlinks">
+        <a href="#">Painel</a>
+        <a href="#" aria-current="page">Despesas</a>
+        <a href="#">Relatórios</a>
+        <a href="#">Membros</a>
+      </nav>
+      <div class="right">
+        <button class="iconbtn badge"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <span class="avatar" style="background:var(--c1)">GM</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="pagehead">
+        <div><h1>Nova despesa</h1><p class="sub">Entra na competência aberta · Agosto de 2026</p></div>
+      </div>
+
+      <div class="bento">
+        <!-- valor: tile herói -->
+        <div class="tile hero w2 amount-tile" style="justify-content:center">
+          <span class="label" style="margin-bottom:14px">Valor</span>
+          <div class="amount-input"><span class="cur">R$</span><span class="val">342,80</span></div>
+          <p class="note" style="margin-top:14px">Dividido por 4 · <b style="color:#fff">R$ 85,70</b> para cada</p>
+        </div>
+
+        <!-- descrição -->
+        <div class="tile w2">
+          <h3>Descrição</h3>
+          <div class="field" style="margin:0">
+            <input type="text" value="Feira do mês" placeholder="Ex.: Conta de luz" aria-label="Descrição da despesa">
+          </div>
+          <p style="font-size:11.5px;color:var(--ink-3);margin:12px 0 0">Você já lançou antes:</p>
+          <div class="sugg"><button>Feira do mês</button><button>Conta de luz</button><button>Gás</button><button>Faxina</button></div>
+        </div>
+
+        <!-- categorias -->
+        <div class="tile w4">
+          <h3>Categoria</h3>
+          <div class="catgrid">
+            <button aria-pressed="true"><span class="ic" style="background:var(--c1-bg)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c1)" stroke-width="1.9"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 9v13M18 2c-1.7 0-3 2.7-3 6s1.3 5 3 5v9"/></svg></span>Alimentação</button>
+            <button><span class="ic" style="background:var(--c2-bg)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c2)" stroke-width="1.9"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>Contas domésticas</button>
+            <button><span class="ic" style="background:var(--c3-bg)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c3)" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="m9 12 2 2 5-5"/></svg></span>Assinaturas</button>
+            <button><span class="ic" style="background:var(--c4-bg)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c4)" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></span>Lazer</button>
+            <button><span class="ic" style="background:var(--c5-bg)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c5)" stroke-width="1.9"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></span>Outros</button>
+          </div>
+        </div>
+
+        <!-- recorrência -->
+        <div class="tile w2">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="flex:1">
+              <h3 style="margin-bottom:5px">Repetir todo mês</h3>
+              <p style="font-size:12px;color:var(--ink-3);margin:0;line-height:1.5">O Cronos relança sozinho na virada da competência e avisa se o valor mudar.</p>
+            </div>
+            <span class="switch"></span>
+          </div>
+        </div>
+
+        <!-- preview do impacto: mostra o efeito antes de salvar -->
+        <div class="tile w2 soft-pos">
+          <span class="label" style="color:var(--pos)">Depois de lançar, seu saldo fica</span>
+          <div class="big pos">+ R$ 583,82</div>
+          <p class="note" style="color:var(--pos)">hoje é + R$ 326,72 · você sobe 1 posição</p>
+        </div>
+
+        <div class="tile w4" style="background:none;padding:0">
+          <button class="btn btn-primary btn-block" style="padding:15px">Lançar despesa</button>
+          <p style="text-align:center;font-size:12px;color:var(--ink-3);margin:10px 0 0">O formulário se limpa e o foco volta pro início — dá pra lançar várias seguidas.</p>
+        </div>
+      </div>
+    </main>
+
+    <nav class="tabbar">
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Painel</a>
+      <a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Despesas</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Conta</a>
+    </nav>
+  </div>
+</section>
+
+<!-- ==================== RELATÓRIOS ==================== -->
+<section class="screen" data-screen="relatorio">
+  <div class="shell">
+    <header class="topnav">
+      <button class="switcher"><span class="init">VM</span><span><b>Rep. Vila Mariana</b> <span class="code">VLM-4827</span></span></button>
+      <nav class="navlinks">
+        <a href="#">Painel</a>
+        <a href="#">Despesas</a>
+        <a href="#" aria-current="page">Relatórios</a>
+        <a href="#">Membros</a>
+      </nav>
+      <div class="right">
+        <button class="iconbtn badge"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <span class="avatar" style="background:var(--c1)">GM</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="pagehead">
+        <div><h1>Relatórios</h1><p class="sub">Agosto de 2026 · 24 lançamentos</p></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="seg"><button aria-pressed="true">Residência</button><button aria-pressed="false">Meus gastos</button></div>
+          <div class="seg"><button aria-pressed="false">Jun</button><button aria-pressed="false">Jul</button><button aria-pressed="true">Ago</button></div>
+        </div>
+      </div>
+
+      <div class="bento">
+        <!-- HERÓI: acerto de contas, o que o usuário veio buscar -->
+        <div class="tile hero w2">
+          <span class="label">Acerto de contas · cota de R$ 821,18</span>
+          <div style="margin-top:16px">
+            <ul class="settle" style="--line:#3F3F46">
+              <li style="border-color:#3F3F46">
+                <span class="avatar" style="background:var(--c1)">GM</span>
+                <span class="who"><b style="color:#fff">Gabriel · você</b><span style="color:#A1A1AA">gastou R$ 1.147,90</span></span>
+                <span class="tag-v r">+ R$ 326,72</span>
+              </li>
+              <li style="border-color:#3F3F46">
+                <span class="avatar" style="background:var(--c2)">MC</span>
+                <span class="who"><b style="color:#fff">Marina</b><span style="color:#A1A1AA">gastou R$ 968,40</span></span>
+                <span class="tag-v r">+ R$ 147,22</span>
+              </li>
+              <li style="border-color:#3F3F46">
+                <span class="avatar" style="background:var(--c3)">TS</span>
+                <span class="who"><b style="color:#fff">Thiago</b><span style="color:#A1A1AA">gastou R$ 712,50</span></span>
+                <span class="tag-v p">− R$ 108,68</span>
+              </li>
+              <li style="border-color:#3F3F46">
+                <span class="avatar" style="background:var(--c4)">LR</span>
+                <span class="who"><b style="color:#fff">Letícia</b><span style="color:#A1A1AA">gastou R$ 455,90</span></span>
+                <span class="tag-v p">− R$ 365,28</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- rosca -->
+        <div class="tile w2">
+          <div class="h-row"><h3>Distribuição</h3><span class="pill flat">5 categorias</span></div>
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+            <svg viewBox="0 0 42 42" style="width:132px;height:132px;flex-shrink:0;transform:rotate(-90deg)">
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--c1)" stroke-width="7" stroke-dasharray="39.1 60.9"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--c2)" stroke-width="7" stroke-dasharray="30.1 69.9" stroke-dashoffset="-39.1"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--c3)" stroke-width="7" stroke-dasharray="12.5 87.5" stroke-dashoffset="-69.2"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--c4)" stroke-width="7" stroke-dasharray="11.8 88.2" stroke-dashoffset="-81.7"/>
+              <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--c5)" stroke-width="7" stroke-dasharray="6.5 93.5" stroke-dashoffset="-93.5"/>
+            </svg>
+            <ul class="rows" style="flex:1;min-width:150px">
+              <li><span style="width:9px;height:9px;border-radius:3px;background:var(--c1);flex-shrink:0"></span><span class="grow"><span class="t">Alimentação</span><span class="m">39,1%</span></span><span class="v">1.284,50</span></li>
+              <li><span style="width:9px;height:9px;border-radius:3px;background:var(--c2);flex-shrink:0"></span><span class="grow"><span class="t">Domésticas</span><span class="m">30,1%</span></span><span class="v">987,20</span></li>
+              <li><span style="width:9px;height:9px;border-radius:3px;background:var(--c3);flex-shrink:0"></span><span class="grow"><span class="t">Assinaturas</span><span class="m">12,5%</span></span><span class="v">412,00</span></li>
+              <li><span style="width:9px;height:9px;border-radius:3px;background:var(--c4);flex-shrink:0"></span><span class="grow"><span class="t">Lazer</span><span class="m">11,8%</span></span><span class="v">386,00</span></li>
+              <li><span style="width:9px;height:9px;border-radius:3px;background:var(--c5);flex-shrink:0"></span><span class="grow"><span class="t">Outros</span><span class="m">6,5%</span></span><span class="v">215,00</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- números soltos -->
+        <div class="tile w1"><span class="label">Total do mês</span><div class="big">R$ 3.284,70</div><p class="note"><span class="pill up" style="padding:2px 8px">▲ 11,3%</span></p></div>
+        <div class="tile w1"><span class="label">Média por pessoa</span><div class="big">R$ 821,18</div><p class="note">4 membros ativos</p></div>
+        <div class="tile w1"><span class="label">Maior lançamento</span><div class="big">R$ 342,80</div><p class="note">Feira do mês · Marina</p></div>
+        <div class="tile w1"><span class="label">Projeção 31/08</span><div class="big">R$ 3.610</div><p class="note">no ritmo atual</p></div>
+
+        <!-- evolução -->
+        <div class="tile w2">
+          <div class="h-row"><h3>Evolução</h3><span class="pill flat">6 competências</span></div>
+          <svg viewBox="0 0 320 120" style="width:100%;height:150px;display:block">
+            <line x1="0" y1="100" x2="320" y2="100" stroke="#E4E4E7"/>
+            <rect x="12"  y="55" width="32" height="45" rx="6" fill="#E4E4E7"/>
+            <rect x="64"  y="47" width="32" height="53" rx="6" fill="#E4E4E7"/>
+            <rect x="116" y="51" width="32" height="49" rx="6" fill="#E4E4E7"/>
+            <rect x="168" y="38" width="32" height="62" rx="6" fill="#E4E4E7"/>
+            <rect x="220" y="41" width="32" height="59" rx="6" fill="#E4E4E7"/>
+            <rect x="272" y="26" width="32" height="74" rx="6" fill="#18181B"/>
+            <text x="28"  y="115" font-size="10" fill="#A1A1AA" text-anchor="middle" font-family="Roboto Condensed">mar</text>
+            <text x="80"  y="115" font-size="10" fill="#A1A1AA" text-anchor="middle" font-family="Roboto Condensed">abr</text>
+            <text x="132" y="115" font-size="10" fill="#A1A1AA" text-anchor="middle" font-family="Roboto Condensed">mai</text>
+            <text x="184" y="115" font-size="10" fill="#A1A1AA" text-anchor="middle" font-family="Roboto Condensed">jun</text>
+            <text x="236" y="115" font-size="10" fill="#A1A1AA" text-anchor="middle" font-family="Roboto Condensed">jul</text>
+            <text x="288" y="115" font-size="10" fill="#18181B" text-anchor="middle" font-family="Roboto Condensed" font-weight="700">ago</text>
+          </svg>
+        </div>
+
+        <!-- transferências mínimas -->
+        <div class="tile w2">
+          <div class="h-row"><h3>Quitar em 2 transferências</h3></div>
+          <p style="font-size:12px;color:var(--ink-3);margin:-8px 0 14px">O menor número de pagamentos que zera todo mundo.</p>
+          <ul class="rows">
+            <li>
+              <span class="avatar" style="background:var(--c4)">LR</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              <span class="avatar" style="background:var(--c1)">GM</span>
+              <span class="grow"><span class="t" style="font-size:13px">Letícia paga Gabriel</span></span>
+              <span class="v">R$ 326,72</span>
+            </li>
+            <li>
+              <span class="avatar" style="background:var(--c3)">TS</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              <span class="avatar" style="background:var(--c2)">MC</span>
+              <span class="grow"><span class="t" style="font-size:13px">Thiago paga Marina</span></span>
+              <span class="v">R$ 108,68</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- comparativo -->
+        <div class="tile w2">
+          <div class="h-row"><h3>Comparado com julho</h3></div>
+          <ul class="rows">
+            <li><span class="grow"><span class="t">Alimentação</span><span class="m">puxou o total pra cima</span></span><span class="pill up">▲ 22%</span></li>
+            <li><span class="grow"><span class="t">Contas domésticas</span></span><span class="pill up">▲ 8%</span></li>
+            <li><span class="grow"><span class="t">Assinaturas</span></span><span class="pill flat">estável</span></li>
+            <li><span class="grow"><span class="t">Lazer</span></span><span class="pill down">▼ 14%</span></li>
+            <li><span class="grow"><span class="t">Outros</span></span><span class="pill down">▼ 5%</span></li>
+          </ul>
+        </div>
+
+        <div class="tile w4" style="background:none;padding:0;display:flex;flex-direction:row;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" style="flex:1;min-width:180px;padding:15px">Fechar o mês</button>
+          <button class="btn btn-ghost" style="padding:15px 22px">Exportar CSV</button>
+          <button class="btn btn-ghost" style="padding:15px 22px">Compartilhar resumo</button>
+        </div>
+      </div>
+    </main>
+
+    <nav class="tabbar">
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Painel</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Despesas</a>
+      <a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Conta</a>
+    </nav>
+  </div>
+</section>
+
+</div>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  document.getElementById('screens').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#screens button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('.screen').forEach(s => s.toggleAttribute('data-active', s.dataset.screen === b.dataset.go));
+  });
+  document.getElementById('device').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#device button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    stage.dataset.device = b.dataset.dev;
+  });
+  document.querySelectorAll('.seg, .catgrid').forEach(g => g.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+</script>
+</body>
+</html>

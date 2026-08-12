@@ -5,10 +5,10 @@ import styles from "./PainelResidencia.module.css";
 
 export default function ResidenciaNaoEncontrada() {
     return (
-        <div className="primaryCard">
+        <div className="superficie">
             <div className={styles.container}>
                 <div className={styles.cabecalho}>
-                    <Link href="/app/residences" className={styles.botaoCanto}
+                    <Link href="/dashboard/residences" className={styles.botaoCanto}
                         aria-label="Ver minhas residências" title="Ver minhas residências">
                         <img src="/icons/voltarIcon.svg" alt="Ver minhas residências" width={22} height={22} />
                     </Link>

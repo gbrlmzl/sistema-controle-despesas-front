@@ -14,7 +14,7 @@ jest.mock("next/navigation", () => ({
 const mockRegisterAction = registerAction as jest.MockedFunction<typeof registerAction>;
 
 function getSubmitButton() {
-    return screen.getByRole("button", { name: "Login" });
+    return screen.getByRole("button", { name: "Criar conta" });
 }
 
 async function preencherCadastroValido(user: ReturnType<typeof userEvent.setup>) {

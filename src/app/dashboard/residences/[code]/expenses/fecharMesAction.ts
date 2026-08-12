@@ -34,7 +34,7 @@ export default async function fecharMesAction(code: string, month: number, year:
             body: { month, year },
         });
 
-        revalidatePath(`/app/residences/${code}/expenses`);
+        revalidatePath(`/dashboard/residences/${code}/expenses`);
 
         const proxima = competenciaSeguinte(closure.month, closure.year);
         const complemento = recurringExpensesGenerated > 0

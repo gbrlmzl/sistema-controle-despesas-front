@@ -64,9 +64,9 @@ export default function EditarDespesaModal({ residencia, despesa, onFechar }: Ed
                         <span>Repetir nos próximos meses</span>
                     </label>
                        */}
-                    <div className="botoesContainer">
-                        <button type="button" className="botaoTexto" onClick={onFechar} disabled={isPending}>Cancelar</button>
-                        <button type="submit" className="botaoTexto" disabled={isPending || !dadosPreenchidos}>Salvar</button>
+                    <div className={styles.botoesContainer}>
+                        <button type="button" className={styles.botaoSecundario} onClick={onFechar} disabled={isPending}>Cancelar</button>
+                        <button type="submit" className={styles.botaoPrimario} disabled={isPending || !dadosPreenchidos}>Salvar</button>
                     </div>
                 </Form>
             </div>

@@ -14,10 +14,10 @@
 }
 
 .secao h3 {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
-    color: black;
+    color: var(--ink);
 }
 
 .lista {
@@ -37,8 +37,8 @@
     gap: 0.75rem;
     padding: 0.6rem 0.85rem;
     border-radius: 0.75rem;
-    background: #FFF8E1;
-    border: 1px solid #FFE69C;
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
 }
 
 .pendenciaInfo {
@@ -49,16 +49,16 @@
 }
 
 .pendenciaTitulo {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
-    color: black;
+    color: var(--ink);
     overflow-wrap: anywhere;
 }
 
 .pendenciaDetalhe {
     font-size: 0.72rem;
-    color: #5A5A5A;
+    color: var(--ink-3);
 }
 
 .pendenciaAcoes {
@@ -73,29 +73,29 @@
 .botaoRecusar {
     border-radius: 1.875rem;
     padding: 0.3rem 0.7rem;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 0.75rem;
     white-space: nowrap;
 }
 
 .botaoAceitar {
-    background: #2497F3;
-    color: #FFF;
+    background: var(--accent);
+    color: var(--accent-contrast);
 }
 
 .botaoAceitar:hover:not(:disabled) {
-    background: #1E7ACC;
+    background: var(--accent-hover);
     cursor: pointer;
 }
 
 .botaoRecusar {
-    background: #FFF;
-    border: 1px solid #7A7A7A;
-    color: #5A5A5A;
+    background: var(--surface-2);
+    border: 1px solid var(--ink-3);
+    color: var(--ink-3);
 }
 
 .botaoRecusar:hover:not(:disabled) {
-    background: #E5E5E5;
+    background: var(--surface-2);
     cursor: pointer;
 }
 

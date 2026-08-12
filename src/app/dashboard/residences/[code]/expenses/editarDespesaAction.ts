@@ -57,8 +57,8 @@ export default async function editarDespesaAction(_prevState: ActionState | null
             body: payload,
         });
 
-        revalidatePath(`/app/residences/${data.code}/expenses`);
-        revalidatePath(`/app/residences/${data.code}/expenses/recurring`);
+        revalidatePath(`/dashboard/residences/${data.code}/expenses`);
+        revalidatePath(`/dashboard/residences/${data.code}/expenses/recurring`);
 
         return {
             success: true,

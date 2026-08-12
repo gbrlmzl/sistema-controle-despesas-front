@@ -35,7 +35,7 @@ export default async function Relatorios({ params, searchParams }: PageProps) {
         await getResidenceReport(code, competencia, abaAtiva);
 
     return (
-        <div className="primaryCard">
+        <div className="superficie">
             <RelatorioResidencia
                 residencia={residencia}
                 competencia={competencia}

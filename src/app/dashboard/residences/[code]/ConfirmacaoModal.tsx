@@ -23,9 +23,9 @@ export default function ConfirmacaoModal({ titulo, mensagem, textoConfirmar, pro
                     <p>{mensagem}</p>
                 </div>
 
-                <div className="botoesContainer">
-                    <button type="button" className="botaoTexto" onClick={onCancelar} disabled={processando}>Cancelar</button>
-                    <button type="button" className="botaoTexto" onClick={onConfirmar} disabled={processando}>{textoConfirmar}</button>
+                <div className={styles.botoesContainer}>
+                    <button type="button" className={styles.botaoCancelar} onClick={onCancelar} disabled={processando}>Cancelar</button>
+                    <button type="button" className={styles.botaoConfirmar} onClick={onConfirmar} disabled={processando}>{textoConfirmar}</button>
                 </div>
             </div>
         </div>

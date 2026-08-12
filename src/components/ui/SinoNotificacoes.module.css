@@ -1,73 +1,96 @@
 .container {
-    display: flex;
-    align-items: center;
     position: relative;
+    display: flex;
+    flex-shrink: 0;
 }
 
-.sino {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.gatilho {
     position: relative;
-    padding: 4px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink-2);
 }
 
-.sino:hover {
-    cursor: pointer;
+.gatilho:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
 }
 
 .indicador {
     position: absolute;
-    top: -2px;
-    right: -4px;
-    min-width: 16px;
-    height: 16px;
+    top: -5px;
+    right: -5px;
+    min-width: 17px;
+    height: 17px;
     padding: 0 4px;
-    border-radius: 8px;
-    background: #FF3B30;
-    color: #FFF;
-    font-size: 0.65rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: var(--r-full);
+    border: 2px solid var(--surface);
+    background: var(--neg);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 500;
+    line-height: 13px;
+    text-align: center;
+}
+
+/* Camada invisível que fecha o painel ao clicar fora dele */
+.fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
 }
 
 .painel {
     position: absolute;
-    top: 2.5rem;
+    top: calc(100% + 0.5rem);
     right: 0;
-    width: 18rem;
-    max-width: 85vw;
-    background-color: #11204C;
-    border-top: 2px solid #11B5E4;
-    border-radius: 2px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 41;
     display: flex;
     flex-direction: column;
-    z-index: 1000;
+    width: min(20rem, calc(100vw - 2rem));
+    padding: 0.5rem;
+    border-radius: var(--r-lg);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.85);
+}
+
+/* No desktop o sino mora no rail, colado à borda esquerda da tela: um painel
+   ancorado por "right: 0" (pensado para o topo do mobile) abriria para fora da
+   viewport. A partir daqui ele vira um flyout para a direita do rail, com a base
+   alinhada ao botão — o mesmo ponto onde o sino já fica perto do rodapé. */
+@media (min-width: 900px) {
+    .painel {
+        top: auto;
+        bottom: 0;
+        right: auto;
+        left: calc(100% + 0.5rem);
+    }
 }
 
 .vazio {
-    padding: 1rem;
+    margin: 0;
+    padding: 1.5rem 0.75rem;
     text-align: center;
     font-size: 0.85rem;
-    color: #C9C9C9;
+    color: var(--ink-3);
 }
 
 .lista {
     display: flex;
     flex-direction: column;
-    margin: 0;
+    gap: 0.15rem;
     padding: 0;
+    margin: 0;
     list-style: none;
     max-height: 20rem;
     overflow-y: auto;
-}
-
-.item,
-.itemNaoLido {
-    border-bottom: 1px solid #1C2F63;
 }
 
 .item a,
@@ -75,45 +98,43 @@
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
-    padding: 0.6rem 0.75rem;
-}
-
-/* CA-5 -> não lidas se distinguem visualmente das já lidas */
-.itemNaoLido {
-    background: #172A5E;
-    border-left: 3px solid #11B5E4;
+    padding: 0.6rem 0.7rem;
+    border-radius: var(--r-md);
+    color: var(--ink);
 }
 
 .item a:hover,
 .itemNaoLido a:hover {
-    background-color: #173A62;
+    background: var(--surface-3);
+}
+
+/* Não lida ganha uma marca à esquerda: o peso da fonte sozinho é sutil demais */
+.itemNaoLido a {
+    border-left: 2px solid var(--accent);
 }
 
 .itemTitulo {
-    font-size: 0.85rem;
+    font-family: var(--font-display);
     font-weight: 600;
-    color: #FFFFFF;
+    font-size: 0.82rem;
 }
 
 .itemMensagem {
-    font-size: 0.75rem;
-    color: #C9C9C9;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
 }
 
 .itemData {
     font-size: 0.68rem;
-    color: #8FA3C8;
+    color: var(--ink-3);
 }
 
 .mostrarTudo {
-    padding: 0.6rem;
+    margin-top: 0.35rem;
+    padding: 0.55rem;
+    border-top: 1px solid var(--border);
     text-align: center;
     font-size: 0.8rem;
-    font-weight: 600;
-    color: #11B5E4;
-    border-top: 1px solid #1C2F63;
-}
-
-.mostrarTudo:hover {
-    background-color: #173A62;
+    color: var(--accent);
 }

@@ -4,7 +4,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(5, 7, 15, 0.72);
     z-index: 10;
     padding: 1rem;
 }
@@ -17,10 +17,10 @@
     width: 100%;
     max-width: 22rem;
     padding: 1.5rem 1.25rem;
-    border-radius: 1.25rem;
-    background: #FFF;
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-    color: black;
+    border-radius: var(--r-xl);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--ink);
 }
 
 .mensagemContainer {
@@ -32,13 +32,56 @@
 }
 
 .mensagemContainer h3 {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1.2rem;
     font-weight: 600;
 }
 
 .mensagemContainer p {
-    font-family: var(--font-roboto);
+    font-family: var(--font-body);
     font-size: 0.9rem;
-    color: #5A5A5A;
+    color: var(--ink-3);
+}
+
+.botoesContainer {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+}
+
+.botaoCancelar,
+.botaoConfirmar {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border-radius: var(--r-md);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.botaoCancelar {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.botaoCancelar:hover:not(:disabled) {
+    border-color: var(--ink-3);
+}
+
+.botaoConfirmar {
+    background: var(--neg);
+    color: #06101F;
+}
+
+.botaoConfirmar:hover:not(:disabled) {
+    background: #f4576d;
+}
+
+.botaoCancelar:disabled,
+.botaoConfirmar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

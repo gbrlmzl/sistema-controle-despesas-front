@@ -1,38 +1,85 @@
 .container {
     display: flex;
     flex-direction: column;
-    align-items: center;
     width: 100%;
-    height: 100%;
-    color: black;
-    font-family: var(--font-roboto);
+    color: var(--ink);
+    font-family: var(--font-body);
 }
 
-.container h2 {
-    color: black;
-    font-family: var(--font-montserrat_semibold);
-    font-weight: 600;
-    font-size: 1.4rem;
+.cabecalho {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+.cabecalho h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--ink);
+}
+
+/* Criar e entrar viviam na tela-menu que deixou de existir: agora acompanham a lista */
+.cabecalhoAcoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.botaoPrimario,
+.botaoSecundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1rem;
+    border-radius: var(--r-md);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    white-space: nowrap;
+}
+
+.botaoPrimario {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 500;
+}
+
+.botaoPrimario:hover {
+    background: var(--accent-hover);
+}
+
+.botaoSecundario {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.botaoSecundario:hover {
+    border-color: var(--ink-3);
 }
 
 .listaVazia {
-    margin-top: 3rem;
+    margin-top: 1rem;
+    padding: 2.5rem 1rem;
     text-align: center;
-    font-family: var(--font-roboto-condensed);
-    font-size: 1.1rem;
-    color: #5A5A5A;
+    font-size: 0.95rem;
+    color: var(--ink-3);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
 }
 
-/* Lista de orientação vertical, um container por residência */
 .lista {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.6rem;
     width: 100%;
-    margin-top: 1.5rem;
     padding: 0;
+    margin: 0;
     list-style: none;
-    overflow-y: auto;
 }
 
 .residenciaContainer {
@@ -41,17 +88,18 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    background: #E5E5E5;
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    padding: 1rem 1.1rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
     cursor: pointer;
-    transition: background 0.15s;
+    transition: border-color 0.15s, background 0.15s;
 }
 
 .residenciaContainer:hover,
 .residenciaContainer:focus-visible {
-    background: #D9D9D9;
+    background: var(--surface-2);
+    border-color: var(--border-strong);
 }
 
 .residenciaInfo {
@@ -62,115 +110,80 @@
 }
 
 .residenciaInfo h3 {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1.15rem;
-    font-weight: 600;
+    margin: 0;
+    font-size: 1rem;
+    color: var(--ink);
     overflow-wrap: anywhere;
 }
 
 .criadorContainer {
     display: flex;
-    flex-direction: row;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.8rem;
-    color: #5A5A5A;
+    font-size: 0.75rem;
+    color: var(--ink-3);
 }
 
 .residenciaAcoes {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    flex-shrink: 0;
 }
 
 .botaoAcao {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #2497F3;
-    border-radius: 40px;
-    height: 40px;
-    width: 40px;
-    padding: 5px;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
 }
 
 .botaoAcao:hover {
-    background-color: #1A78C2;
-    cursor: pointer;
+    border-color: var(--accent);
 }
 
+/* copiarIcon e avancarIcon já são desenhados em branco — não levam filtro */
 .botaoAcao img {
-    width: 60%;
-    height: 60%;
+    width: 55%;
+    height: 55%;
 }
 
 .secaoArquivadas {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     width: 100%;
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
 }
 
 .botaoArquivadas {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.85rem;
-    color: #5A5A5A;
+    align-self: flex-start;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--ink-3);
     text-decoration: underline;
 }
 
 .botaoArquivadas:hover {
-    color: #000000;
-    cursor: pointer;
+    color: var(--ink-2);
 }
 
 .errorMessage {
-    background-color: #F8D7DA;
-    border: 1px solid #F5C2C7;
-    color: #842029;
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin-top: 15px;
-    width: 75%;
-    text-align: center;
-}
-
-/* Seta, título e canto direito na mesma linha, com o título centralizado */
-.cabecalho {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    width: 100%;
-    min-height: 2.25rem;
+    padding: 0.7rem 0.85rem;
+    margin-bottom: 1rem;
+    border-radius: var(--r-md);
+    background: var(--neg-bg);
+    border: 1px solid rgba(251, 113, 133, 0.25);
+    color: var(--neg);
+    font-size: 0.85rem;
 }
 
-.cabecalho h2 {
-    flex: 1;
-    text-align: center;
-    overflow-wrap: anywhere;
-}
-
-.botaoCanto {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-    border-radius: 50%;
-}
-
-.botaoCanto:hover {
-    background: #E5E5E5;
-    cursor: pointer;
-}
-
-/* Ocupa o mesmo espaço da seta do lado oposto, mantendo o título no centro */
-.espacoCanto {
-    width: 2.25rem;
-    flex-shrink: 0;
+@media (min-width: 900px) {
+    .cabecalho h1 {
+        font-size: 1.75rem;
+    }
 }

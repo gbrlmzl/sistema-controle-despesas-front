@@ -1,0 +1,340 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 7, 15, 0.72);
+    z-index: 30;
+    padding: 1rem;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 26rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.25rem 1.25rem 1.5rem;
+    border-radius: var(--r-xl);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--ink);
+    font-family: var(--font-body);
+}
+
+.cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.cabecalho h3 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.botaoFechar {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: var(--ink-2);
+}
+
+.botaoFechar:hover {
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.competencia {
+    margin: 0.35rem 0 0;
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+
+.errorMessage {
+    background-color: var(--neg-bg);
+    border: 1px solid rgba(251, 113, 133, 0.25);
+    color: var(--neg);
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 0.9rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   FORMULÁRIO
+   ============================================================ */
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.rotulo {
+    display: block;
+    margin-bottom: 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* ---------- valor, em destaque ---------- */
+.valorStage {
+    text-align: center;
+    padding: 0.25rem 0 1.1rem;
+}
+
+.valorStage .rotulo {
+    text-align: center;
+}
+
+.valorInputLinha {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.35rem;
+    max-width: 16rem;
+    margin: 0 auto;
+}
+
+.valorMoeda {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--ink-3);
+}
+
+.valorInput {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 2.6rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-align: center;
+}
+
+.valorInput:focus {
+    outline: none;
+}
+
+.valorInput::placeholder {
+    color: var(--ink-3);
+}
+
+/* ---------- descrição + sugestões ---------- */
+.campo {
+    width: 100%;
+    margin-bottom: 1.1rem;
+}
+
+.campo label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    margin-bottom: 0.4rem;
+}
+
+.campo input[type="text"] {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--r-md);
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--ink);
+}
+
+.sugestoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+}
+
+.botaoSugestao {
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--r-full);
+    border: 1px dashed var(--border-strong);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--ink-2);
+}
+
+.botaoSugestao:hover {
+    border-style: solid;
+    border-color: var(--accent);
+    color: var(--accent);
+    cursor: pointer;
+}
+
+/* ---------- categoria ---------- */
+.categoriaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.botaoCategoria {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-3);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--ink-2);
+    text-align: left;
+}
+
+.botaoCategoria:hover {
+    border-color: var(--border-strong);
+    cursor: pointer;
+}
+
+.botaoCategoriaAtivo {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    color: var(--ink);
+}
+
+.categoriaIcone {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: var(--r-sm);
+}
+
+/* ---------- recorrência ---------- */
+.recorrenteLinha {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 1.35rem;
+    border-radius: var(--r-md);
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+}
+
+.recorrenteLinha:hover {
+    cursor: pointer;
+}
+
+.recorrenteTexto {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex: 1;
+}
+
+.recorrenteTexto strong {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.recorrenteTexto span {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+}
+
+.switchWrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.switchWrap input {
+    position: absolute;
+    inset: 0;
+    width: 40px;
+    height: 23px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.switchTrilho {
+    width: 40px;
+    height: 23px;
+    border-radius: var(--r-full);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    position: relative;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.switchTrilho::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: var(--ink-2);
+    transition: transform 0.15s, background 0.15s;
+}
+
+.switchWrap input:checked+.switchTrilho {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.switchWrap input:checked+.switchTrilho::after {
+    background: #fff;
+    transform: translateX(17px);
+}
+
+/* ---------- envio ---------- */
+.botaoSubmit {
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--r-md);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.botaoSubmit:hover:not(:disabled) {
+    background: var(--accent-hover);
+    cursor: pointer;
+}
+
+.botaoSubmit:disabled {
+    background: var(--surface-3);
+    color: var(--ink-3);
+    cursor: not-allowed;
+}
+
+.dica {
+    margin: 0.6rem 0 0;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--ink-3);
+}

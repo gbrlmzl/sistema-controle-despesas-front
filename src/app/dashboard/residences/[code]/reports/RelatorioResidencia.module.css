@@ -1,138 +1,152 @@
 .container {
     display: flex;
     flex-direction: column;
-    align-items: center;
     width: 100%;
-    height: 100%;
-    color: black;
-    font-family: var(--font-roboto);
-    overflow-y: auto;
-}
-
-.container h2 {
-    color: black;
-    font-family: var(--font-montserrat_semibold);
-    font-weight: 600;
-    font-size: 1.4rem;
 }
 
 .cabecalho {
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 0.5rem;
-    width: 100%;
-    min-height: 2.25rem;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
 }
 
-.cabecalho h2 {
-    flex: 1;
-    text-align: center;
+.cabecalho h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--ink);
 }
 
-.botaoCanto {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-    border-radius: 50%;
+.subtitulo {
+    margin: 0.3rem 0 0;
+    font-size: 0.8rem;
+    color: var(--ink-3);
 }
 
-.botaoCanto:hover {
-    background: #E5E5E5;
-    cursor: pointer;
-}
-
-.espacoCanto {
-    width: 2.25rem;
-    flex-shrink: 0;
-}
-
+/* ============================================================
+   ABAS
+   ============================================================ */
 .abas {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    margin-top: 0.75rem;
-    border-bottom: 1px solid #D5D5D5;
+    display: inline-flex;
+    gap: 0.15rem;
+    padding: 0.25rem;
+    margin-bottom: 0.85rem;
+    border-radius: var(--r-full);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
 }
 
 .aba,
 .abaAtiva {
-    flex: 1;
-    padding: 0.6rem 0.5rem;
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.95rem;
-    text-align: center;
-    border-bottom: 3px solid transparent;
+    padding: 0.45rem 1rem;
+    border-radius: var(--r-full);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
 }
 
 .aba {
-    color: #5A5A5A;
+    color: var(--ink-2);
 }
 
 .aba:hover {
-    color: #000;
-    cursor: pointer;
+    color: var(--ink);
 }
 
 .abaAtiva {
-    color: #2497F3;
-    font-weight: 600;
-    border-bottom-color: #2497F3;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 500;
 }
 
+.seletorLinha {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+}
+
+/* ============================================================
+   TOTAL
+   ============================================================ */
 .totalGeral {
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.85rem;
-    background: #2497F3;
-    color: #FFF;
-    width: 100%;
+    gap: 0.25rem;
+    padding: 1.4rem 1.25rem;
+    border-radius: var(--r-xl);
+    background: linear-gradient(150deg, var(--surface-2), var(--surface) 60%);
+    border: 1px solid var(--border-strong);
+}
+
+.totalGeral::after {
+    content: '';
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(79, 142, 247, 0.2), transparent 62%);
+    pointer-events: none;
+}
+
+.totalGeral > * {
+    position: relative;
+    z-index: 1;
 }
 
 .totalRotulo {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.8rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
 }
 
 .totalValor {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1.6rem;
+    font-family: var(--font-display);
     font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+    color: var(--ink);
 }
 
 .totalDetalhe {
-    font-size: 0.75rem;
-    opacity: 0.9;
+    font-size: 0.78rem;
+    color: var(--ink-2);
 }
 
 .listaVazia {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
+    padding: 2rem 1rem;
     text-align: center;
-    font-family: var(--font-roboto-condensed);
-    font-size: 1rem;
-    color: #5A5A5A;
+    font-size: 0.9rem;
+    color: var(--ink-3);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
 }
 
+/* ============================================================
+   SEÇÕES
+   ============================================================ */
 .secao {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     width: 100%;
-    margin-top: 1.75rem;
+    margin-top: 0.85rem;
+    padding: 1.25rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
 }
 
 .secao h3 {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1rem;
-    font-weight: 600;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink);
 }
 
 .listaCategorias {
@@ -147,80 +161,71 @@
 .categoria {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.3rem;
 }
 
 .categoriaTopo {
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     gap: 0.5rem;
-    font-family: var(--font-roboto-condensed);
 }
 
 .categoriaNome {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
+    color: var(--ink);
 }
 
 .categoriaValor {
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink);
     white-space: nowrap;
 }
 
 .barraFundo {
     width: 100%;
-    height: 0.5rem;
-    border-radius: 1rem;
-    background: #E5E5E5;
+    height: 0.35rem;
+    border-radius: var(--r-full);
+    background: rgba(255, 255, 255, 0.08);
     overflow: hidden;
 }
 
 .barraPreenchida {
     height: 100%;
-    border-radius: 1rem;
-    background: #2497F3;
+    border-radius: var(--r-full);
+    background: var(--accent);
 }
 
 .categoriaRodape {
     display: flex;
-    flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 0.5rem;
-    font-size: 0.72rem;
-    color: #5A5A5A;
-    flex-wrap: wrap;
+    font-size: 0.7rem;
+    color: var(--ink-3);
 }
 
-.desvioAlto {
-    color: #C0392B;
-    font-weight: 600;
-}
-
-.desvioBaixo {
-    color: #1E7A3C;
-    font-weight: 600;
-}
-
+.desvioAlto,
 .variacaoAlta {
-    color: #C0392B;
-    font-weight: 600;
+    color: var(--neg);
+    font-weight: 500;
 }
 
+.desvioBaixo,
 .variacaoBaixa {
-    color: #1E7A3C;
-    font-weight: 600;
+    color: var(--pos);
+    font-weight: 500;
 }
 
 .semComparacao {
-    font-size: 0.85rem;
-    color: #5A5A5A;
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--ink-3);
 }
 
 .listaComparativo {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
     padding: 0;
     margin: 0;
     list-style: none;
@@ -229,21 +234,30 @@
 
 .listaComparativo li {
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     gap: 0.5rem;
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--border);
+    color: var(--ink);
 }
 
+.listaComparativo li:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+/* ============================================================
+   RATEIO
+   ============================================================ */
 .cota {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.9rem;
-    color: #5A5A5A;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ink-3);
 }
 
 .listaRateio {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
     padding: 0;
     margin: 0;
     list-style: none;
@@ -251,13 +265,16 @@
 
 .participante {
     display: flex;
-    flex-direction: row;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.6rem 0.85rem;
-    border-radius: 0.75rem;
-    background: #F0F0F0;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.participante:first-child {
+    border-top: none;
+    padding-top: 0;
 }
 
 .participanteInfo {
@@ -268,69 +285,88 @@
 }
 
 .participanteNome {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
     overflow-wrap: anywhere;
 }
 
 .participanteGasto {
     font-size: 0.72rem;
-    color: #5A5A5A;
+    color: var(--ink-3);
+}
+
+.recebe,
+.paga,
+.quitado {
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--r-full);
+    font-size: 0.78rem;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .recebe {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #1E7A3C;
-    white-space: nowrap;
+    background: var(--pos-bg);
+    color: var(--pos);
 }
 
 .paga {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #C0392B;
-    white-space: nowrap;
+    background: var(--neg-bg);
+    color: var(--neg);
 }
 
 .quitado {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.9rem;
-    color: #5A5A5A;
-    white-space: nowrap;
+    background: var(--surface-2);
+    color: var(--ink-3);
 }
 
+/* ============================================================
+   AÇÕES
+   ============================================================ */
 .acoes {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     width: 100%;
-    max-width: 18rem;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin: 1.25rem 0 0.5rem;
 }
 
 .botaoSecundario {
-    width: 100%;
+    flex: 1;
+    min-width: 10rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
     text-align: center;
-    background: #FFF;
-    border: 1px solid #2497F3;
-    color: #2497F3;
-    padding: 0.6rem 1.25rem;
-    border-radius: 2.5rem;
-    font-family: 'Roboto Condensed', sans-serif;
-    font-size: 0.95rem;
 }
 
 .botaoSecundario:hover:not(:disabled) {
-    background: #2497F3;
-    color: #FFF;
-    cursor: pointer;
+    border-color: var(--ink-3);
 }
 
 .botaoSecundario:disabled {
-    opacity: 0.5;
-    cursor: default;
+    color: var(--ink-3);
+    border-color: var(--border);
+}
+
+@media (min-width: 900px) {
+    .cabecalho h1 {
+        font-size: 1.75rem;
+    }
+
+    .totalValor {
+        font-size: 2.4rem;
+    }
+
+    .acoes {
+        justify-content: flex-start;
+    }
+
+    .botaoSecundario {
+        flex: 0 0 auto;
+    }
 }

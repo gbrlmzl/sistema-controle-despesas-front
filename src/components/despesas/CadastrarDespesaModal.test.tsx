@@ -1,0 +1,114 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import CadastrarDespesaModal from "./CadastrarDespesaModal";
+import cadastrarDespesaAction from "@/app/dashboard/residences/[code]/expenses/cadastrarDespesaAction";
+
+//Mock com factory explícita: a action real importa getCurrentUser, que puxa next/cache
+//e usa TextEncoder — indisponível no ambiente jsdom dos testes. A factory evita carregar
+//o módulo real, diferente do automock (jest.mock sem segundo argumento).
+jest.mock("@/app/dashboard/residences/[code]/expenses/cadastrarDespesaAction", () => jest.fn());
+
+const mockPush = jest.fn();
+const mockRefresh = jest.fn();
+jest.mock("next/navigation", () => ({
+    useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
+}));
+
+//O modal busca a competência aberta sozinho (funciona a partir de qualquer rota,
+//inclusive fora de /expenses) — os testes não precisam da chamada real à API.
+jest.mock("@/hooks/useCompetenciaAberta", () => ({
+    useCompetenciaAberta: () => ({ competencia: { month: 8, year: 2026 }, carregando: false }),
+}));
+
+const mockCadastrarDespesaAction = cadastrarDespesaAction as jest.MockedFunction<typeof cadastrarDespesaAction>;
+
+const codigo = "AB12CD";
+
+function getSubmitButton() {
+    return screen.getByRole("button", { name: "Lançar despesa" });
+}
+
+//Preenche os três campos obrigatórios, na ordem do fluxo (valor em destaque,
+//depois descrição, depois a grade de categorias).
+async function preencherCampos(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByPlaceholderText("0,00"), "180,50");
+    await user.type(screen.getByPlaceholderText("Do que se trata?"), "Supermercado");
+    await user.click(screen.getByRole("button", { name: "Alimentação" }));
+}
+
+beforeEach(() => {
+    mockPush.mockClear();
+    mockRefresh.mockClear();
+    mockCadastrarDespesaAction.mockReset();
+});
+
+describe("CadastrarDespesaModal", () => {
+    it("não renderiza nada quando fechado", () => {
+        render(<CadastrarDespesaModal codigo={codigo} aberto={false} onFechar={jest.fn()} />);
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("exibe a competência aberta quando aberto", () => {
+        render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
+        expect(screen.getByText("Agosto de 2026", { exact: false })).toBeInTheDocument();
+    });
+
+    it("chama onFechar ao clicar em fechar", async () => {
+        const onFechar = jest.fn();
+        const user = userEvent.setup();
+        render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={onFechar} />);
+
+        await user.click(screen.getByRole("button", { name: "Fechar" }));
+        expect(onFechar).toHaveBeenCalled();
+    });
+
+    it("mantém o botão de envio desabilitado até nome, valor e categoria serem preenchidos", async () => {
+        const user = userEvent.setup();
+        render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
+
+        expect(getSubmitButton()).toBeDisabled();
+
+        await user.type(screen.getByPlaceholderText("Do que se trata?"), "Supermercado");
+        expect(getSubmitButton()).toBeDisabled();
+
+        await user.type(screen.getByPlaceholderText("0,00"), "180,50");
+        expect(getSubmitButton()).toBeDisabled();
+
+        await user.click(screen.getByRole("button", { name: "Alimentação" }));
+        expect(getSubmitButton()).toBeEnabled();
+    });
+
+    it("preenche a descrição a partir de uma sugestão", async () => {
+        const user = userEvent.setup();
+        render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
+
+        await user.click(screen.getByRole("button", { name: "Mercado" }));
+        expect(screen.getByPlaceholderText("Do que se trata?")).toHaveValue("Mercado");
+    });
+
+    it("limpa os campos e mostra a confirmação quando o cadastro é bem-sucedido", async () => {
+        mockCadastrarDespesaAction.mockResolvedValue({ success: true, message: "Despesa cadastrada!" });
+        const user = userEvent.setup();
+        render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
+
+        await preencherCampos(user);
+        await user.click(getSubmitButton());
+
+        expect(await screen.findByText("Despesa cadastrada!")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Do que se trata?")).toHaveValue("");
+        expect(screen.getByPlaceholderText("0,00")).toHaveValue("");
+        expect(mockRefresh).toHaveBeenCalled();
+    });
+
+    it("exibe a mensagem de erro e preserva os campos quando o cadastro falha", async () => {
+        mockCadastrarDespesaAction.mockResolvedValue({ success: false, message: "Competência fechada" });
+        const user = userEvent.setup();
+        render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
+
+        await preencherCampos(user);
+        await user.click(getSubmitButton());
+
+        expect(await screen.findByText("Competência fechada")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Do que se trata?")).toHaveValue("Supermercado");
+    });
+});

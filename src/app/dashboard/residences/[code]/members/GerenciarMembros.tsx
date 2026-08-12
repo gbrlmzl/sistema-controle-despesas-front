@@ -5,32 +5,38 @@ import Link from "next/link";
 import useAcoesResidencia from "../useAcoesResidencia";
 import ListaMembros from "../ListaMembros";
 import ConfirmacaoModal from "../ConfirmacaoModal";
+import ConvidarUsuarioModal from "../ConvidarUsuarioModal";
 import Snackbar from "@/components/ui/Snackbar";
 import styles from "./GerenciarMembros.module.css";
 import type { Residencia } from "@/types/residencia";
 
 interface GerenciarMembrosProps {
     residencia: Residencia;
+    abrirConviteInicial?: boolean;
 }
 
 //FEAT-010 e FEAT-011 -> lista de membros com as ações de remover e transferir a
 //propriedade. Saiu do painel para uma tela própria, alcançada pelas configurações.
-export default function GerenciarMembros({ residencia }: GerenciarMembrosProps) {
+//FEAT-007/US-007 -> convidar usuário mora aqui também, ao lado de quem já mora na casa.
+export default function GerenciarMembros({ residencia, abrirConviteInicial = false }: GerenciarMembrosProps) {
     const {
         confirmacao,
         fecharConfirmacao,
         processando,
         confirmarRemocao,
         confirmarTransferencia,
+        convidando,
+        abrirConvidar,
+        fecharConvidar,
         snackbar,
         fecharSnackbar,
-    } = useAcoesResidencia(residencia);
+    } = useAcoesResidencia(residencia, abrirConviteInicial);
 
     //RN-032 -> residência arquivada é somente leitura
     const podeGerenciar = residencia.isOwner && !residencia.isArchived;
 
     //A tela é sempre alcançada pelas configurações, então é para lá que a seta volta
-    const destinoVoltar = `/app/residences/${residencia.code}/settings`;
+    const destinoVoltar = `/dashboard/residences/${residencia.code}/settings`;
 
     return (
         <div className={styles.container}>
@@ -52,7 +58,8 @@ export default function GerenciarMembros({ residencia }: GerenciarMembrosProps) 
                 membros={residencia.members}
                 podeGerenciar={podeGerenciar}
                 onRemover={confirmarRemocao}
-                onTransferir={confirmarTransferencia} />
+                onTransferir={confirmarTransferencia}
+                onConvidar={podeGerenciar ? abrirConvidar : undefined} />
 
             {confirmacao && (
                 <ConfirmacaoModal
@@ -62,6 +69,10 @@ export default function GerenciarMembros({ residencia }: GerenciarMembrosProps) 
                     processando={processando}
                     onConfirmar={confirmacao.onConfirmar}
                     onCancelar={fecharConfirmacao} />
+            )}
+
+            {convidando && podeGerenciar && (
+                <ConvidarUsuarioModal residencia={residencia} onFechar={fecharConvidar} />
             )}
 
             <Snackbar

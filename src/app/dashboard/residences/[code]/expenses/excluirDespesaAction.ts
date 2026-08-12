@@ -25,7 +25,7 @@ export default async function excluirDespesaAction(code: string, expenseId: stri
             method: "DELETE",
         });
 
-        revalidatePath(`/app/residences/${code}/expenses`);
+        revalidatePath(`/dashboard/residences/${code}/expenses`);
 
         return {
             success: true,

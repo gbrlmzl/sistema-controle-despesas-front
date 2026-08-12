@@ -2,10 +2,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #E5E5E5;
-    font-family: var(--font-roboto);
+    width: 100%;
+    max-width: 32rem;
+    margin: 1rem auto 0;
     padding: 2rem;
-    margin-top: 2rem;
+    border-radius: var(--r-xl);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    font-family: var(--font-body);
 }
 
 .profilePicture{
@@ -51,7 +55,7 @@
 }
 
 .profileDetails span{
-    background-color: #CFCFCF;
+    background-color: var(--surface-3);
     padding: 0.25rem;
     width: 100%;
 }
@@ -68,10 +72,10 @@
 
 .editNameInput{
     flex: 1;
-    border: 1px solid #727272;
+    border: 1px solid var(--border-strong);
     border-radius: 5px;
     padding: 0.15rem 0.4rem;
-    font-family: var(--font-roboto);
+    font-family: var(--font-body);
     font-size: 1rem;
 }
 
@@ -103,9 +107,35 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 0.6rem;
     width: 100%;
     margin-top: 2rem;
 
+}
+
+.logoutButton{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    width: 50%;
+    color: var(--neg);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.logoutButton:hover:not(:disabled){
+    cursor: pointer;
+    border-color: var(--neg);
+}
+
+.logoutButton:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .profilePictureChangeActionsContainer{
@@ -131,9 +161,9 @@
 .changePasswordLinkButton{
     font-size: 1rem;
     width: 50%;
-    color: white;
+    color: var(--accent-contrast);
     text-decoration: none;
-    background-color: #11B5E4;
+    background-color: var(--accent);
     padding: 10px;
     border-radius: 5px;
     text-align: center;
@@ -141,11 +171,11 @@
 
 .changePasswordLinkButton:hover{
     cursor: pointer;
-    background-color: #0069D9;
+    background-color: var(--accent-hover);
 }
 
 .changePasswordLinkButton:focus{
-    background-color: #0069D9;
+    background-color: var(--accent-hover);
 }
 
 /* Galeria de avatares pré-definidos */
@@ -161,7 +191,7 @@
 }
 
 .galleryModal{
-    background-color: #ffffff;
+    background-color: var(--surface-2);
     border-radius: 8px;
     padding: 1.5rem;
     width: 100%;
@@ -207,7 +237,7 @@
 }
 
 .avatarOptionSelected{
-    border-color: #11B5E4;
+    border-color: var(--accent);
 }
 
 .galleryActions{

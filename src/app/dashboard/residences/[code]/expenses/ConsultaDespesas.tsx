@@ -10,6 +10,7 @@ import reabrirMesAction from "./reabrirMesAction";
 import EditarDespesaModal from "./EditarDespesaModal";
 import SeletorCompetencia from "./SeletorCompetencia";
 import ConfirmacaoModal from "../ConfirmacaoModal";
+import CadastrarDespesaModal from "@/components/despesas/CadastrarDespesaModal";
 import Snackbar from "@/components/ui/Snackbar";
 import { formatarValor } from "@/utils/dinheiro";
 import { rotuloCategoria, competenciaTexto } from "@/utils/categorias";
@@ -39,6 +40,7 @@ interface ConsultaDespesasProps {
 //e total geral. Concentra também a edição/exclusão (FEAT-023) e o fechamento do mês.
 export default function ConsultaDespesas({ residencia, usuarioId, competencias, competencia, resumo, isCompetenciaAberta, podeReabrir }: ConsultaDespesasProps) {
     const [editando, setEditando] = useState<DespesaItem | null>(null);
+    const [cadastrando, setCadastrando] = useState(false);
     //Os grupos nascem recolhidos: a tela abre mostrando os totais por membro, e o
     //usuário expande apenas quem quer detalhar. Guarda quem está expandido.
     const [gruposExpandidos, setGruposExpandidos] = useState<number[]>([]);
@@ -72,7 +74,7 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
     }
 
     const trocarCompetencia = (mes: number, ano: number) => {
-        router.push(`/app/residences/${residencia.code}/expenses?mes=${mes}&ano=${ano}`);
+        router.push(`/dashboard/residences/${residencia.code}/expenses?mes=${mes}&ano=${ano}`);
     }
 
     const alternarGrupo = (userId: number) => {
@@ -106,7 +108,7 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
     return (
         <div className={styles.container}>
             <div className={styles.cabecalho}>
-                <Link href={`/app/residences/${residencia.code}`} className={styles.botaoCanto}
+                <Link href={`/dashboard/residences/${residencia.code}`} className={styles.botaoCanto}
                     aria-label="Retornar à residência" title="Retornar à residência">
                     <img src="/icons/voltarIcon.svg" alt="Retornar à residência" width={22} height={22} />
                 </Link>
@@ -198,9 +200,9 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
 
             <div className={styles.acoes}>
                 {isCompetenciaAberta && !residencia.isArchived && (
-                    <Link href={`/app/residences/${residencia.code}/expenses/new`} className={styles.botaoPrincipal}>
+                    <button type="button" className={styles.botaoPrincipal} onClick={() => setCadastrando(true)}>
                         Cadastrar despesa
-                    </Link>
+                    </button>
                 )}
 
                 {residencia.isOwner && isCompetenciaAberta && !residencia.isArchived && (
@@ -219,6 +221,8 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
             {editando && (
                 <EditarDespesaModal residencia={residencia} despesa={editando} onFechar={() => setEditando(null)} />
             )}
+
+            <CadastrarDespesaModal codigo={residencia.code} aberto={cadastrando} onFechar={() => setCadastrando(false)} />
 
             {confirmacao && (
                 <ConfirmacaoModal

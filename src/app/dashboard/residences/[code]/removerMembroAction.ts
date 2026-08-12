@@ -26,7 +26,7 @@ export default async function removerMembroAction(code: string, membroUserId: nu
             method: "DELETE",
         });
 
-        revalidatePath(`/app/residences/${code}`);
+        revalidatePath(`/dashboard/residences/${code}`);
         revalidatePath('/app/residences');
 
         return {

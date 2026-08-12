@@ -1,28 +1,78 @@
+/* Design tokens do Cronos.
+   Os nomes são semânticos (--surface, --ink) e não literais (--azul, --cinza-claro):
+   trocar de tema passa a ser reescrever este bloco, sem tocar em componente nenhum. */
 :root {
-  --color-primary: #efe9f4;
-  --color-secondary: #ff6347;
-  --foreground: #171717;
-  --color-bg: #0a122a;
+  color-scheme: dark;
+
+  --bg: #080D1B;
+  --surface: #0F1628;
+  --surface-2: #16203A;
+  --surface-3: #1E2A45;
+
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  --ink: #E9EDF7;
+  --ink-2: #939CB5;
+  --ink-3: #5D6780;
+
+  --accent: #4F8EF7;
+  --accent-hover: #3B7BE8;
+  --accent-bg: #1E3A6B;
+  --accent-contrast: #FFFFFF;
+
+  --pos: #34D399;
+  --pos-bg: rgba(52, 211, 153, 0.13);
+  --neg: #FB7185;
+  --neg-bg: rgba(251, 113, 133, 0.13);
+  --amber: #FBBF24;
+  --amber-bg: rgba(251, 191, 36, 0.10);
+  --amber-border: rgba(251, 191, 36, 0.22);
+  --amber-ink: #FDE68A;
+
+  /* Categorias de despesa — a ordem acompanha CATEGORIAS em src/utils/categorias.ts */
+  --cat-1: #4F8EF7;
+  --cat-2: #34D399;
+  --cat-3: #A78BFA;
+  --cat-4: #FB7185;
+  --cat-5: #64748B;
+
+  /* Mesmas cores, para fundo de selo/ícone — igual ao padrão de --pos-bg/--neg-bg */
+  --cat-1-bg: rgba(79, 142, 247, 0.16);
+  --cat-2-bg: rgba(52, 211, 153, 0.16);
+  --cat-3-bg: rgba(167, 139, 250, 0.16);
+  --cat-4-bg: rgba(251, 113, 133, 0.16);
+  --cat-5-bg: rgba(100, 116, 139, 0.18);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  --font-display: var(--font-montserrat);
+  --font-body: var(--font-roboto);
 }
 
-
-
-body{
-  background: var(--color-bg);
-  color: var(--color-primary);
-  display: flex;
-  flex-direction: column;
-  color: black;
-
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
 }
 
-a{
-  color: var(--color-primary);
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--accent);
   text-decoration: none;
 }
 
 button {
-  /* Desativar efeitos padrão do button*/
   background: none;
   border: none;
   padding: 0;
@@ -35,12 +85,53 @@ button {
   -webkit-appearance: none;
   -moz-appearance: none;
   cursor: pointer;
-
 }
-button:hover {
-  background: none;
+
+button:disabled {
   cursor: default;
 }
 
+/* Sem isto, qualquer campo que um módulo não estilize explicitamente cai no padrão
+   do navegador — fundo branco e texto preto — destoando do resto no tema escuro. */
+input, select, textarea {
+  font-family: var(--font-body);
+  background-color: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
 
+input::placeholder, textarea::placeholder {
+  color: var(--ink-3);
+}
 
+/* O menu suspenso do select é desenhado pelo sistema operacional: sem uma cor de
+   fundo explícita nas opções, alguns navegadores o pintam de branco. */
+select option {
+  background-color: var(--surface-2);
+  color: var(--ink);
+}
+
+/* Valores monetários alinham em coluna independente do dígito */
+.num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+}
+
+/* Estes três SVGs de /public são desenhados em cinza escuro (#5A5A5A) e sumiriam
+   sobre o fundo escuro. Inverter leva o traço para um cinza claro legível.
+   Os demais ícones (avancar, copiar, x, confirmar) já são brancos e não entram aqui;
+   os que são imagem rasterizada (olho, checked, unchecked, penEdit) também não, porque
+   inverter corromperia as cores. A correção definitiva é convertê-los em SVG inline
+   com currentColor, como em components/layout/Icones.tsx. */
+img[src$="voltarIcon.svg"],
+img[src$="expandirIcon.svg"],
+img[src$="adminIcon.svg"] {
+  filter: invert(1);
+  opacity: 0.7;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

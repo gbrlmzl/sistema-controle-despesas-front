@@ -1,16 +1,11 @@
 import { notFound } from "next/navigation";
 import { getResidenceDetail } from "@/lib/residenceApi";
+import type { ParamsResidencia } from "@/types/routes";
 
 import ConfiguracoesResidencia from "./ConfiguracoesResidencia";
 
-type PageProps = {
-    params: Promise<{ code: string }>;
-    searchParams: Promise<{ convidar?: string }>;
-};
-
-export default async function ConfiguracoesDaResidencia({ params, searchParams }: PageProps) {
+export default async function ConfiguracoesDaResidencia({ params }: ParamsResidencia) {
     const { code } = await params;
-    const { convidar } = await searchParams;
 
     const detalhe = await getResidenceDetail(code);
     if (!detalhe) {
@@ -24,10 +19,8 @@ export default async function ConfiguracoesDaResidencia({ params, searchParams }
     //aparece é o próprio componente, a partir do papel.
 
     return (
-        <div className="primaryCard">
-            <ConfiguracoesResidencia
-                residencia={residencia}
-                abrirConviteInicial={convidar === '1' && !residencia.isArchived} />
+        <div className="superficie">
+            <ConfiguracoesResidencia residencia={residencia} />
         </div>
     )
 

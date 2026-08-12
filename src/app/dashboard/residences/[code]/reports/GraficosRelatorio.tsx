@@ -15,7 +15,21 @@ interface GraficosRelatorioProps {
     evolucao: Evolucao;
 }
 
-const CORES = ["#2497F3", "#4CAF50", "#FF9800", "#9C27B0", "#607D8B"];
+//O Recharts escreve estes valores direto nos atributos SVG `fill`/`stroke`, que não
+//resolvem var(--...). Os hex precisam acompanhar --cat-1..5 e --accent de globals.css.
+const CORES = ["#4F8EF7", "#34D399", "#A78BFA", "#FB7185", "#64748B"];
+const COR_LINHA = "#4F8EF7";
+const COR_EIXO = "#5D6780";
+
+//O tooltip do Recharts é renderizado em div fora do CSS Module, com estilo inline
+//claro por padrão — ilegível sobre o fundo escuro.
+const ESTILO_TOOLTIP = {
+    background: "#16203A",
+    border: "1px solid rgba(255,255,255,.12)",
+    borderRadius: "12px",
+    color: "#E9EDF7",
+    fontSize: "0.82rem",
+};
 
 //FEAT-028 -> composição por categoria e evolução ao longo das competências.
 //⚠️ isAnimationActive={false} não é preferência estética: com o Recharts 3.10.1 e o
@@ -49,7 +63,8 @@ export default function GraficosRelatorio({ categorias, evolucao }: GraficosRela
                                         <Cell key={item.nome} fill={CORES[indice % CORES.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(valor) => formatarValor(Math.round(Number(valor) * 100))} />
+                                <Tooltip formatter={(valor) => formatarValor(Math.round(Number(valor) * 100))}
+                                    contentStyle={ESTILO_TOOLTIP} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
@@ -72,10 +87,11 @@ export default function GraficosRelatorio({ categorias, evolucao }: GraficosRela
                     <div className={styles.area}>
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={dadosEvolucao}>
-                                <XAxis dataKey="nome" fontSize={12} />
-                                <YAxis fontSize={12} width={40} />
-                                <Tooltip formatter={(valor) => formatarValor(Math.round(Number(valor) * 100))} />
-                                <Line type="monotone" dataKey="valor" stroke="#2497F3" strokeWidth={2}
+                                <XAxis dataKey="nome" fontSize={12} stroke={COR_EIXO} />
+                                <YAxis fontSize={12} width={40} stroke={COR_EIXO} />
+                                <Tooltip formatter={(valor) => formatarValor(Math.round(Number(valor) * 100))}
+                                    contentStyle={ESTILO_TOOLTIP} />
+                                <Line type="monotone" dataKey="valor" stroke={COR_LINHA} strokeWidth={2}
                                     isAnimationActive={false} />
                             </LineChart>
                         </ResponsiveContainer>
@@ -89,10 +105,11 @@ export default function GraficosRelatorio({ categorias, evolucao }: GraficosRela
                     <div className={styles.area}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={dadosPizza}>
-                                <XAxis dataKey="nome" fontSize={11} />
-                                <YAxis fontSize={12} width={40} />
-                                <Tooltip formatter={(valor) => formatarValor(Math.round(Number(valor) * 100))} />
-                                <Bar dataKey="valor" fill="#2497F3" isAnimationActive={false} />
+                                <XAxis dataKey="nome" fontSize={11} stroke={COR_EIXO} />
+                                <YAxis fontSize={12} width={40} stroke={COR_EIXO} />
+                                <Tooltip formatter={(valor) => formatarValor(Math.round(Number(valor) * 100))}
+                                    contentStyle={ESTILO_TOOLTIP} cursor={{ fill: "rgba(255,255,255,.05)" }} />
+                                <Bar dataKey="valor" fill={COR_LINHA} isAnimationActive={false} radius={[6, 6, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

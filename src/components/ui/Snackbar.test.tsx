@@ -18,7 +18,7 @@ describe("Snackbar", () => {
         const user = userEvent.setup();
         render(<Snackbar open={true} message="Oi" onClose={onClose} />);
 
-        await user.click(screen.getByAltText("Fechar"));
+        await user.click(screen.getByRole("button", { name: "Fechar" }));
 
         expect(onClose).toHaveBeenCalledTimes(1);
     });

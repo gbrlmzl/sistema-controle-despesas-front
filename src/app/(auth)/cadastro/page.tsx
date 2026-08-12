@@ -1,15 +1,7 @@
-import RegisterForm from "@/app/(auth)/cadastro/RegisterForm";
+import RegisterForm from "./RegisterForm";
 
-import styles from './page.module.css';
-
+//A moldura (apresentação + centralização) vem de (auth)/layout.tsx.
 //Quem já está logado é redirecionado antes de chegar aqui pelo proxy (src/proxy.ts)
 export default function paginaRegistro() {
-    return (
-
-        <div className={styles.container}>
-            <RegisterForm />
-        </div>
-
-    )
-
+    return <RegisterForm />;
 }

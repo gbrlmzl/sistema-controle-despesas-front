@@ -4,8 +4,10 @@ import styles from './Profile.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
+import { useLogout } from '@/hooks/useLogout';
 import { useCurrentUser } from '@/components/providers/UserProvider';
 import Snackbar from '@/components/ui/Snackbar';
+import { IconeSair } from '@/components/layout/Icones';
 
 
 
@@ -34,6 +36,7 @@ export default function Profile() {
         cancelEditName,
         saveName,
     } = useProfile({ onProfileUpdated: () => router.refresh() });
+    const { logout, isLoggingOut } = useLogout();
 
     if (!user) {
         return null;
@@ -90,11 +93,17 @@ export default function Profile() {
 
                     </span>
                 </div>
-                {user.hasPassword && (
-                    <div className={styles.profileActions}>
+                <div className={styles.profileActions}>
+                    {user.hasPassword && (
                         <Link href="/profile/settings/password" className={styles.changePasswordLinkButton}>Alterar senha</Link>
-                    </div>)
-                }
+                    )}
+
+                    <button type="button" className={styles.logoutButton} onClick={logout} disabled={isLoggingOut}>
+                        
+                        {isLoggingOut ? "Saindo..." : "Sair"}
+                        <IconeSair size={18} />
+                    </button>
+                </div>
 
                 {galleryOpen && (
                     <div className={styles.galleryOverlay} role="dialog" aria-modal="true" aria-label="Escolher foto de perfil">

@@ -76,7 +76,7 @@ export default function useAcoesResidencia(residencia: Pick<Residencia, "code" |
         titulo: "Sair da residência",
         mensagem: `Você deixará de ver as despesas de "${residencia.name}". Deseja mesmo sair?`,
         textoConfirmar: "Sair",
-        onConfirmar: () => executarAcao(() => sairDaResidenciaAction(residencia.code), { redirecionarPara: "/app/residences" }),
+        onConfirmar: () => executarAcao(() => sairDaResidenciaAction(residencia.code), { redirecionarPara: "/dashboard/residences" }),
     });
 
     //CA-3 da US-014 -> a confirmação traz o nome do membro
@@ -117,7 +117,7 @@ export default function useAcoesResidencia(residencia: Pick<Residencia, "code" |
         onConfirmar: () => executarAcao(
             () => regenerarCodigoAction(residencia.code),
             //data só falta quando success é false, e este redirecionamento só roda no caminho de sucesso
-            { redirecionarPara: (resposta) => `/app/residences/${resposta.data!.code}/settings` }
+            { redirecionarPara: (resposta) => `/dashboard/residences/${resposta.data!.code}/settings` }
         ),
     });
 

@@ -2,113 +2,150 @@
     position: relative;
     display: flex;
     justify-content: center;
-    margin-top: 0.6rem;
+    width: 100%;
 }
 
+.atalhos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem;
+    border-radius: var(--r-full);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+}
+
+.atalho {
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--r-full);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--ink-2);
+}
+
+.atalho:hover {
+    color: var(--ink);
+}
+
+.atalhoAtivo {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 500;
+}
+
+.atalhoAtivo:hover {
+    color: var(--accent-contrast);
+}
+
+.atalhoAno {
+    opacity: 0.75;
+    font-size: 0.72rem;
+}
+
+/* Abre o calendário completo: qualquer mês de qualquer ano continua alcançável */
 .gatilho {
-    background-color: #E5E5E5;
-    border: none;
-    padding: 0.4rem 1.1rem;
-    border-radius: 1rem;
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.95rem;
-    color: #333;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--r-full);
+    border: 1px dashed var(--border-strong);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--ink-2);
 }
 
 .gatilho:hover {
-    background-color: #D5D5D5;
-    cursor: pointer;
+    border-style: solid;
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 /* Camada invisível que fecha o painel ao clicar fora dele */
 .fundo {
     position: fixed;
     inset: 0;
-    z-index: 5;
+    z-index: 30;
 }
 
 .painel {
     position: absolute;
-    top: 2.5rem;
+    top: calc(100% + 0.5rem);
     left: 50%;
     transform: translateX(-50%);
-    z-index: 6;
+    z-index: 31;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    padding: 0.75rem;
-    border-radius: 0.85rem;
-    background: #FFF;
-    border: 1px solid #D5D5D5;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    padding: 0.85rem;
+    border-radius: var(--r-lg);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.85);
 }
 
 .navegacaoAno {
     display: flex;
-    flex-direction: row;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
 }
 
 .navegacaoAno button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: var(--r-sm);
     font-size: 1.2rem;
-    color: #2497F3;
+    color: var(--accent);
 }
 
 .navegacaoAno button:hover {
-    background: #E5E5E5;
-    cursor: pointer;
+    background: var(--surface-3);
 }
 
 .ano {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1.05rem;
+    font-family: var(--font-display);
     font-weight: 600;
-    color: black;
+    font-size: 1rem;
+    color: var(--ink);
 }
 
 .grade {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.35rem;
+    gap: 0.3rem;
 }
 
 .mes {
-    padding: 0.4rem 0.75rem;
-    border-radius: 0.5rem;
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.9rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: var(--r-sm);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
 }
 
 .mes:hover {
-    background: rgba(36, 151, 243, 0.12);
-    cursor: pointer;
+    background: var(--surface-3);
 }
 
 /* Mês com lançamentos: legível e em destaque */
 .comDespesas {
-    color: #000;
-    font-weight: 700;
+    color: var(--ink);
+    font-weight: 500;
 }
 
 /* Mês sem lançamentos: continua acessível, mas visualmente apagado */
 .semDespesas {
-    color: rgba(0, 0, 0, 0.35);
-    font-weight: 400;
+    color: var(--ink-3);
 }
 
 .selecionado {
-    background: #2497F3;
-    color: #FFF;
+    background: var(--accent);
+    color: var(--accent-contrast);
 }
 
 .selecionado:hover {
-    background: #1E7ACC;
+    background: var(--accent-hover);
 }

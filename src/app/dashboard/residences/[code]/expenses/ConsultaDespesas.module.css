@@ -3,15 +3,13 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: 100%;
-    color: black;
-    font-family: var(--font-roboto);
-    overflow-y: auto;
+    color: var(--ink);
+    font-family: var(--font-body);
 }
 
 .container h2 {
-    color: black;
-    font-family: var(--font-montserrat_semibold);
+    color: var(--ink);
+    font-family: var(--font-display);
     font-weight: 600;
     font-size: 1.4rem;
 }
@@ -44,7 +42,7 @@
 }
 
 .botaoCanto:hover {
-    background: #E5E5E5;
+    background: var(--surface-2);
     cursor: pointer;
 }
 
@@ -56,11 +54,11 @@
 
 .seloFechado {
     margin-top: 0.5rem;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 0.75rem;
-    color: #7A5C00;
-    background: #FFF3CD;
-    border: 1px solid #FFE69C;
+    color: var(--amber-ink);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
     border-radius: 1rem;
     padding: 0.2rem 0.75rem;
     text-align: center;
@@ -74,18 +72,18 @@
     margin-top: 1.25rem;
     padding: 0.75rem 1.5rem;
     border-radius: 0.85rem;
-    background: #2497F3;
-    color: #FFF;
+    background: var(--accent);
+    color: var(--accent-contrast);
     width: 100%;
 }
 
 .totalRotulo {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 0.8rem;
 }
 
 .totalValor {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1.6rem;
     font-weight: 600;
 }
@@ -93,9 +91,9 @@
 .listaVazia {
     margin-top: 2rem;
     text-align: center;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1rem;
-    color: #5A5A5A;
+    color: var(--ink-3);
 }
 
 .grupoMembro {
@@ -114,14 +112,14 @@
     justify-content: space-between;
     gap: 0.5rem;
     width: 100%;
-    border-bottom: 1px solid #D5D5D5;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 0.25rem;
     text-align: left;
 }
 
 .grupoCabecalho:hover {
     cursor: pointer;
-    border-bottom-color: #2497F3;
+    border-bottom-color: var(--accent);
 }
 
 .seta {
@@ -139,7 +137,7 @@
     flex-direction: row;
     align-items: center;
     gap: 0.4rem;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1.05rem;
     font-weight: 600;
     overflow-wrap: anywhere;
@@ -148,14 +146,14 @@
 .marcadorVoce {
     font-size: 0.65rem;
     font-weight: 400;
-    color: #FFF;
-    background: #2497F3;
+    color: var(--accent-contrast);
+    background: var(--accent);
     border-radius: 1rem;
     padding: 0.1rem 0.45rem;
 }
 
 .grupoTotal {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1.05rem;
     font-weight: 600;
     white-space: nowrap;
@@ -216,7 +214,7 @@
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
     border-radius: 0.6rem;
-    background: #F0F0F0;
+    background: var(--surface-2);
 }
 
 .despesaInfo {
@@ -237,8 +235,8 @@
 
 .marcadorRecorrente {
     font-size: 0.6rem;
-    color: #0A3622;
-    background: #D1E7DD;
+    color: var(--pos);
+    background: var(--pos-bg);
     border-radius: 1rem;
     padding: 0.1rem 0.4rem;
     white-space: nowrap;
@@ -246,7 +244,7 @@
 
 .despesaCategoria {
     font-size: 0.72rem;
-    color: #5A5A5A;
+    color: var(--ink-3);
 }
 
 .despesaLado {
@@ -258,7 +256,7 @@
 }
 
 .despesaValor {
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
     white-space: nowrap;
@@ -274,32 +272,32 @@
 .botaoExcluir {
     border-radius: 1.875rem;
     padding: 0.15rem 0.6rem;
-    font-family: var(--font-roboto-condensed);
+    font-family: var(--font-body);
     font-size: 0.7rem;
     white-space: nowrap;
 }
 
 .botaoEditar {
-    background: #FFF;
-    border: 1px solid #2497F3;
-    color: #2497F3;
+    background: var(--surface-2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
 }
 
 .botaoEditar:hover:not(:disabled) {
-    background: #2497F3;
-    color: #FFF;
+    background: var(--accent);
+    color: var(--accent-contrast);
     cursor: pointer;
 }
 
 .botaoExcluir {
-    background: #FFF;
-    border: 1px solid #C0392B;
-    color: #C0392B;
+    background: var(--surface-2);
+    border: 1px solid var(--neg);
+    color: var(--neg);
 }
 
 .botaoExcluir:hover:not(:disabled) {
-    background: #C0392B;
-    color: #FFF;
+    background: var(--neg);
+    color: var(--accent-contrast);
     cursor: pointer;
 }
 
@@ -323,35 +321,35 @@
 .botaoPrincipal {
     width: 100%;
     text-align: center;
-    background: #007BFF;
+    background: var(--accent);
     padding: 0.75rem 1.25rem;
     border-radius: 2.5rem;
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border);
     font-size: 1rem;
-    color: white;
-    font-family: 'Roboto Condensed', sans-serif;
+    color: var(--accent-contrast);
+    font-family: var(--font-body);
 }
 
 .botaoPrincipal:hover {
-    background: #0069D9;
+    background: var(--accent-hover);
     cursor: pointer;
 }
 
 .botaoSecundario {
     width: 100%;
     text-align: center;
-    background: #FFF;
-    border: 1px solid #2497F3;
-    color: #2497F3;
+    background: var(--surface-2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
     padding: 0.6rem 1.25rem;
     border-radius: 2.5rem;
-    font-family: 'Roboto Condensed', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.95rem;
 }
 
 .botaoSecundario:hover:not(:disabled) {
-    background: #2497F3;
-    color: #FFF;
+    background: var(--accent);
+    color: var(--accent-contrast);
     cursor: pointer;
 }
 

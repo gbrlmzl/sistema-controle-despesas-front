@@ -21,14 +21,14 @@ export default function ResidenciaCriadaModal({ residencia, onConvidar, onConfir
                     <p className={styles.codigoResidencia}>{residencia.code}</p>
                 </div>
 
-                <div className="botoesContainer">
-                    <button type="button" onClick={onConvidar} title="Convidar usuários">
-                        <span className="botaoIcone">
+                <div className={styles.botoesContainer}>
+                    <button type="button" className={styles.botaoIconeSecundario} onClick={onConvidar} title="Convidar usuários">
+                        <span className={styles.botaoIcone}>
                             <img src="/icons/adicionarIcon.svg" alt="Convidar usuários" />
                         </span>
                     </button>
-                    <button type="button" onClick={onConfirmar}>
-                        <span className="botaoIcone">
+                    <button type="button" className={styles.botaoIconePrimario} onClick={onConfirmar} title="Confirmar">
+                        <span className={styles.botaoIcone}>
                             <img src="/icons/confirmarIcon.svg" alt="Confirmar" />
                         </span>
                     </button>

@@ -1,140 +1,104 @@
 .container {
     display: flex;
     flex-direction: column;
-    align-items: center;
     width: 100%;
-    height: 100%;
-    color: black;
-    font-family: var(--font-roboto);
-    overflow-y: auto;
 }
 
-.container h2 {
-    color: black;
-    font-family: var(--font-montserrat_semibold);
-    font-weight: 600;
-    font-size: 1.6rem;
-    text-align: center;
-    overflow-wrap: anywhere;
-}
-
-/* Seta, título e engrenagem na mesma linha, com o título centralizado */
 .cabecalho {
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 1rem;
     width: 100%;
-    min-height: 2.25rem;
 }
 
-.cabecalho h2 {
-    flex: 1;
-    text-align: center;
+.identidade h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--ink);
     overflow-wrap: anywhere;
 }
 
-.botaoCanto {
+.tituloLinha {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-    border-radius: 50%;
-}
-
-.botaoCanto:hover {
-    background: #E5E5E5;
-    cursor: pointer;
-}
-
-/* Ocupa o lugar da engrenagem quando o usuário não é owner, mantendo o título centrado */
-.espacoCanto {
-    width: 2.25rem;
-    flex-shrink: 0;
-}
-
-.tituloContainer {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     gap: 0.5rem;
 }
 
-.codigoResidencia {
-    font-family: var(--font-roboto-condensed);
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 0.25rem;
-    padding: 0.25rem 0.6rem;
-    border-radius: 0.5rem;
-    background: #E5E5E5;
-    color: #5A5A5A;
+.botaoVoltar {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    color: var(--ink-2);
 }
 
-.criadorContainer {
+.botaoVoltar:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.meta {
     display: flex;
-    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8rem;
-    color: #5A5A5A;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.codigo {
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+}
+
+.criador {
+    font-size: 0.78rem;
+    color: var(--ink-3);
 }
 
 .seloArquivada {
-    font-family: var(--font-roboto-condensed);
-    font-size: 0.75rem;
-    color: #7A5C00;
-    background: #FFF3CD;
-    border: 1px solid #FFE69C;
-    border-radius: 1rem;
-    padding: 0.2rem 0.75rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--r-full);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber-ink);
+    font-size: 0.68rem;
 }
 
-.botoesContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin-top: 2rem;
+.botaoEngrenagem {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink-2);
 }
 
-.botaoDespesas {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    text-align: center;
-    background: #007BFF;
-    padding: 0.75rem 1.25rem;
-    border-radius: 2.5rem;
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-    transition: background 0.2s;
-    font-size: 1rem;
-    color: white;
-    border: none;
-    font-family: 'Roboto Condensed', sans-serif;
-    white-space: nowrap;
-}
-
-.botaoDespesas:hover {
-    background: #0069D9;
-    cursor: pointer;
-}
-
-.botaoDespesas:disabled {
-    background: #B3B3B3;
-    box-shadow: none;
-    cursor: not-allowed;
+.botaoEngrenagem:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
 }
 
 .mensagemNaoEncontrada {
     margin-top: 1.5rem;
     text-align: center;
-    font-family: var(--font-roboto-condensed);
-    font-size: 1rem;
-    color: #5A5A5A;
+    font-size: 0.95rem;
+    color: var(--ink-3);
 }
 
+@media (min-width: 900px) {
+    .identidade h1 {
+        font-size: 1.75rem;
+    }
+}

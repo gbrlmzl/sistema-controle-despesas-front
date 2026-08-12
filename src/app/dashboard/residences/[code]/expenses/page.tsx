@@ -34,7 +34,7 @@ export default async function Despesas({ params, searchParams }: PageProps) {
     const podeReabrir = resumo.isClosed;
 
     return (
-        <div className="primaryCard">
+        <div className="superficie">
             <ConsultaDespesas
                 residencia={residencia}
                 usuarioId={usuario.id}

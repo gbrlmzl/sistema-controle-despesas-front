@@ -28,7 +28,7 @@ export default async function reabrirMesAction(code: string, month: number, year
             method: "DELETE",
         });
 
-        revalidatePath(`/app/residences/${code}/expenses`);
+        revalidatePath(`/dashboard/residences/${code}/expenses`);
 
         return {
             success: true,
