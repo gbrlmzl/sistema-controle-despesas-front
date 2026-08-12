@@ -74,7 +74,9 @@ Mockar `apiFetchClient` (mesma fronteira do `LoginForm.test.tsx`), usar `renderH
 
 ## Etapa 3 — Hook composto de UI
 
-- [ ] `src/app/dashboard/residences/[code]/useAcoesResidencia.ts` — orquestra 7 actions + confirmação + snackbar + redirect. Fazer **depois** da Etapa 1 (as actions que ele chama já estarão mockáveis com confiança) e da Etapa 2 (mesmo padrão de teste de hook).
+- [x] `src/app/dashboard/residences/[code]/useAcoesResidencia.ts` — orquestra 7 actions + confirmação + snackbar + redirect. Fazer **depois** da Etapa 1 (as actions que ele chama já estarão mockáveis com confiança) e da Etapa 2 (mesmo padrão de teste de hook).
+
+**Etapa 3 concluída:** hook em 100% statements/branches/funcs/lines (19 testes). As 7 actions que ele chama (`sairDaResidenciaAction`, `removerMembroAction`, `transferirPropriedadeAction`, `arquivarResidenciaAction`, `responderSolicitacaoAction`, `cancelarConviteAction`, `regenerarCodigoAction`) importam `next/cache`, então o automock padrão do Jest (`jest.mock("./acao")`) falha ao carregar o módulo real por trás do mock (`TextEncoder is not defined` vindo de `next/server`); a solução é mockar com fábrica explícita: `jest.mock("./acao", () => ({ __esModule: true, default: jest.fn() }))`. 45 suites, 290 testes, todos passando.
 
 ## Etapa 4 — Função pura esquecida
 
@@ -108,5 +110,5 @@ e atualizar a tabela abaixo.
 | Pós `cadastrarDespesaAction` | 20,08% | 17,43% | 19,28% | 19,54% | 18 | 118 |
 | Pós Etapa 1 | 40,23% | 35,13% | 24,67% | 40,90% | 38 | 223 |
 | Pós Etapa 2 | 52,93% | 40,29% | 34,96% | 53,85% | 44 | 271 |
-| Pós Etapa 3 | | | | | | |
+| Pós Etapa 3 | 57,63% | 42,53% | 42,67% | 57,86% | 45 | 290 |
 | Pós Etapa 4 | | | | | | |
