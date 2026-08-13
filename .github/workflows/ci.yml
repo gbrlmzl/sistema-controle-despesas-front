@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - "dev/**"
   pull_request:
     branches:
       - main
@@ -15,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-test-build:
-    name: Lint, testes e build
+  lint-test:
+    name: Lint e testes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,17 +34,30 @@ jobs:
       # precisar declarar API_URL aqui.
       - run: npm run test:coverage -- --ci
 
+  build:
+    name: Build de produção
+    needs: lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
       # next.config.ts exige API_URL na hora de resolver o rewrite /api/*;
       # fora do NODE_ENV=test o Next não carrega .env.test/.env.local
       # sozinho, então precisa vir do ambiente do step.
-      - name: Build de produção
-        run: npm run build
+      - run: npm run build
         env:
           API_URL: http://localhost:8080
 
   docker-publish:
     name: Build e publica imagem Docker (GHCR)
-    needs: lint-test-build
+    needs: build
     # Só publica a partir de push direto no branch principal — PRs só
     # validam build/lint/test acima.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
