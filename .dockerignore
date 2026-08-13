@@ -10,3 +10,9 @@ docker-compose.yml
 .env
 .env.local
 README.md
+coverage
+cypress
+docs
+prototipos
+.github
+*.tsbuildinfo

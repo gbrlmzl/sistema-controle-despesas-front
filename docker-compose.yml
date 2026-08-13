@@ -1,48 +1,26 @@
+# Sobe só o front. A API (sistema-controle-despesas-api) e o Postgres dela
+# rodam fora deste compose — em outro repo, hoje sem Dockerfile/compose
+# próprio. Aponte API_URL para onde a API estiver ouvindo (default assume
+# API rodando no host, na porta 3001, como descrito no README).
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: sistema-controle-despesas-db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-sistema_despesas}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-sistema_despesas}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - sistema-despesas-net
-
   app:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: sistema-controle-despesas-app
-    depends_on:
-      db:
-        condition: service_healthy
+    container_name: sistema-controle-despesas-front
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-sistema_despesas}?schema=public
+      API_URL: ${API_URL:-http://host.docker.internal:3001}
       NEXT_TELEMETRY_DISABLED: 1
     ports:
       - "3000:3000"
     volumes:
       - .:/app-node
       - /app-node/node_modules
+      - /app-node/.next
+    extra_hosts:
+      # Permite "host.docker.internal" também em Docker Engine no Linux
+      # (no Docker Desktop, Windows/Mac, já funciona nativamente).
+      - "host.docker.internal:host-gateway"
     entrypoint: ["sh", "-c"]
-    command: ["npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"]
-    networks:
-      - sistema-despesas-net
-
-networks:
-  sistema-despesas-net:
-    driver: bridge
-
-volumes:
-  postgres_data:
+    command: ["npm install && npm run dev"]

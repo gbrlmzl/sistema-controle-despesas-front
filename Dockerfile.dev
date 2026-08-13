@@ -1,6 +1,6 @@
 # Dockerfile para ambiente de DESENVOLVIMENTO
 # Não faz build de produção nem define ENTRYPOINT — o comando de dev
-# (npm install / prisma generate / npm run dev) vem do docker-compose.
+# (npm install / npm run dev) vem do docker-compose.
 FROM node:24
 
 WORKDIR /app-node
@@ -10,8 +10,5 @@ WORKDIR /app-node
 # garantindo que o node_modules fique consistente com o host.
 COPY package*.json ./
 RUN npm install
-
-# Copia o schema do Prisma para permitir "prisma generate"
-COPY prisma ./prisma
 
 EXPOSE 3000
