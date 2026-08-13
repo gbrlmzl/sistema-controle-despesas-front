@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - "dev/**"
+  pull_request:
+    branches:
+      - master
+
+# Evita rodar dois workflows redundantes quando um push também abre/atualiza PR.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-test-build:
+    name: Lint, testes e build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      # NODE_ENV=test é setado pelo próprio Jest, então .env.test (versionado,
+      # sem segredo) já é carregado automaticamente pelo next/jest — sem
+      # precisar declarar API_URL aqui.
+      - run: npm run test:coverage -- --ci
+
+      # next.config.ts exige API_URL na hora de resolver o rewrite /api/*;
+      # fora do NODE_ENV=test o Next não carrega .env.test/.env.local
+      # sozinho, então precisa vir do ambiente do step.
+      - name: Build de produção
+        run: npm run build
+        env:
+          API_URL: http://localhost:8080
+
+  docker-publish:
+    name: Build e publica imagem Docker (GHCR)
+    needs: lint-test-build
+    # Só publica a partir de push direto no branch principal — PRs só
+    # validam build/lint/test acima.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Congela a API alvo dentro da imagem (ver comentário no Dockerfile).
+          # Defina uma Repository Variable "API_URL" para apontar pra API real;
+          # sem ela, cai no placeholder do .env.example.
+          build-args: |
+            API_URL=${{ vars.API_URL || 'http://localhost:8080' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
