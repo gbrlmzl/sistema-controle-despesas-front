@@ -2,7 +2,6 @@
 
 import styles from './Profile.module.css';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
 import { useLogout } from '@/hooks/useLogout';
 import { useCurrentUser } from '@/components/providers/UserProvider';
@@ -14,7 +13,6 @@ import { IconeSair } from '@/components/layout/Icones';
 export default function Profile() {
 
     const user = useCurrentUser();
-    const router = useRouter();
     const {
         avatars,
         galleryOpen,
@@ -35,7 +33,7 @@ export default function Profile() {
         startEditName,
         cancelEditName,
         saveName,
-    } = useProfile({ onProfileUpdated: () => router.refresh() });
+    } = useProfile();
     const { logout, isLoggingOut } = useLogout();
 
     if (!user) {

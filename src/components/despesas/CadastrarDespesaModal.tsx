@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 
 import cadastrarDespesaAction from "@/app/dashboard/residences/[code]/expenses/cadastrarDespesaAction";
 import Snackbar from "@/components/ui/Snackbar";
-import { IconeCategoria } from "@/components/layout/IconesCategoria";
+import SeletorCategoria from "@/components/despesas/SeletorCategoria";
 import { useCompetenciaAberta } from "@/hooks/useCompetenciaAberta";
-import { CATEGORIAS, competenciaTexto, corCategoria, corCategoriaFundo } from "@/utils/categorias";
+import { competenciaTexto } from "@/utils/categorias";
+import { sanitizeValorInput } from "@/utils/dinheiro";
 import styles from './CadastrarDespesaModal.module.css';
 import type { ExpenseCategory } from "@/types/expenseCategory";
 
@@ -31,7 +32,6 @@ export default function CadastrarDespesaModal({ codigo, aberto, onFechar }: Cada
     const [name, setName] = useState('');
     const [value, setValue] = useState('');
     const [category, setCategory] = useState<ExpenseCategory | ''>('');
-    const [isRecurring, setIsRecurring] = useState(false);
     const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "" });
     const valueInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
@@ -53,7 +53,6 @@ export default function CadastrarDespesaModal({ codigo, aberto, onFechar }: Cada
         setName('');
         setValue('');
         setCategory('');
-        setIsRecurring(false);
         router.refresh();
 
         //O foco volta para o valor assim que a despesa é salva — é o primeiro campo
@@ -99,13 +98,12 @@ export default function CadastrarDespesaModal({ codigo, aberto, onFechar }: Cada
                         <div className={styles.valorInputLinha}>
                             <span className={styles.valorMoeda}>R$</span>
                             <input ref={valueInputRef} className={styles.valorInput} type="text" name="value" placeholder="0,00"
-                                value={value} onChange={(e) => setValue(e.target.value)} inputMode="decimal" autoComplete="off" autoFocus />
+                                value={value} onChange={(e) => setValue(sanitizeValorInput(e.target.value))} inputMode="decimal" autoComplete="off" autoFocus />
                         </div>
                     </div>
 
                     <div className={styles.campo}>
-                        <label htmlFor="nova-despesa-modal-nome">Descrição</label>
-                        <input id="nova-despesa-modal-nome" type="text" name="name" placeholder="Do que se trata?" value={name} maxLength={60}
+                        <input id="nova-despesa-modal-nome" type="text" name="name" placeholder="Descrição" value={name} maxLength={60}
                             onChange={(e) => setName(e.target.value)} autoComplete="off" />
                         <div className={styles.sugestoes}>
                             {SUGESTOES.map(sugestao => (
@@ -116,38 +114,11 @@ export default function CadastrarDespesaModal({ codigo, aberto, onFechar }: Cada
                         </div>
                     </div>
 
-                    <span className={styles.rotulo}>Categoria</span>
-                    <div className={styles.categoriaGrid}>
-                        {CATEGORIAS.map(categoria => (
-                            <button key={categoria.value} type="button" aria-pressed={category === categoria.value}
-                                className={`${styles.botaoCategoria} ${category === categoria.value ? styles.botaoCategoriaAtivo : ''}`}
-                                onClick={() => setCategory(categoria.value)}>
-                                <span className={styles.categoriaIcone}
-                                    style={{ background: corCategoriaFundo(categoria.value), color: corCategoria(categoria.value) }}>
-                                    <IconeCategoria categoria={categoria.value} />
-                                </span>
-                                {categoria.label}
-                            </button>
-                        ))}
-                    </div>
-                    <input type="hidden" name="category" value={category} />
-
-                    <label className={styles.recorrenteLinha}>
-                        <span className={styles.recorrenteTexto}>
-                            <strong>Repetir todo mês</strong>
-                            <span>Relança sozinho na virada da competência</span>
-                        </span>
-                        <span className={styles.switchWrap}>
-                            <input type="checkbox" name="isRecurring" checked={isRecurring}
-                                onChange={(e) => setIsRecurring(e.target.checked)} />
-                            <span className={styles.switchTrilho} />
-                        </span>
-                    </label>
+                    <SeletorCategoria value={category} onChange={setCategory} className={styles.categoriaSeletor} />
 
                     <button type="submit" className={styles.botaoSubmit} disabled={isPending || !dadosPreenchidos}>
                         {isPending ? "Lançando..." : "Lançar despesa"}
                     </button>
-                    <p className={styles.dica}>O campo limpa e o foco volta pro valor — dá pra lançar várias seguidas.</p>
                 </Form>
 
                 <Snackbar

@@ -175,8 +175,11 @@ export default function AppShell({ children }: AppShellProps) {
                 qualquer tela da residência, em vez de exigir voltar ao painel — o
                 modal sobe por cima da rota atual, sem navegar para outra tela.
                 Em /members o botão flutuante de "+" já significa "convidar usuário"
-                (ver ListaMembros) — manter os dois juntos confundiria o que o toque faz. */}
-            {base && !pathname.startsWith(`${base}/members`) && (
+                (ver ListaMembros) — manter os dois juntos confundiria o que o toque faz.
+                Em /expenses/recurring já existe o botão "Nova despesa recorrente" na
+                própria tela — o FAB abriria o cadastro de despesa avulsa, confundindo
+                qual "+" faz o quê. */}
+            {base && !pathname.startsWith(`${base}/members`) && !pathname.startsWith(`${base}/expenses/recurring`) && (
                 <button type="button" className={styles.fab} aria-label="Lançar despesa"
                     onClick={() => setCadastrandoDespesa(true)}>
                     <IconeMais />

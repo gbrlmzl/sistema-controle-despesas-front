@@ -2,16 +2,28 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import RegisterForm from "./RegisterForm";
 import registerAction from "./registerAction";
+import { useSetCurrentUser } from "@/components/providers/UserProvider";
+import type { AuthUser } from "@/types/auth";
 
 jest.mock("./registerAction");
+jest.mock("@/components/providers/UserProvider");
 
 const mockPush = jest.fn();
-const mockRefresh = jest.fn();
 jest.mock("next/navigation", () => ({
-    useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
+    useRouter: () => ({ push: mockPush }),
 }));
 
 const mockRegisterAction = registerAction as jest.MockedFunction<typeof registerAction>;
+const mockUseSetCurrentUser = useSetCurrentUser as jest.MockedFunction<typeof useSetCurrentUser>;
+const mockSetUser = jest.fn();
+
+const USUARIO_CADASTRADO: AuthUser = {
+    id: 1,
+    name: "Victor Salviano",
+    username: "victor_25",
+    email: "victor@example.com",
+    profilePic: null,
+};
 
 function getSubmitButton() {
     return screen.getByRole("button", { name: "Criar conta" });
@@ -27,8 +39,9 @@ async function preencherCadastroValido(user: ReturnType<typeof userEvent.setup>)
 
 beforeEach(() => {
     mockPush.mockClear();
-    mockRefresh.mockClear();
     mockRegisterAction.mockReset();
+    mockSetUser.mockClear();
+    mockUseSetCurrentUser.mockReturnValue(mockSetUser);
 });
 
 describe("RegisterForm", () => {
@@ -83,8 +96,8 @@ describe("RegisterForm", () => {
         expect(screen.getAllByAltText("Condição atendida")).toHaveLength(3);
     });
 
-    it("envia os dados preenchidos para a action e redireciona ao ser bem-sucedido", async () => {
-        mockRegisterAction.mockResolvedValue({ success: true, message: "Usuário cadastrado com sucesso!" });
+    it("envia os dados preenchidos para a action, atualiza o contexto de usuário e redireciona ao ser bem-sucedido", async () => {
+        mockRegisterAction.mockResolvedValue({ success: true, message: "Usuário cadastrado com sucesso!", data: USUARIO_CADASTRADO });
         const user = userEvent.setup();
         render(<RegisterForm />);
 
@@ -97,7 +110,7 @@ describe("RegisterForm", () => {
         expect(formDataEnviado.get("email")).toBe("victor@example.com");
 
         await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/"));
-        expect(mockRefresh).toHaveBeenCalled();
+        expect(mockSetUser).toHaveBeenCalledWith(USUARIO_CADASTRADO);
     });
 
     it("exibe a mensagem de erro devolvida pela action quando o cadastro falha", async () => {

@@ -1,21 +1,25 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useLogout } from "./useLogout";
 import { apiFetchClient } from "@/lib/apiClient.client";
+import { useSetCurrentUser } from "@/components/providers/UserProvider";
 
 jest.mock("@/lib/apiClient.client");
+jest.mock("@/components/providers/UserProvider");
 
 const mockPush = jest.fn();
-const mockRefresh = jest.fn();
 jest.mock("next/navigation", () => ({
-    useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
+    useRouter: () => ({ push: mockPush }),
 }));
 
 const mockApiFetchClient = apiFetchClient as jest.MockedFunction<typeof apiFetchClient>;
+const mockUseSetCurrentUser = useSetCurrentUser as jest.MockedFunction<typeof useSetCurrentUser>;
+const mockSetUser = jest.fn();
 
 beforeEach(() => {
     mockPush.mockClear();
-    mockRefresh.mockClear();
     mockApiFetchClient.mockReset();
+    mockSetUser.mockClear();
+    mockUseSetCurrentUser.mockReturnValue(mockSetUser);
 });
 
 describe("useLogout", () => {
@@ -24,7 +28,7 @@ describe("useLogout", () => {
         expect(result.current.isLoggingOut).toBe(false);
     });
 
-    it("chama /auth/logout, atualiza o contexto e redireciona para o login ao suceder", async () => {
+    it("chama /auth/logout, limpa o contexto e redireciona para o login ao suceder", async () => {
         mockApiFetchClient.mockResolvedValue(undefined);
         const { result } = renderHook(() => useLogout());
 
@@ -33,7 +37,7 @@ describe("useLogout", () => {
         });
 
         expect(mockApiFetchClient).toHaveBeenCalledWith("/auth/logout", { method: "POST", skipAuthRetry: true });
-        expect(mockRefresh).toHaveBeenCalled();
+        expect(mockSetUser).toHaveBeenCalledWith(null);
         expect(mockPush).toHaveBeenCalledWith("/login");
     });
 
@@ -45,7 +49,7 @@ describe("useLogout", () => {
             await result.current.logout();
         });
 
-        expect(mockRefresh).toHaveBeenCalled();
+        expect(mockSetUser).toHaveBeenCalledWith(null);
         expect(mockPush).toHaveBeenCalledWith("/login");
     });
 

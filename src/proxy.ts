@@ -62,7 +62,7 @@ function propagarCookies(req: NextRequest, cookiesRenovados: ParsedSetCookie[]):
 }
 
 //Camada de autenticação: resolve "tem sessão ou não" antes da página renderizar. Quando
-//o JWT (access token, 15 min) expira mas o refreshToken (7 dias) ainda vale, a renovação
+//o JWT (access token, 15 min) expira mas o cookie REFRESH (7 dias) ainda vale, a renovação
 //acontece aqui mesmo — é o único ponto do fluxo que roda antes do render e onde o
 //Next.js permite escrever cookie de fato (ver src/lib/apiClient.ts: chamar
 //cookies().set() durante a renderização de um Server Component lança erro, então um
@@ -79,7 +79,7 @@ export default async function proxy(req: NextRequest): Promise<NextResponse> {
     let estaLogado = !!jwt;
     let cookiesRenovados: ParsedSetCookie[] = [];
 
-    if ((precisaLogin || somenteDeslogado) && (!jwt || jwtExpirado(jwt)) && req.cookies.has("refreshToken")) {
+    if ((precisaLogin || somenteDeslogado) && (!jwt || jwtExpirado(jwt)) && req.cookies.has("REFRESH")) {
         cookiesRenovados = await tentarRefresh(req);
         estaLogado = cookiesRenovados.length > 0;
     }

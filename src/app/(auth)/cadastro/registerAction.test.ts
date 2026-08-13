@@ -1,6 +1,7 @@
 import registerAction from "./registerAction";
 import { apiFetch } from "@/lib/apiClient";
 import { ApiError } from "@/lib/apiError";
+import type { AuthUser } from "@/types/auth";
 
 jest.mock("@/lib/apiClient", () => ({
     apiFetch: jest.fn(),
@@ -8,6 +9,14 @@ jest.mock("@/lib/apiClient", () => ({
 }));
 
 const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
+
+const USUARIO_CADASTRADO: AuthUser = {
+    id: 1,
+    name: "Ana Silva",
+    username: "ana",
+    email: "ana@example.com",
+    profilePic: null,
+};
 
 function criarFormData(campos: Record<string, string>): FormData {
     const formData = new FormData();
@@ -50,7 +59,7 @@ describe("registerAction", () => {
     });
 
     it("normaliza o username (trim + minúsculas) antes da validação", async () => {
-        mockApiFetch.mockResolvedValue(undefined);
+        mockApiFetch.mockResolvedValue({ user: USUARIO_CADASTRADO });
 
         const formData = criarFormData({ ...CAMPOS_VALIDOS, username: "  ANA  " });
 
@@ -80,7 +89,7 @@ describe("registerAction", () => {
     });
 
     it("em sucesso, envia /auth/register com skipAuthRetry e o payload validado", async () => {
-        mockApiFetch.mockResolvedValue(undefined);
+        mockApiFetch.mockResolvedValue({ user: USUARIO_CADASTRADO });
 
         const formData = criarFormData(CAMPOS_VALIDOS);
 
@@ -97,7 +106,7 @@ describe("registerAction", () => {
                 confirmPassword: "senha123",
             },
         });
-        expect(resultado).toEqual({ success: true, message: "Usuário cadastrado com sucesso!" });
+        expect(resultado).toEqual({ success: true, message: "Usuário cadastrado com sucesso!", data: USUARIO_CADASTRADO });
     });
 
     it("repassa a mensagem da API quando ela responde com ApiError", async () => {

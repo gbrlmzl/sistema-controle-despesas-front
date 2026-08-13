@@ -3,16 +3,28 @@ import userEvent from "@testing-library/user-event";
 import LoginForm from "./LoginForm";
 import { apiFetchClient } from "@/lib/apiClient.client";
 import { ApiError } from "@/lib/apiError";
+import { useSetCurrentUser } from "@/components/providers/UserProvider";
+import type { AuthUser } from "@/types/auth";
 
 jest.mock("@/lib/apiClient.client");
+jest.mock("@/components/providers/UserProvider");
 
 const mockPush = jest.fn();
-const mockRefresh = jest.fn();
 jest.mock("next/navigation", () => ({
-    useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
+    useRouter: () => ({ push: mockPush }),
 }));
 
 const mockApiFetchClient = apiFetchClient as jest.MockedFunction<typeof apiFetchClient>;
+const mockUseSetCurrentUser = useSetCurrentUser as jest.MockedFunction<typeof useSetCurrentUser>;
+const mockSetUser = jest.fn();
+
+const USUARIO_LOGADO: AuthUser = {
+    id: 1,
+    name: "Victor Hugo",
+    username: "victor_25",
+    email: "victor@example.com",
+    profilePic: null,
+};
 
 function getSubmitButton() {
     return screen.getByRole("button", { name: "Entrar" });
@@ -20,8 +32,9 @@ function getSubmitButton() {
 
 beforeEach(() => {
     mockPush.mockClear();
-    mockRefresh.mockClear();
     mockApiFetchClient.mockReset();
+    mockSetUser.mockClear();
+    mockUseSetCurrentUser.mockReturnValue(mockSetUser);
 });
 
 describe("LoginForm", () => {
@@ -52,8 +65,8 @@ describe("LoginForm", () => {
         expect(campoSenha).toHaveAttribute("type", "text");
     });
 
-    it("envia usuário e senha para a API e redireciona ao autenticar com sucesso", async () => {
-        mockApiFetchClient.mockResolvedValue(undefined);
+    it("envia usuário e senha para a API, atualiza o contexto de usuário e redireciona ao autenticar com sucesso", async () => {
+        mockApiFetchClient.mockResolvedValue({ user: USUARIO_LOGADO });
         const user = userEvent.setup();
         render(<LoginForm />);
 
@@ -68,7 +81,7 @@ describe("LoginForm", () => {
         }));
 
         await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/"));
-        expect(mockRefresh).toHaveBeenCalled();
+        expect(mockSetUser).toHaveBeenCalledWith(USUARIO_LOGADO);
     });
 
     it("exibe a mensagem de erro da API quando a autenticação falha", async () => {
@@ -82,5 +95,6 @@ describe("LoginForm", () => {
 
         expect(await screen.findByText("Usuário ou senha inválidos")).toBeInTheDocument();
         expect(mockPush).not.toHaveBeenCalled();
+        expect(mockSetUser).not.toHaveBeenCalled();
     });
 });

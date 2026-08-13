@@ -3,18 +3,33 @@ import { useProfile } from "./useProfile";
 import { apiFetchClient } from "@/lib/apiClient.client";
 import { ApiError } from "@/lib/apiError";
 import { AVATARS } from "@/lib/avatars";
+import { useSetCurrentUser } from "@/components/providers/UserProvider";
+import type { AuthUser } from "@/types/auth";
 
 jest.mock("@/lib/apiClient.client");
+jest.mock("@/components/providers/UserProvider");
 
 const mockApiFetchClient = apiFetchClient as jest.MockedFunction<typeof apiFetchClient>;
+const mockUseSetCurrentUser = useSetCurrentUser as jest.MockedFunction<typeof useSetCurrentUser>;
+const mockSetUser = jest.fn();
+
+const USUARIO_ATUALIZADO: AuthUser = {
+    id: 1,
+    name: "Victor Hugo",
+    username: "victor_25",
+    email: "victor@example.com",
+    profilePic: null,
+};
 
 beforeEach(() => {
     mockApiFetchClient.mockReset();
+    mockSetUser.mockClear();
+    mockUseSetCurrentUser.mockReturnValue(mockSetUser);
 });
 
 describe("useProfile", () => {
     it("expõe a lista de avatares disponíveis e começa com a galeria fechada", () => {
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         expect(result.current.avatars).toBe(AVATARS);
         expect(result.current.galleryOpen).toBe(false);
@@ -22,7 +37,7 @@ describe("useProfile", () => {
     });
 
     it("abre e fecha a galeria, limpando o avatar selecionado ao fechar", () => {
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.openGallery();
@@ -42,7 +57,7 @@ describe("useProfile", () => {
     });
 
     it("confirmChangeProfilePicture não faz nada quando nenhum avatar foi selecionado", async () => {
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         await act(async () => {
             await result.current.confirmChangeProfilePicture();
@@ -51,10 +66,9 @@ describe("useProfile", () => {
         expect(mockApiFetchClient).not.toHaveBeenCalled();
     });
 
-    it("confirmChangeProfilePicture atualiza o avatar, notifica o callback e fecha a galeria", async () => {
-        mockApiFetchClient.mockResolvedValue(undefined);
-        const onProfileUpdated = jest.fn();
-        const { result } = renderHook(() => useProfile({ onProfileUpdated }));
+    it("confirmChangeProfilePicture atualiza o avatar, o contexto de usuário e fecha a galeria", async () => {
+        mockApiFetchClient.mockResolvedValue({ user: USUARIO_ATUALIZADO });
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.openGallery();
@@ -66,7 +80,7 @@ describe("useProfile", () => {
         });
 
         expect(mockApiFetchClient).toHaveBeenCalledWith("/users/me", { method: "PATCH", body: { avatar: AVATARS[2] } });
-        expect(onProfileUpdated).toHaveBeenCalled();
+        expect(mockSetUser).toHaveBeenCalledWith(USUARIO_ATUALIZADO);
         expect(result.current.galleryOpen).toBe(false);
         expect(result.current.snackbarOpen).toBe(true);
         expect(result.current.snackbarType).toBe("success");
@@ -74,7 +88,7 @@ describe("useProfile", () => {
 
     it("confirmChangeProfilePicture exibe a mensagem de erro da API quando falha", async () => {
         mockApiFetchClient.mockRejectedValue(new ApiError(400, "Avatar inválido"));
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.selectAvatar(AVATARS[0]);
@@ -86,11 +100,12 @@ describe("useProfile", () => {
 
         expect(result.current.snackbarType).toBe("error");
         expect(result.current.snackbarMsg).toBe("Avatar inválido");
+        expect(mockSetUser).not.toHaveBeenCalled();
     });
 
     it("confirmChangeProfilePicture usa mensagem genérica para erro não-ApiError", async () => {
         mockApiFetchClient.mockRejectedValue(new Error("timeout"));
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.selectAvatar(AVATARS[0]);
@@ -105,8 +120,8 @@ describe("useProfile", () => {
 
     it("confirmChangeProfilePicture ignora chamadas concorrentes enquanto uma já está em andamento", async () => {
         let resolveFetch!: () => void;
-        mockApiFetchClient.mockReturnValue(new Promise(resolve => { resolveFetch = () => resolve(undefined); }));
-        const { result } = renderHook(() => useProfile({}));
+        mockApiFetchClient.mockReturnValue(new Promise(resolve => { resolveFetch = () => resolve({ user: USUARIO_ATUALIZADO }); }));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.selectAvatar(AVATARS[0]);
@@ -130,7 +145,7 @@ describe("useProfile", () => {
 
     it("closeSnackbar fecha a snackbar", async () => {
         mockApiFetchClient.mockRejectedValue(new Error("erro"));
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.selectAvatar(AVATARS[0]);
@@ -147,7 +162,7 @@ describe("useProfile", () => {
     });
 
     it("startEditName preenche o valor atual e entra em modo de edição; cancelEditName limpa tudo", () => {
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.startEditName("Victor");
@@ -163,7 +178,7 @@ describe("useProfile", () => {
     });
 
     it("saveName rejeita nome vazio sem chamar a API", async () => {
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.setNameValue("   ");
@@ -178,7 +193,7 @@ describe("useProfile", () => {
     });
 
     it("saveName rejeita nome maior que 100 caracteres sem chamar a API", async () => {
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.setNameValue("a".repeat(101));
@@ -192,10 +207,9 @@ describe("useProfile", () => {
         expect(result.current.snackbarMsg).toBe("O nome deve ter entre 1 e 100 caracteres.");
     });
 
-    it("saveName envia o nome já sem espaços nas pontas, notifica o callback e sai do modo de edição", async () => {
-        mockApiFetchClient.mockResolvedValue(undefined);
-        const onProfileUpdated = jest.fn();
-        const { result } = renderHook(() => useProfile({ onProfileUpdated }));
+    it("saveName envia o nome já sem espaços nas pontas, atualiza o contexto e sai do modo de edição", async () => {
+        mockApiFetchClient.mockResolvedValue({ user: USUARIO_ATUALIZADO });
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.setNameValue("  Victor Hugo  ");
@@ -206,14 +220,14 @@ describe("useProfile", () => {
         });
 
         expect(mockApiFetchClient).toHaveBeenCalledWith("/users/me", { method: "PATCH", body: { name: "Victor Hugo" } });
-        expect(onProfileUpdated).toHaveBeenCalled();
+        expect(mockSetUser).toHaveBeenCalledWith(USUARIO_ATUALIZADO);
         expect(result.current.editingName).toBe(false);
         expect(result.current.snackbarType).toBe("success");
     });
 
     it("saveName exibe a mensagem de erro da API quando falha", async () => {
         mockApiFetchClient.mockRejectedValue(new ApiError(400, "Nome inválido"));
-        const { result } = renderHook(() => useProfile({}));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.setNameValue("Victor");
@@ -224,12 +238,13 @@ describe("useProfile", () => {
         });
 
         expect(result.current.snackbarMsg).toBe("Nome inválido");
+        expect(mockSetUser).not.toHaveBeenCalled();
     });
 
     it("saveName ignora chamadas concorrentes enquanto uma já está em andamento", async () => {
         let resolveFetch!: () => void;
-        mockApiFetchClient.mockReturnValue(new Promise(resolve => { resolveFetch = () => resolve(undefined); }));
-        const { result } = renderHook(() => useProfile({}));
+        mockApiFetchClient.mockReturnValue(new Promise(resolve => { resolveFetch = () => resolve({ user: USUARIO_ATUALIZADO }); }));
+        const { result } = renderHook(() => useProfile());
 
         act(() => {
             result.current.setNameValue("Victor");

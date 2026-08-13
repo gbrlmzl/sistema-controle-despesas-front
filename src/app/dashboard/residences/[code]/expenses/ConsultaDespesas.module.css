@@ -335,6 +335,25 @@
     cursor: pointer;
 }
 
+.botaoRecorrentes {
+    /* width: 80%; */
+    margin-top: 0.5rem;
+    text-align: center;
+    background: var(--surface-2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.6rem 2rem;
+    border-radius: 2.5rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+}
+
+.botaoRecorrentes:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    cursor: pointer;
+}
+
 .botaoSecundario {
     width: 100%;
     text-align: center;

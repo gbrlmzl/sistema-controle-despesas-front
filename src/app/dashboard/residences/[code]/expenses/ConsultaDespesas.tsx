@@ -122,6 +122,10 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
                 competencias={competencias}
                 onSelecionar={trocarCompetencia} />
 
+            <button type="button" className={styles.botaoRecorrentes} onClick={() => router.push(`/dashboard/residences/${residencia.code}/expenses/recurring`)}>
+                Gerenciar recorrentes
+            </button>
+
             {resumo.isClosed && (
                 <span className={styles.seloFechado}>
                     Mês fechado{resumo.closedByName ? ` por ${resumo.closedByName}` : ''} · somente leitura

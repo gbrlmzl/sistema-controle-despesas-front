@@ -32,7 +32,7 @@ function getSubmitButton() {
 //depois descrição, depois a grade de categorias).
 async function preencherCampos(user: ReturnType<typeof userEvent.setup>) {
     await user.type(screen.getByPlaceholderText("0,00"), "180,50");
-    await user.type(screen.getByPlaceholderText("Do que se trata?"), "Supermercado");
+    await user.type(screen.getByPlaceholderText("Descrição"), "Supermercado");
     await user.click(screen.getByRole("button", { name: "Alimentação" }));
 }
 
@@ -68,7 +68,7 @@ describe("CadastrarDespesaModal", () => {
 
         expect(getSubmitButton()).toBeDisabled();
 
-        await user.type(screen.getByPlaceholderText("Do que se trata?"), "Supermercado");
+        await user.type(screen.getByPlaceholderText("Descrição"), "Supermercado");
         expect(getSubmitButton()).toBeDisabled();
 
         await user.type(screen.getByPlaceholderText("0,00"), "180,50");
@@ -83,7 +83,7 @@ describe("CadastrarDespesaModal", () => {
         render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
 
         await user.click(screen.getByRole("button", { name: "Mercado" }));
-        expect(screen.getByPlaceholderText("Do que se trata?")).toHaveValue("Mercado");
+        expect(screen.getByPlaceholderText("Descrição")).toHaveValue("Mercado");
     });
 
     it("limpa os campos e mostra a confirmação quando o cadastro é bem-sucedido", async () => {
@@ -95,7 +95,7 @@ describe("CadastrarDespesaModal", () => {
         await user.click(getSubmitButton());
 
         expect(await screen.findByText("Despesa cadastrada!")).toBeInTheDocument();
-        expect(screen.getByPlaceholderText("Do que se trata?")).toHaveValue("");
+        expect(screen.getByPlaceholderText("Descrição")).toHaveValue("");
         expect(screen.getByPlaceholderText("0,00")).toHaveValue("");
         expect(mockRefresh).toHaveBeenCalled();
     });
@@ -109,6 +109,41 @@ describe("CadastrarDespesaModal", () => {
         await user.click(getSubmitButton());
 
         expect(await screen.findByText("Competência fechada")).toBeInTheDocument();
-        expect(screen.getByPlaceholderText("Do que se trata?")).toHaveValue("Supermercado");
+        expect(screen.getByPlaceholderText("Descrição")).toHaveValue("Supermercado");
+    });
+
+    //Versão desktop da categoria: um dropdown de teclado (o mobile continua com a
+    //grade de ícones, testada nos casos acima). Abre com Enter — o próprio
+    //comportamento nativo do <button> — e seleciona via clique ou seta + Enter.
+    it("abre o dropdown de categoria com o Enter e seleciona uma opção pelo teclado", async () => {
+        const user = userEvent.setup();
+        const { container } = render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
+
+        const gatilho = screen.getByRole("button", { name: "Selecione uma categoria" });
+        gatilho.focus();
+        await user.keyboard("{Enter}");
+
+        const listbox = screen.getByRole("listbox", { name: "Categoria" });
+        expect(listbox).toBeInTheDocument();
+
+        await user.keyboard("{ArrowDown}{ArrowDown}");
+        await user.keyboard("{Enter}");
+
+        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+        expect(container.querySelector('input[name="category"]')).toHaveValue("ASSINATURAS");
+        expect(screen.queryByRole("button", { name: "Selecione uma categoria" })).not.toBeInTheDocument();
+    });
+
+    it("fecha o dropdown de categoria com Escape sem alterar a seleção", async () => {
+        const user = userEvent.setup();
+        render(<CadastrarDespesaModal codigo={codigo} aberto={true} onFechar={jest.fn()} />);
+
+        await user.click(screen.getByRole("button", { name: "Selecione uma categoria" }));
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+        await user.keyboard("{Escape}");
+
+        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Selecione uma categoria" })).toHaveFocus();
     });
 });

@@ -1,0 +1,153 @@
+/* Sempre ocupa a largura inteira do formulário ao redor — sem isso, dentro de um
+   flex column com align-items diferente de stretch (como o .formFields de
+   DespesasRecorrentes), o wrapper encolhe pro conteúdo, e width:100% dos filhos
+   passa a resolver contra essa largura errada. É o que fazia o gatilho do dropdown
+   mudar de tamanho a cada categoria escolhida (o texto selecionado tem comprimento
+   diferente do placeholder) e disparava aquele scroll feio quando o layout inteiro
+   reajustava por causa disso.
+   No CadastrarDespesaModal isso nunca apareceu porque o .form de lá usa o
+   align-items padrão (stretch), que já esticava o wrapper de qualquer forma. */
+.raiz {
+    width: 100%;
+}
+
+/* ---------- mobile: grade com ícones ---------- */
+.grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.botaoCategoria {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-3);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--ink-2);
+    text-align: left;
+}
+
+.botaoCategoria:hover {
+    border-color: var(--border-strong);
+    cursor: pointer;
+}
+
+.botaoCategoriaAtivo {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    color: var(--ink);
+}
+
+.icone {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: var(--r-sm);
+}
+
+/* ---------- desktop: dropdown só com nomes ---------- */
+/* No mobile o dropdown nem existe; a grade com ícones acima é que fica visível. */
+.dropdown {
+    display: none;
+}
+
+@media (min-width: 900px) {
+    /* A grade em blocos faz sentido pro toque; no desktop ela dá lugar ao dropdown,
+       que é mais rápido de percorrer só com teclado (Tab + Enter + setas). */
+    .grade {
+        display: none;
+    }
+
+    .dropdown {
+        display: block;
+        width: 100%;
+    }
+}
+
+.gatilho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--r-md);
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--ink);
+    text-align: left;
+}
+
+.gatilho:hover {
+    border-color: var(--border-strong);
+    cursor: pointer;
+}
+
+.gatilho[aria-expanded="true"] {
+    border-color: var(--accent);
+}
+
+.gatilho svg {
+    flex-shrink: 0;
+    color: var(--ink-3);
+}
+
+.gatilhoPlaceholder {
+    color: var(--ink-3);
+}
+
+.fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+}
+
+/* top/left/width vêm por inline style (calculados a partir do gatilho via JS) — o
+   painel mora num portal em document.body, fora da árvore de quem usa o componente,
+   então position:fixed usa a viewport como referência, sem herdar nenhum scroll ali. */
+.painel {
+    position: fixed;
+    z-index: 31;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.4rem;
+    max-height: 15rem;
+    overflow-y: auto;
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.85);
+}
+
+.opcao {
+    width: 100%;
+    padding: 0.55rem 0.65rem;
+    border-radius: var(--r-sm);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    text-align: left;
+}
+
+.opcao:hover {
+    background: var(--surface-3);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.opcaoAtiva {
+    background: var(--accent-bg);
+    color: var(--ink);
+    font-weight: 500;
+}

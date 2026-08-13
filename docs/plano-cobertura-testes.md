@@ -80,7 +80,9 @@ Mockar `apiFetchClient` (mesma fronteira do `LoginForm.test.tsx`), usar `renderH
 
 ## Etapa 4 — Função pura esquecida
 
-- [ ] `src/utils/linkNotificacao.ts` — 20 linhas, 4 branches, sem dependência nenhuma. Pode ser feita a qualquer momento (inclusive antes da Etapa 1, como aquecimento).
+- [x] `src/utils/linkNotificacao.ts` — 20 linhas, 4 branches, sem dependência nenhuma. Pode ser feita a qualquer momento (inclusive antes da Etapa 1, como aquecimento).
+
+**Etapa 4 concluída:** `linkNotificacao.ts` em 100% statements/branches/funcs/lines (4 testes cobrindo os 4 ramos: `null`, `/app` exato, `/app/**` antigo e link já no formato novo). 46 suites, 294 testes, todos passando. Com isso, o plano de ampliação de cobertura está concluído — as etapas restantes ficaram deliberadamente fora de escopo (ver seção abaixo).
 
 ## Fora de escopo (decisão consciente, não lacuna)
 
@@ -111,4 +113,4 @@ e atualizar a tabela abaixo.
 | Pós Etapa 1 | 40,23% | 35,13% | 24,67% | 40,90% | 38 | 223 |
 | Pós Etapa 2 | 52,93% | 40,29% | 34,96% | 53,85% | 44 | 271 |
 | Pós Etapa 3 | 57,63% | 42,53% | 42,67% | 57,86% | 45 | 290 |
-| Pós Etapa 4 | | | | | | |
+| Pós Etapa 4 | 58,18% | 43,32% | 42,93% | 58,44% | 46 | 294 |

@@ -32,8 +32,8 @@ assumido a partir dos planos anteriores):
 
 A API não implementou só os 4 endpoints REST originalmente cogitados no Escopo A — ela
 implementou **autenticação própria e completa**: JWT de acesso (`15m`, cookie `httpOnly`
-`JWT`) + refresh token rotativo com detecção de reuso (cookie `httpOnly` `refreshToken`,
-escopado a `/auth`) + login Google via `passport-google-oidc`.
+`JWT`) + refresh token rotativo com detecção de reuso (cookie `httpOnly` `REFRESH`) + login
+Google via `passport-google-oidc`.
 
 Isso muda o tamanho real da integração: **não é possível manter o NextAuth e a API
 convivendo por muito tempo** sem duas fontes de verdade sobre "quem está logado". A
@@ -65,7 +65,7 @@ seguintes dependem.
 
 | Mecanismo atual (NextAuth) | Mecanismo novo (API) |
 | :---- | :---- |
-| `signIn('credentials', {...})` em `loginAction.ts` | `POST /auth/login` via `apiClient`, API seta cookies `JWT` + `refreshToken` |
+| `signIn('credentials', {...})` em `loginAction.ts` | `POST /auth/login` via `apiClient`, API seta cookies `JWT` + `REFRESH` |
 | Registro (hoje só cria usuário via Prisma + login implícito) | `POST /auth/register` — já retorna sessão estabelecida (mesmo `establishSession` do login) |
 | `GoogleProvider` do NextAuth (`src/auth.ts`) | `GET /auth/google` (redirect) + `GET /auth/google/callback` — o **navegador** navega direto para esses endpoints da API (não é uma chamada `fetch()`), já que é um fluxo de redirecionamento OAuth completo |
 | Refresh automático de sessão (NextAuth cuida disso via JWT callback) | Não existe automaticamente — precisa de lógica própria: quando uma chamada à API retornar 401, tentar `POST /auth/refresh` uma vez e repetir a chamada original; se o refresh também falhar, tratar como deslogado |

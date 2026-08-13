@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
+import { useSetCurrentUser } from "@/components/providers/UserProvider";
 import styles from '../authForm.module.css';
 
 const GOOGLE_LOGIN_URL = "/api/auth/google";
@@ -23,6 +24,7 @@ export default function RegisterForm() {
     const [hasNumberOrSymbol, setHasNumberOrSymbol] = useState(false);
     const [passwordsMatch, setPasswordsMatch] = useState(false);
     const router = useRouter();
+    const setUser = useSetCurrentUser();
 
 
     //O nome de usuário precisa ter de 3 a 20 caracteres (mesma regra do usernameSchema)
@@ -47,11 +49,14 @@ export default function RegisterForm() {
 
 
     useEffect(() => {
-        if (state?.success) {
-            router.refresh();  // atualiza o usuário no contexto (UserProvider) — o cadastro já loga
+        // A API já devolve o AuthUser atualizado na resposta de /auth/register (ver
+        // registerAction) — atualiza o contexto direto no client, sem round-trip via
+        // router.refresh(). Ver docs/decisao-sincronizacao-usuario-pos-acao.md.
+        if (state?.success && state.data) {
+            setUser(state.data);
             router.push("/");  // a API já estabelece sessão no registro, não precisa passar por /login
         }
-    }, [state?.success, router]);
+    }, [state, router, setUser]);
 
     const condicao = (atendida: boolean, texto: string) => (
         <li className={`${styles.condicao} ${atendida ? styles.condicaoAtendida : ''}`}>
