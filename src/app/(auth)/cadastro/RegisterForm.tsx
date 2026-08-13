@@ -20,15 +20,16 @@ export default function RegisterForm() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [atLeast8Chars, setAtLeast8Chars] = useState(false);
-    const [hasNumberOrSymbol, setHasNumberOrSymbol] = useState(false);
-    const [passwordsMatch, setPasswordsMatch] = useState(false);
     const router = useRouter();
     const setUser = useSetCurrentUser();
 
 
     //O nome de usuário precisa ter de 3 a 20 caracteres (mesma regra do usernameSchema)
     const usernameValido = username.length >= 3 && username.length <= 20;
+
+    const atLeast8Chars = password.length >= 8;
+    const hasNumberOrSymbol = /[\d\W]/.test(password);
+    const passwordsMatch = password.length !== 0 && password === confirmPassword;
 
     const dadosPreenchidos = email.trim().length > 0 && atLeast8Chars && hasNumberOrSymbol && passwordsMatch && name.trim().length > 0 && usernameValido;
     const togglePasswordVisibility = () => {
@@ -40,13 +41,6 @@ export default function RegisterForm() {
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
     }
-
-    useEffect(() => {
-        setAtLeast8Chars(password.length >= 8);
-        setHasNumberOrSymbol(/[\d\W]/.test(password));
-        setPasswordsMatch(password.length !== 0 && password === confirmPassword);
-    }, [password, confirmPassword]);
-
 
     useEffect(() => {
         // A API já devolve o AuthUser atualizado na resposta de /auth/register (ver
