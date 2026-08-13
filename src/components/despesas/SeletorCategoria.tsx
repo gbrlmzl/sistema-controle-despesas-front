@@ -29,14 +29,21 @@ export default function SeletorCategoria({ value, onChange, name = "category", c
     const opcaoRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
     //Ao abrir, o foco já entra na opção selecionada — ou na primeira, se ainda não
-    //houver escolha — para navegar só com as setas.
+    //houver escolha — para navegar só com as setas. `preventScroll` é essencial
+    //aqui: o reset global aplica scroll-behavior:smooth a qualquer elemento com
+    //foco dentro (html:focus-within), então o ajuste automático de scroll que o
+    //navegador faria ao focar (mesmo a opção já estando visível dentro do painel)
+    //vira uma animação que dispara vários eventos de "scroll" ao longo de uns
+    //150-300ms — tempo de sobra pra vazar por qualquer adiamento de um tick só
+    //(setTimeout/rAF) e ser capturado pelo listener do efeito abaixo, fechando o
+    //painel sozinho logo depois de abrir.
     useEffect(() => {
         if (!aberto) {
             return;
         }
 
         const indiceSelecionado = CATEGORIAS.findIndex(categoria => categoria.value === value);
-        opcaoRefs.current[indiceSelecionado === -1 ? 0 : indiceSelecionado]?.focus();
+        opcaoRefs.current[indiceSelecionado === -1 ? 0 : indiceSelecionado]?.focus({ preventScroll: true });
     }, [aberto, value]);
 
     //O painel mora num portal em document.body: posicionado como position:absolute
