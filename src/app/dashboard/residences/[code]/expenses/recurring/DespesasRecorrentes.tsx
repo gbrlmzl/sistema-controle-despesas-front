@@ -48,6 +48,11 @@ export default function DespesasRecorrentes({ residencia, competencia, despesasR
 
     const dadosPreenchidos = name.trim().length >= 2 && value.trim().length > 0 && category !== '';
 
+    const mostrarSnackbar = (msg: string, type: string) => {
+        setSnackbar({ open: true, message: msg, type: type });
+        setTimeout(() => setSnackbar({ open: false, message: "", type: "" }), 4000);
+    }
+
     useEffect(() => {
         if (!criarState?.success) {
             return;
@@ -60,11 +65,6 @@ export default function DespesasRecorrentes({ residencia, competencia, despesasR
         router.refresh();
         mostrarSnackbar('Despesa recorrente criada!', 'success');
     }, [criarState, router]);
-
-    const mostrarSnackbar = (msg: string, type: string) => {
-        setSnackbar({ open: true, message: msg, type: type });
-        setTimeout(() => setSnackbar({ open: false, message: "", type: "" }), 4000);
-    }
 
     const confirmarParada = (despesa: DespesaRecorrente) => setConfirmacao({
         titulo: "Parar de repetir",
