@@ -513,8 +513,9 @@ As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://gi
 
 ## ⚠️ Pendências conhecidas
 
-- **O setup Docker está quebrado.** Continua sendo o do monolito da V1: o [`docker-compose.yml`](docker-compose.yml) sobe um Postgres, define `DATABASE_URL` e roda `prisma generate && prisma migrate deploy` no front — que não tem mais Prisma nem acessa banco. E o [`Dockerfile.dev`](Dockerfile.dev) faz `COPY prisma ./prisma`, uma pasta que não existe mais aqui, então **a imagem sequer constrói**. Precisa ser reescrito para orquestrar front + API + Postgres, ou removido. Por isso as instruções acima sobem os serviços manualmente.
 - **`NEXT_PUBLIC_API_URL` não é usada** por nenhum código — resquício em `.env.local` que pode ser removido.
+- **O `docker-compose.yml` só sobe o front.** A API e o Postgres dela vivem em outro repositório, hoje sem Dockerfile próprio — então `docker compose up` aqui não substitui os passos manuais de "Como rodar" acima, só empacota o front (aponta `API_URL` para onde a API estiver ouvindo). Orquestrar os três serviços num compose só exigiria criar um Dockerfile na API.
+- **O CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) cobre lint, testes unitários (Jest) e build de produção — não roda os testes E2E (Cypress).** Os specs de E2E fazem cadastro/login reais contra a API pela UI, sem mocks; rodar isso no Actions exigiria subir API + Postgres dentro do workflow, o que depende de infraestrutura que ainda não existe no repo da API. Por enquanto, E2E continua só local (`npm run test:e2e`).
 - **Épico de administração e auditoria** (papel ADMIN, trilha de auditoria, monitoramento de acessos) está fora do escopo da V2.0 e não iniciado.
 
 ---
