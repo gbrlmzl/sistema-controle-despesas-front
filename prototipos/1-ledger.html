@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cronos · Protótipo 1 — Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PROTÓTIPO 1 — "LEDGER"
+   Claro, editorial. Hairlines em vez de cards empilhados.
+   O número é o protagonista da tela.
+   Fontes: Poppins (títulos) + Roboto (corpo e números)
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+:root {
+  --bg:        #FAFAF9;
+  --surface:   #FFFFFF;
+  --line:      #E7E5E4;
+  --line-soft: #F0EFEE;
+  --ink:       #1C1917;
+  --ink-2:     #57534E;
+  --ink-3:     #A8A29E;
+  --accent:    #0F766E;
+  --accent-bg: #F0FDFA;
+  --pos:       #15803D;
+  --neg:       #B91C1C;
+  --warn-bg:   #FEFCE8;
+  --warn-ink:  #854D0E;
+
+  --cat-1: #0F766E;  /* Alimentação      */
+  --cat-2: #2563EB;  /* Contas domésticas */
+  --cat-3: #7C3AED;  /* Assinaturas      */
+  --cat-4: #DB2777;  /* Lazer            */
+  --cat-5: #A8A29E;  /* Outros           */
+
+  --r-sm: 8px;  --r-md: 12px;  --r-lg: 18px;  --r-full: 999px;
+  --f-display: 'Poppins', system-ui, sans-serif;
+  --f-body:    'Roboto', system-ui, sans-serif;
+}
+
+body { background: #E7E5E4; font-family: var(--f-body); color: var(--ink); }
+
+/* ---------- barra do protótipo (não faz parte do app) ---------- */
+.protobar {
+  position: sticky; top: 0; z-index: 90;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  padding: 10px 16px; background: #1C1917; color: #FAFAF9;
+}
+.protobar .tag { font-family: var(--f-display); font-weight: 600; font-size: 13px; letter-spacing: .02em; }
+.protobar .tag small { display: block; font-weight: 400; font-size: 11px; color: #A8A29E; letter-spacing: 0; }
+.protobar .group { display: flex; gap: 4px; background: #292524; padding: 3px; border-radius: var(--r-full); }
+.protobar button {
+  font: 500 12px/1 var(--f-body); color: #D6D3D1; background: none; border: 0;
+  padding: 7px 13px; border-radius: var(--r-full); cursor: pointer;
+}
+.protobar button[aria-pressed="true"] { background: #FAFAF9; color: #1C1917; }
+.protobar .spacer { margin-left: auto; }
+
+/* ---------- palco / moldura ---------- */
+.stage { display: flex; justify-content: center; padding: 24px 16px 48px; }
+.frame {
+  container-type: inline-size;
+  width: 100%; max-width: 1240px;
+  background: var(--bg); border-radius: var(--r-lg); overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 12px 40px -12px rgba(0,0,0,.18);
+  min-height: 760px;
+}
+.stage[data-device="mobile"] .frame {
+  max-width: 390px; border-radius: 32px; min-height: 780px;
+  border: 8px solid #1C1917;
+}
+.screen { display: none; }
+.screen[data-active] { display: block; }
+
+/* ============================================================
+   CASCA DO APP — rail lateral no desktop, tab bar no mobile
+   ============================================================ */
+.shell { display: flex; flex-direction: column; min-height: 760px; }
+@container (min-width: 900px) { .shell { flex-direction: row; } }
+
+/* --- rail lateral (só desktop) --- */
+.rail { display: none; }
+@container (min-width: 900px) {
+  .rail {
+    display: flex; flex-direction: column; gap: 2px;
+    width: 244px; flex-shrink: 0; padding: 22px 14px;
+    border-right: 1px solid var(--line); background: var(--surface);
+  }
+}
+.rail .brand {
+  display: flex; align-items: center; gap: 9px; padding: 0 10px 20px;
+  font-family: var(--f-display); font-weight: 600; font-size: 17px; letter-spacing: -.01em;
+}
+.brand .mark {
+  width: 26px; height: 26px; border-radius: 8px; background: var(--accent);
+  display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 600;
+}
+/* seletor de residência — troca de casa sem voltar pro menu */
+.rail .switcher {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px; margin-bottom: 18px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg);
+  font: inherit; text-align: left;
+}
+.switcher .init {
+  width: 30px; height: 30px; border-radius: var(--r-sm); flex-shrink: 0;
+  background: var(--accent-bg); color: var(--accent);
+  display: grid; place-items: center; font: 600 12px var(--f-display);
+}
+.switcher .txt { flex: 1; min-width: 0; }
+.switcher .txt b { display: block; font: 500 13px var(--f-body); }
+.switcher .txt span { display: block; font-size: 11px; color: var(--ink-3); letter-spacing: .08em; }
+.switcher .chev { color: var(--ink-3); flex-shrink: 0; }
+
+.rail a.nav {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 11px; border-radius: var(--r-md);
+  color: var(--ink-2); text-decoration: none; font-size: 14px;
+}
+.rail a.nav:hover { background: var(--bg); color: var(--ink); }
+.rail a.nav[aria-current] { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.rail a.nav svg { flex-shrink: 0; }
+.rail .sep { height: 1px; background: var(--line); margin: 14px 10px; }
+.rail .foot { margin-top: auto; }
+.rail .me {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  border-radius: var(--r-md); font-size: 13px;
+}
+.rail .me:hover { background: var(--bg); cursor: pointer; }
+.avatar {
+  width: 28px; height: 28px; border-radius: var(--r-full); flex-shrink: 0;
+  display: grid; place-items: center; font: 500 11px var(--f-body); color: #fff;
+}
+
+/* --- topo mobile --- */
+.topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 18px 12px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+@container (min-width: 900px) { .topbar { display: none; } }
+.topbar .switcher { margin: 0; flex: 1; border: 0; background: none; padding: 0; }
+.iconbtn {
+  width: 36px; height: 36px; border-radius: var(--r-full); border: 1px solid var(--line);
+  background: var(--surface); display: grid; place-items: center; cursor: pointer;
+  color: var(--ink-2); flex-shrink: 0;
+}
+.iconbtn.badge { position: relative; }
+.iconbtn.badge::after {
+  content: ''; position: absolute; top: 7px; right: 8px;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--neg);
+  border: 2px solid var(--surface);
+}
+
+/* --- conteúdo --- */
+.content { flex: 1; min-width: 0; padding: 20px 18px 96px; }
+@container (min-width: 900px) { .content { padding: 30px 40px 40px; } }
+.wrap { max-width: 940px; margin: 0 auto; }
+
+/* --- tab bar mobile --- */
+.tabbar {
+  position: sticky; bottom: 0; z-index: 20;
+  display: grid; grid-template-columns: repeat(4, 1fr); align-items: end;
+  padding: 8px 6px 12px; background: rgba(255,255,255,.94);
+  backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+}
+@container (min-width: 900px) { .tabbar { display: none; } }
+.tabbar a {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  text-decoration: none; color: var(--ink-3); font-size: 10px; padding: 5px 0;
+}
+.tabbar a[aria-current] { color: var(--accent); }
+/* botão de lançar despesa: ação global, não uma página escondida */
+.fab {
+  position: absolute; right: 18px; bottom: 78px; z-index: 25;
+  width: 54px; height: 54px; border-radius: var(--r-full); border: 0;
+  background: var(--accent); color: #fff; display: grid; place-items: center;
+  cursor: pointer; box-shadow: 0 6px 20px -4px rgba(15,118,110,.55);
+}
+@container (min-width: 900px) { .fab { display: none; } }
+.shell { position: relative; }
+
+/* ============================================================
+   TIPOGRAFIA E PEÇAS REUTILIZÁVEIS
+   ============================================================ */
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; margin: 0; letter-spacing: -.015em; }
+.page-h { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.page-h h1 { font-size: 22px; }
+@container (min-width: 900px) { .page-h h1 { font-size: 26px; } }
+.page-h .sub { font-size: 13px; color: var(--ink-3); margin-top: 3px; }
+
+.num { font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.eyebrow {
+  font: 500 11px var(--f-body); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--ink-3);
+}
+.pos { color: var(--pos); } .neg { color: var(--neg); }
+
+/* bloco: superfície plana, hairline, sem sombra pesada */
+.block {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 20px;
+}
+.block + .block { margin-top: 14px; }
+.block h3 { font-size: 14px; margin-bottom: 14px; }
+.block .h-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.block .h-row h3 { margin: 0; }
+.link { color: var(--accent); font-size: 12.5px; text-decoration: none; font-weight: 500; }
+
+.grid2 { display: grid; gap: 14px; }
+@container (min-width: 900px) { .grid2 { grid-template-columns: 1.35fr 1fr; align-items: start; } }
+
+/* linha de dados separada por hairline — nada de card dentro de card */
+.rows { list-style: none; margin: 0; padding: 0; }
+.rows li { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line-soft); }
+.rows li:first-child { border-top: 0; padding-top: 0; }
+.rows li:last-child { padding-bottom: 0; }
+.rows .grow { flex: 1; min-width: 0; }
+.rows .t { font-size: 14px; display: block; }
+.rows .m { font-size: 12px; color: var(--ink-3); display: block; margin-top: 2px; }
+.rows .v { font: 500 14px var(--f-body); text-align: right; white-space: nowrap; }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* barra de proporção */
+.bar { height: 5px; border-radius: var(--r-full); background: var(--line); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: var(--r-full); }
+
+/* segmented control — substitui as abas com cara de botão */
+.seg {
+  display: inline-flex; gap: 2px; padding: 3px; background: #F0EFEE;
+  border-radius: var(--r-full);
+}
+.seg button {
+  border: 0; background: none; cursor: pointer; padding: 7px 16px;
+  border-radius: var(--r-full); font: 500 13px var(--f-body); color: var(--ink-2);
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--r-full); border: 1px solid var(--line);
+  background: var(--surface); font-size: 13px; color: var(--ink-2); cursor: pointer;
+}
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 20px; border-radius: var(--r-md); border: 1px solid transparent;
+  font: 500 14px var(--f-body); cursor: pointer; text-decoration: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #115E59; }
+.btn-ghost { background: var(--surface); border-color: var(--line); color: var(--ink-2); }
+.btn-ghost:hover { background: var(--bg); }
+.btn-block { width: 100%; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font: 500 12.5px var(--f-body); color: var(--ink-2); margin-bottom: 6px; }
+.field input, .field select {
+  width: 100%; padding: 12px 14px; font: 400 15px var(--f-body); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+.field .hint { font-size: 11.5px; color: var(--ink-3); margin-top: 5px; }
+
+.avatars { display: flex; }
+.avatars .avatar { border: 2px solid var(--surface); margin-left: -8px; }
+.avatars .avatar:first-child { margin-left: 0; }
+
+/* nota contextual — o "insight" do app */
+.insight {
+  display: flex; gap: 11px; padding: 13px 15px; border-radius: var(--r-md);
+  background: var(--warn-bg); color: var(--warn-ink); font-size: 13px; line-height: 1.45;
+}
+.insight svg { flex-shrink: 0; margin-top: 1px; }
+.insight b { font-weight: 500; }
+
+/* ============================================================
+   TELA: CADASTRO
+   ============================================================ */
+.auth { display: flex; min-height: 760px; }
+.auth .pitch { display: none; }
+@container (min-width: 900px) {
+  .auth .pitch {
+    display: flex; flex-direction: column; justify-content: space-between;
+    width: 46%; padding: 48px; background: var(--ink); color: #FAFAF9;
+  }
+}
+.pitch .brand { color: #fff; padding: 0; }
+.pitch .brand .mark { background: #fff; color: var(--ink); }
+.pitch h2 { font-size: 32px; line-height: 1.2; margin-bottom: 14px; letter-spacing: -.025em; }
+.pitch p { font-size: 15px; line-height: 1.6; color: #A8A29E; margin: 0; max-width: 38ch; }
+/* prova numérica em vez de ilustração genérica */
+.pitch .proof { border-top: 1px solid #44403C; padding-top: 22px; display: flex; gap: 32px; }
+.pitch .proof div span { display: block; font-size: 12px; color: #A8A29E; margin-bottom: 4px; }
+.pitch .proof div b { font: 600 22px var(--f-display); letter-spacing: -.02em; }
+
+.auth .formside { flex: 1; padding: 26px 20px 40px; overflow-y: auto; }
+@container (min-width: 900px) { .auth .formside { padding: 48px 56px; display: grid; place-items: center; } }
+.auth .formbox { width: 100%; max-width: 400px; }
+.auth .mobilebrand { margin-bottom: 26px; }
+@container (min-width: 900px) { .auth .mobilebrand { display: none; } }
+
+/* passos: dá noção de progresso sem virar wizard de 3 páginas */
+.steps { display: flex; gap: 6px; margin-bottom: 26px; }
+.steps i { height: 3px; flex: 1; border-radius: var(--r-full); background: var(--line); }
+.steps i.on { background: var(--accent); }
+
+.checks { list-style: none; margin: 4px 0 20px; padding: 0; display: grid; gap: 7px; }
+.checks li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); }
+.checks li.ok { color: var(--pos); }
+.checks li i {
+  width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid currentColor;
+  display: grid; place-items: center; font-size: 9px; font-style: normal; flex-shrink: 0;
+}
+.checks li.ok i { background: var(--pos); border-color: var(--pos); color: #fff; }
+
+.divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: var(--ink-3); font-size: 12px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* ============================================================
+   TELA: NOVA DESPESA
+   ============================================================ */
+.amount-stage { text-align: center; padding: 26px 0 22px; }
+.amount-stage .eyebrow { margin-bottom: 10px; }
+.amount-input {
+  display: flex; align-items: baseline; justify-content: center; gap: 6px;
+  font-family: var(--f-display); font-weight: 600; letter-spacing: -.03em;
+}
+.amount-input .cur { font-size: 22px; color: var(--ink-3); }
+.amount-input .val { font-size: 52px; }
+@container (min-width: 900px) { .amount-input .val { font-size: 62px; } }
+.amount-stage .split { font-size: 13px; color: var(--ink-3); margin-top: 10px; }
+.amount-stage .split b { color: var(--ink-2); font-weight: 500; }
+
+.catgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(102px, 1fr)); gap: 8px; }
+.catgrid button {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding: 12px 13px; border-radius: var(--r-md); border: 1px solid var(--line);
+  background: var(--surface); cursor: pointer; font: 500 13px var(--f-body); color: var(--ink-2);
+  text-align: left;
+}
+.catgrid button[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); }
+.catgrid .ic { width: 26px; height: 26px; border-radius: var(--r-sm); display: grid; place-items: center; }
+
+/* sugestões: reduz digitação no ato mais repetido do app */
+.sugg { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+.sugg button {
+  border: 1px dashed var(--line); background: none; cursor: pointer;
+  padding: 6px 11px; border-radius: var(--r-full); font-size: 12.5px; color: var(--ink-2);
+}
+.sugg button:hover { border-style: solid; border-color: var(--accent); color: var(--accent); }
+
+.sticky-cta {
+  position: sticky; bottom: 0; padding-top: 14px; margin-top: 20px;
+  background: linear-gradient(transparent, var(--bg) 30%);
+}
+
+/* ============================================================
+   TELA: RELATÓRIOS
+   ============================================================ */
+.kpi-row { display: grid; gap: 14px; margin-bottom: 14px; }
+@container (min-width: 640px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 17px 19px; }
+.kpi .eyebrow { margin-bottom: 8px; }
+.kpi .big { font: 600 26px var(--f-display); letter-spacing: -.025em; }
+.kpi .delta { font-size: 12.5px; margin-top: 5px; display: flex; align-items: center; gap: 4px; }
+
+.settle { list-style: none; margin: 0; padding: 0; }
+.settle li {
+  display: flex; align-items: center; gap: 12px; padding: 14px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.settle li:first-child { border-top: 0; padding-top: 0; }
+.settle .who { flex: 1; min-width: 0; }
+.settle .who b { display: block; font: 400 14px var(--f-body); }
+.settle .who span { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.settle .tag-v {
+  font: 500 13px var(--f-body); padding: 5px 11px; border-radius: var(--r-full); white-space: nowrap;
+}
+.settle .tag-v.r { background: #F0FDF4; color: var(--pos); }
+.settle .tag-v.p { background: #FEF2F2; color: var(--neg); }
+.settle .tag-v.q { background: #F5F5F4; color: var(--ink-3); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; }
+.legend div { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+
+<div class="protobar">
+  <div class="tag">Protótipo 1 — Ledger<small>Claro · editorial · o número manda</small></div>
+  <div class="group" id="screens">
+    <button data-go="cadastro" aria-pressed="false">Cadastro</button>
+    <button data-go="painel" aria-pressed="true">Painel</button>
+    <button data-go="despesa" aria-pressed="false">Nova despesa</button>
+    <button data-go="relatorio" aria-pressed="false">Relatórios</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="group" id="device">
+    <button data-dev="desktop" aria-pressed="true">Desktop</button>
+    <button data-dev="mobile" aria-pressed="false">Mobile</button>
+  </div>
+</div>
+
+<div class="stage" data-device="desktop" id="stage">
+<div class="frame">
+
+<!-- ==================== CADASTRO ==================== -->
+<section class="screen" data-screen="cadastro">
+  <div class="auth">
+    <aside class="pitch">
+      <div class="brand"><span class="mark">C</span> Cronos</div>
+      <div>
+        <h2>A conta da casa,<br>resolvida em um número.</h2>
+        <p>Cada um lança o que pagou. No fim do mês o Cronos diz quem paga quem — e quanto. Sem planilha, sem discussão no grupo.</p>
+      </div>
+      <div class="proof">
+        <div><span>Divisão do mês</span><b class="num">4 pessoas</b></div>
+        <div><span>Tempo pra lançar</span><b class="num">~8 seg</b></div>
+      </div>
+    </aside>
+
+    <div class="formside">
+      <div class="formbox">
+        <div class="brand mobilebrand"><span class="mark">C</span> Cronos</div>
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+
+        <h1 style="font-size:24px;margin-bottom:6px">Crie sua conta</h1>
+        <p style="font-size:13.5px;color:var(--ink-3);margin:0 0 26px">Leva menos de um minuto. Depois é só entrar na residência com o código.</p>
+
+        <div class="field">
+          <label for="p1-nome">Nome</label>
+          <input id="p1-nome" type="text" value="Gabriel Mizael">
+        </div>
+        <div class="field">
+          <label for="p1-user">Nome de usuário</label>
+          <input id="p1-user" type="text" value="gbrlmzl">
+          <p class="hint">Só letras minúsculas, números e underline · 3 a 20 caracteres</p>
+        </div>
+        <div class="field">
+          <label for="p1-mail">E-mail</label>
+          <input id="p1-mail" type="email" value="gabriel@email.com">
+        </div>
+        <div class="field">
+          <label for="p1-pass">Senha</label>
+          <input id="p1-pass" type="password" value="senhaforte1">
+        </div>
+
+        <ul class="checks">
+          <li class="ok"><i>✓</i> Ao menos 8 caracteres</li>
+          <li class="ok"><i>✓</i> Contém um número ou símbolo</li>
+          <li><i></i> Confirme a senha abaixo</li>
+        </ul>
+
+        <div class="field">
+          <label for="p1-pass2">Confirmar senha</label>
+          <input id="p1-pass2" type="password" value="">
+        </div>
+
+        <button class="btn btn-primary btn-block">Criar conta</button>
+
+        <div class="divider">ou</div>
+        <button class="btn btn-ghost btn-block">
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"/><path fill="#FBBC05" d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6v-3H1.8a12 12 0 0 0 0 10.6l3.8-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.6 0 3.7 2.6 1.8 6.1l3.8 3C6.5 6.7 9 4.8 12 4.8z"/></svg>
+          Continuar com Google
+        </button>
+
+        <p style="font-size:13px;color:var(--ink-3);text-align:center;margin:24px 0 0">
+          Já tem conta? <a href="#" class="link">Entrar</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAINEL ==================== -->
+<section class="screen" data-screen="painel" data-active>
+  <div class="shell">
+    <!-- rail desktop -->
+    <nav class="rail">
+      <div class="brand"><span class="mark">C</span> Cronos</div>
+      <button class="switcher">
+        <span class="init">VM</span>
+        <span class="txt"><b>Rep. Vila Mariana</b><span>VLM-4827</span></span>
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg>
+      </button>
+      <a class="nav" href="#" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg> Painel</a>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg> Despesas</a>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> Relatórios</a>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM22 20v-2a4 4 0 0 0-3-3.9"/></svg> Membros</a>
+      <div class="sep"></div>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg> Configurações</a>
+      <div class="foot">
+        <div class="me"><span class="avatar" style="background:var(--cat-1)">GM</span> Gabriel Mizael</div>
+      </div>
+    </nav>
+
+    <!-- topo mobile -->
+    <header class="topbar">
+      <button class="switcher">
+        <span class="init">VM</span>
+        <span class="txt"><b>Rep. Vila Mariana</b><span>VLM-4827</span></span>
+        <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <button class="iconbtn badge" aria-label="Notificações"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+      <span class="avatar" style="background:var(--cat-1)">GM</span>
+    </header>
+
+    <main class="content"><div class="wrap">
+      <div class="page-h">
+        <div>
+          <h1>Agosto de 2026</h1>
+          <p class="sub">Mês aberto · fecha em 12 dias</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span class="avatars">
+            <span class="avatar" style="background:var(--cat-1)">GM</span>
+            <span class="avatar" style="background:var(--cat-2)">MC</span>
+            <span class="avatar" style="background:var(--cat-3)">TS</span>
+            <span class="avatar" style="background:var(--cat-4)">LR</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- O NÚMERO QUE O USUÁRIO ABRIU O APP PRA VER -->
+      <div class="block" style="padding:26px 22px">
+        <p class="eyebrow">Seu saldo na casa</p>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:8px">
+          <div>
+            <div class="num pos" style="font:600 40px var(--f-display);letter-spacing:-.03em">+ R$ 326,72</div>
+            <p style="font-size:13.5px;color:var(--ink-2);margin:8px 0 0">
+              Você pagou <b class="num">R$ 1.147,90</b> e sua cota é <b class="num">R$ 821,18</b>. Os outros te devem.
+            </p>
+          </div>
+          <button class="btn btn-ghost">Ver quem paga quem</button>
+        </div>
+      </div>
+
+      <!-- insight acionável: dado que o app já tem, mas hoje ninguém vê -->
+      <div style="margin-top:14px" class="insight">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5h.01"/></svg>
+        <div><b>2 despesas recorrentes ainda não foram lançadas</b> neste mês: Internet fibra e Condomínio. <a href="#" class="link" style="color:inherit;text-decoration:underline">Lançar agora</a></div>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <div class="block">
+            <div class="h-row">
+              <h3>Total da residência</h3>
+              <span class="eyebrow">vs. julho</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px">
+              <div class="num" style="font:600 30px var(--f-display);letter-spacing:-.03em">R$ 3.284,70</div>
+              <div class="num neg" style="font-size:13px;font-weight:500">▲ 11,3% · R$ 333,40</div>
+            </div>
+            <!-- sparkline: 6 competências, sem virar um "gráfico" pesado -->
+            <svg viewBox="0 0 300 54" preserveAspectRatio="none" style="width:100%;height:54px;margin-top:16px;display:block">
+              <polyline points="0,34 60,26 120,30 180,17 240,20 300,6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+              <circle cx="300" cy="6" r="3.5" fill="var(--accent)"/>
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:6px">
+              <span>mar</span><span>abr</span><span>mai</span><span>jun</span><span>jul</span><span>ago</span>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="h-row"><h3>Onde o dinheiro foi</h3><a href="#" class="link">Relatório completo</a></div>
+            <ul class="rows">
+              <li><span class="dot" style="background:var(--cat-1)"></span><span class="grow"><span class="t">Alimentação</span><span class="bar" style="margin-top:7px"><i style="width:39.1%;background:var(--cat-1)"></i></span></span><span class="v num">R$ 1.284,50</span></li>
+              <li><span class="dot" style="background:var(--cat-2)"></span><span class="grow"><span class="t">Contas domésticas</span><span class="bar" style="margin-top:7px"><i style="width:30.1%;background:var(--cat-2)"></i></span></span><span class="v num">R$ 987,20</span></li>
+              <li><span class="dot" style="background:var(--cat-3)"></span><span class="grow"><span class="t">Assinaturas</span><span class="bar" style="margin-top:7px"><i style="width:12.5%;background:var(--cat-3)"></i></span></span><span class="v num">R$ 412,00</span></li>
+              <li><span class="dot" style="background:var(--cat-4)"></span><span class="grow"><span class="t">Lazer</span><span class="bar" style="margin-top:7px"><i style="width:11.8%;background:var(--cat-4)"></i></span></span><span class="v num">R$ 386,00</span></li>
+              <li><span class="dot" style="background:var(--cat-5)"></span><span class="grow"><span class="t">Outros</span><span class="bar" style="margin-top:7px"><i style="width:6.5%;background:var(--cat-5)"></i></span></span><span class="v num">R$ 215,00</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <div class="block">
+            <div class="h-row"><h3>Quem lançou quanto</h3></div>
+            <ul class="rows">
+              <li><span class="avatar" style="background:var(--cat-1)">GM</span><span class="grow"><span class="t">Gabriel <span style="font-size:11px;color:var(--ink-3)">· você</span></span><span class="bar" style="margin-top:7px"><i style="width:100%;background:var(--ink)"></i></span></span><span class="v num">R$ 1.147,90</span></li>
+              <li><span class="avatar" style="background:var(--cat-2)">MC</span><span class="grow"><span class="t">Marina</span><span class="bar" style="margin-top:7px"><i style="width:84%;background:var(--ink-3)"></i></span></span><span class="v num">R$ 968,40</span></li>
+              <li><span class="avatar" style="background:var(--cat-3)">TS</span><span class="grow"><span class="t">Thiago</span><span class="bar" style="margin-top:7px"><i style="width:62%;background:var(--ink-3)"></i></span></span><span class="v num">R$ 712,50</span></li>
+              <li><span class="avatar" style="background:var(--cat-4)">LR</span><span class="grow"><span class="t">Letícia</span><span class="bar" style="margin-top:7px"><i style="width:40%;background:var(--ink-3)"></i></span></span><span class="v num">R$ 455,90</span></li>
+            </ul>
+          </div>
+
+          <div class="block">
+            <div class="h-row"><h3>Atividade</h3><a href="#" class="link">Tudo</a></div>
+            <ul class="rows">
+              <li><span class="dot" style="background:var(--cat-1)"></span><span class="grow"><span class="t">Feira do mês</span><span class="m">Marina · há 2h</span></span><span class="v num">R$ 342,80</span></li>
+              <li><span class="dot" style="background:var(--cat-2)"></span><span class="grow"><span class="t">Conta de luz</span><span class="m">Você · há 5h</span></span><span class="v num">R$ 187,40</span></li>
+              <li><span class="dot" style="background:var(--cat-2)"></span><span class="grow"><span class="t">Internet fibra</span><span class="m">Thiago · ontem</span></span><span class="v num">R$ 129,90</span></li>
+              <li><span class="dot" style="background:var(--cat-3)"></span><span class="grow"><span class="t">Netflix + Spotify</span><span class="m">Letícia · ontem</span></span><span class="v num">R$ 89,80</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div></main>
+
+    <button class="fab" aria-label="Lançar despesa"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg></button>
+
+    <nav class="tabbar">
+      <a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Painel</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Despesas</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Conta</a>
+    </nav>
+  </div>
+</section>
+
+<!-- ==================== NOVA DESPESA ==================== -->
+<section class="screen" data-screen="despesa">
+  <div class="shell">
+    <nav class="rail">
+      <div class="brand"><span class="mark">C</span> Cronos</div>
+      <button class="switcher"><span class="init">VM</span><span class="txt"><b>Rep. Vila Mariana</b><span>VLM-4827</span></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg></button>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg> Painel</a>
+      <a class="nav" href="#" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg> Despesas</a>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> Relatórios</a>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM22 20v-2a4 4 0 0 0-3-3.9"/></svg> Membros</a>
+      <div class="foot"><div class="me"><span class="avatar" style="background:var(--cat-1)">GM</span> Gabriel Mizael</div></div>
+    </nav>
+
+    <header class="topbar">
+      <button class="iconbtn" aria-label="Voltar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+      <b style="flex:1;font:500 15px var(--f-display)">Nova despesa</b>
+      <span style="font-size:12px;color:var(--ink-3)">Ago/2026</span>
+    </header>
+
+    <main class="content"><div class="wrap" style="max-width:600px">
+      <div class="page-h" style="margin-bottom:6px">
+        <div><h1>Nova despesa</h1><p class="sub">Vai para a competência aberta · Agosto de 2026</p></div>
+      </div>
+
+      <!-- valor como protagonista, do jeito que se lança pelo celular -->
+      <div class="amount-stage">
+        <p class="eyebrow">Valor</p>
+        <div class="amount-input"><span class="cur">R$</span><span class="val num">342,80</span></div>
+        <p class="split">Dividido por 4 · <b class="num">R$ 85,70</b> para cada</p>
+      </div>
+
+      <div class="block">
+        <div class="field" style="margin-bottom:18px">
+          <label for="p1-desc">Descrição</label>
+          <input id="p1-desc" type="text" value="Feira do mês" placeholder="Ex.: Conta de luz">
+          <!-- lançamentos anteriores viram atalho — corta digitação repetida -->
+          <div class="sugg">
+            <button>Feira do mês</button><button>Conta de luz</button><button>Gás</button><button>Faxina</button>
+          </div>
+        </div>
+
+        <label style="display:block;font:500 12.5px var(--f-body);color:var(--ink-2);margin-bottom:9px">Categoria</label>
+        <div class="catgrid">
+          <button aria-pressed="true"><span class="ic" style="background:#F0FDFA;color:var(--cat-1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 9v13M18 2c-1.7 0-3 2.7-3 6s1.3 5 3 5v9"/></svg></span>Alimentação</button>
+          <button><span class="ic" style="background:#EFF6FF;color:var(--cat-2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>Domésticas</button>
+          <button><span class="ic" style="background:#F5F3FF;color:var(--cat-3)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><path d="M9 12l2 2 5-5"/></svg></span>Assinaturas</button>
+          <button><span class="ic" style="background:#FDF2F8;color:var(--cat-4)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></span>Lazer</button>
+          <button><span class="ic" style="background:#F5F5F4;color:var(--cat-5)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></span>Outros</button>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="h-row" style="margin-bottom:4px">
+          <h3 style="margin:0">Repetir todo mês</h3>
+          <span style="width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;display:inline-block">
+            <span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span>
+          </span>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink-3);margin:0">O Cronos relança sozinho na virada da competência e te avisa se o valor mudar.</p>
+      </div>
+
+      <div class="sticky-cta">
+        <button class="btn btn-primary btn-block">Lançar despesa</button>
+        <p style="text-align:center;font-size:12px;color:var(--ink-3);margin:10px 0 0">O formulário se limpa e você já pode lançar a próxima.</p>
+      </div>
+    </div></main>
+
+    <nav class="tabbar">
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Painel</a>
+      <a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Despesas</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Conta</a>
+    </nav>
+  </div>
+</section>
+
+<!-- ==================== RELATÓRIOS ==================== -->
+<section class="screen" data-screen="relatorio">
+  <div class="shell">
+    <nav class="rail">
+      <div class="brand"><span class="mark">C</span> Cronos</div>
+      <button class="switcher"><span class="init">VM</span><span class="txt"><b>Rep. Vila Mariana</b><span>VLM-4827</span></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg></button>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg> Painel</a>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg> Despesas</a>
+      <a class="nav" href="#" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> Relatórios</a>
+      <a class="nav" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM22 20v-2a4 4 0 0 0-3-3.9"/></svg> Membros</a>
+      <div class="foot"><div class="me"><span class="avatar" style="background:var(--cat-1)">GM</span> Gabriel Mizael</div></div>
+    </nav>
+
+    <header class="topbar">
+      <button class="iconbtn" aria-label="Voltar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+      <b style="flex:1;font:500 15px var(--f-display)">Relatórios</b>
+      <button class="iconbtn" aria-label="Exportar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M8 11l4 4 4-4M4 21h16"/></svg></button>
+    </header>
+
+    <main class="content"><div class="wrap">
+      <div class="page-h">
+        <div><h1>Relatórios</h1><p class="sub">Agosto de 2026 · 24 lançamentos</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" style="padding:9px 14px;font-size:13px">Exportar CSV</button>
+          <button class="btn btn-ghost" style="padding:9px 14px;font-size:13px">Compartilhar</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px">
+        <div class="seg">
+          <button aria-pressed="true">Residência</button>
+          <button aria-pressed="false">Meus gastos</button>
+        </div>
+        <div class="seg" style="margin-left:auto">
+          <button aria-pressed="false">Jun</button>
+          <button aria-pressed="false">Jul</button>
+          <button aria-pressed="true">Ago</button>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <p class="eyebrow">Total do mês</p>
+          <div class="big num">R$ 3.284,70</div>
+          <div class="delta neg num">▲ 11,3% vs. julho</div>
+        </div>
+        <div class="kpi">
+          <p class="eyebrow">Cota por pessoa</p>
+          <div class="big num">R$ 821,18</div>
+          <div class="delta" style="color:var(--ink-3)">4 membros ativos</div>
+        </div>
+        <div class="kpi">
+          <p class="eyebrow">Projeção de fechamento</p>
+          <div class="big num">R$ 3.610,00</div>
+          <div class="delta" style="color:var(--ink-3)">no ritmo atual, até 31/08</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="block">
+            <div class="h-row"><h3>Distribuição por categoria</h3></div>
+            <div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap">
+              <!-- donut em stroke-dasharray: leve, sem lib -->
+              <svg viewBox="0 0 42 42" style="width:150px;height:150px;flex-shrink:0;transform:rotate(-90deg)">
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--cat-1)" stroke-width="7" stroke-dasharray="39.1 60.9" stroke-dashoffset="0"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--cat-2)" stroke-width="7" stroke-dasharray="30.1 69.9" stroke-dashoffset="-39.1"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--cat-3)" stroke-width="7" stroke-dasharray="12.5 87.5" stroke-dashoffset="-69.2"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--cat-4)" stroke-width="7" stroke-dasharray="11.8 88.2" stroke-dashoffset="-81.7"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--cat-5)" stroke-width="7" stroke-dasharray="6.5 93.5" stroke-dashoffset="-93.5"/>
+              </svg>
+              <div style="flex:1;min-width:160px">
+                <ul class="rows">
+                  <li><span class="dot" style="background:var(--cat-1)"></span><span class="grow"><span class="t">Alimentação</span><span class="m">39,1%</span></span><span class="v num">R$ 1.284,50</span></li>
+                  <li><span class="dot" style="background:var(--cat-2)"></span><span class="grow"><span class="t">Contas domésticas</span><span class="m">30,1%</span></span><span class="v num">R$ 987,20</span></li>
+                  <li><span class="dot" style="background:var(--cat-3)"></span><span class="grow"><span class="t">Assinaturas</span><span class="m">12,5%</span></span><span class="v num">R$ 412,00</span></li>
+                  <li><span class="dot" style="background:var(--cat-4)"></span><span class="grow"><span class="t">Lazer</span><span class="m">11,8%</span></span><span class="v num">R$ 386,00</span></li>
+                  <li><span class="dot" style="background:var(--cat-5)"></span><span class="grow"><span class="t">Outros</span><span class="m">6,5%</span></span><span class="v num">R$ 215,00</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="h-row"><h3>Evolução</h3><span class="eyebrow">6 competências</span></div>
+            <svg viewBox="0 0 320 120" style="width:100%;height:150px;display:block">
+              <line x1="0" y1="100" x2="320" y2="100" stroke="var(--line)" stroke-width="1"/>
+              <line x1="0" y1="60" x2="320" y2="60" stroke="var(--line-soft)" stroke-width="1"/>
+              <line x1="0" y1="20" x2="320" y2="20" stroke="var(--line-soft)" stroke-width="1"/>
+              <rect x="12"  y="55" width="30" height="45" rx="4" fill="var(--line)"/>
+              <rect x="64"  y="47" width="30" height="53" rx="4" fill="var(--line)"/>
+              <rect x="116" y="51" width="30" height="49" rx="4" fill="var(--line)"/>
+              <rect x="168" y="38" width="30" height="62" rx="4" fill="var(--line)"/>
+              <rect x="220" y="41" width="30" height="59" rx="4" fill="var(--line)"/>
+              <rect x="272" y="26" width="30" height="74" rx="4" fill="var(--accent)"/>
+              <text x="27"  y="114" font-size="10" fill="#A8A29E" text-anchor="middle" font-family="Roboto">mar</text>
+              <text x="79"  y="114" font-size="10" fill="#A8A29E" text-anchor="middle" font-family="Roboto">abr</text>
+              <text x="131" y="114" font-size="10" fill="#A8A29E" text-anchor="middle" font-family="Roboto">mai</text>
+              <text x="183" y="114" font-size="10" fill="#A8A29E" text-anchor="middle" font-family="Roboto">jun</text>
+              <text x="235" y="114" font-size="10" fill="#A8A29E" text-anchor="middle" font-family="Roboto">jul</text>
+              <text x="287" y="114" font-size="10" fill="#1C1917" text-anchor="middle" font-family="Roboto" font-weight="500">ago</text>
+            </svg>
+            <div class="insight" style="margin-top:14px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 17 6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
+              <div><b>Alimentação subiu 22%</b> em relação à média dos últimos 3 meses. Foi o que mais puxou o total pra cima.</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="block">
+            <div class="h-row"><h3>Acerto de contas</h3></div>
+            <p style="font-size:12.5px;color:var(--ink-3);margin:-6px 0 16px">Cota individual de <b class="num" style="color:var(--ink-2)">R$ 821,18</b></p>
+            <ul class="settle">
+              <li>
+                <span class="avatar" style="background:var(--cat-1)">GM</span>
+                <span class="who"><b>Gabriel <span style="font-size:11px;color:var(--ink-3)">· você</span></b><span class="num">gastou R$ 1.147,90</span></span>
+                <span class="tag-v r num">recebe R$ 326,72</span>
+              </li>
+              <li>
+                <span class="avatar" style="background:var(--cat-2)">MC</span>
+                <span class="who"><b>Marina</b><span class="num">gastou R$ 968,40</span></span>
+                <span class="tag-v r num">recebe R$ 147,22</span>
+              </li>
+              <li>
+                <span class="avatar" style="background:var(--cat-3)">TS</span>
+                <span class="who"><b>Thiago</b><span class="num">gastou R$ 712,50</span></span>
+                <span class="tag-v p num">paga R$ 108,68</span>
+              </li>
+              <li>
+                <span class="avatar" style="background:var(--cat-4)">LR</span>
+                <span class="who"><b>Letícia</b><span class="num">gastou R$ 455,90</span></span>
+                <span class="tag-v p num">paga R$ 365,28</span>
+              </li>
+            </ul>
+            <button class="btn btn-primary btn-block" style="margin-top:18px">Fechar o mês</button>
+          </div>
+
+          <div class="block">
+            <h3>Comparado com julho</h3>
+            <ul class="rows">
+              <li><span class="grow"><span class="t">Alimentação</span></span><span class="v num neg">+22%</span></li>
+              <li><span class="grow"><span class="t">Contas domésticas</span></span><span class="v num neg">+8%</span></li>
+              <li><span class="grow"><span class="t">Assinaturas</span></span><span class="v num" style="color:var(--ink-3)">0%</span></li>
+              <li><span class="grow"><span class="t">Lazer</span></span><span class="v num pos">−14%</span></li>
+              <li><span class="grow"><span class="t">Outros</span></span><span class="v num pos">−5%</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div></main>
+
+    <nav class="tabbar">
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Painel</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Despesas</a>
+      <a href="#" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+      <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Conta</a>
+    </nav>
+  </div>
+</section>
+
+</div>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  document.getElementById('screens').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#screens button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('.screen').forEach(s => s.toggleAttribute('data-active', s.dataset.screen === b.dataset.go));
+  });
+  document.getElementById('device').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#device button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    stage.dataset.device = b.dataset.dev;
+  });
+  // segmented controls e chips ficam clicáveis pra dar sensação de protótipo vivo
+  document.querySelectorAll('.seg, .catgrid').forEach(g => g.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+</script>
+</body>
+</html>

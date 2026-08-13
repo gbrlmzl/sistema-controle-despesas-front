@@ -1,0 +1,71 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    color: var(--ink);
+    font-family: var(--font-body);
+}
+
+.container h2 {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+/* Seta, título e canto direito na mesma linha, com o título centralizado */
+.cabecalho {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.25rem;
+}
+
+.cabecalho h2 {
+    flex: 1;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.botaoCanto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.botaoCanto:hover {
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+.espacoCanto {
+    width: 2.25rem;
+    flex-shrink: 0;
+}
+
+.nomeResidencia {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--ink-3);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.seloArquivada {
+    margin-top: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--amber-ink);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    border-radius: 1rem;
+    padding: 0.2rem 0.75rem;
+}

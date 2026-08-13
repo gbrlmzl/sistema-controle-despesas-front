@@ -38,32 +38,24 @@ export default function Snackbar({ open, message, onClose, type }: SnackbarProps
 
   if (!renderizar) return null;
 
-  const backgroundColors: Record<string, string> = {
-    success: "#4caf50",
-    error: "#f44336",
-    warning: "#38B6FF",
+  //Cor por tipo continua inline: é a única propriedade que varia em tempo de execução.
+  //Os valores acompanham --pos / --neg / --accent de globals.css.
+  const coresPorTipo: Record<string, string> = {
+    success: "#1B8A63",
+    error: "#C43E55",
+    warning: "#2F6FD0",
   };
 
-
-
-
   return (
-    <div className={`${styles.container} ${saindo ? styles.saindo : ''}`} style={{ backgroundColor: backgroundColors[type ?? ''] || "#333" }}>
+    <div className={`${styles.container} ${saindo ? styles.saindo : ''}`}
+      role="status" aria-live="polite"
+      style={{ backgroundColor: coresPorTipo[type ?? ''] || "#1E2A45" }}>
       <div className={styles.mensagemContainer}>
         {message}
       </div>
-      <div className={styles.botaoFecharContainer}>
-        <button className={styles.botaoFechar} onClick={onClose}>
-          <span>
-            <img src="/icons/xIcon.svg" alt="Fechar" />
-          </span>
-        </button>
-
-      </div>
-
-
-
-
+      <button className={styles.botaoFechar} onClick={onClose} aria-label="Fechar">
+        <img src="/icons/xIcon.svg" alt="" />
+      </button>
     </div>
   );
 }

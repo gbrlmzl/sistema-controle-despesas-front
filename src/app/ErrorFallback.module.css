@@ -28,8 +28,8 @@
 .botao {
     padding: 10px 20px;
     border-radius: 8px;
-    background: var(--color-secondary);
-    color: white;
+    background: var(--accent);
+    color: var(--accent-contrast);
     font-weight: 600;
     cursor: pointer;
 }

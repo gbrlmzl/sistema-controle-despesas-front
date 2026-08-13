@@ -1,18 +1,20 @@
 .container {
-
-    display: flex;
-    justify-content: space-between;
     position: fixed;
-    bottom: 25%;
+    /* Acima da tab bar do mobile, que ocupa a base da tela */
+    bottom: 5.5rem;
     left: 50%;
     transform: translateX(-50%);
-    color: #FFFFFF;
-    border-radius: 8;
     z-index: 9999;
-    width: 75vw; /* TODO => Tornar isso responsivo para diferentes resoluções */
-    border: 1px solid #000;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: min(28rem, calc(100vw - 2rem));
+    padding: 0.4rem 0.5rem 0.4rem 1rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.8);
+    color: #fff;
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
 }
@@ -23,43 +25,32 @@
 }
 
 .mensagemContainer {
-    padding: 0.75rem 0.5rem;
-    font-family: var(--font-roboto-condensed);
-    font-size: 1rem;
-}
-
-.botaoFecharContainer {
-    display: flex;
-    flex-direction: row-reverse;
-    height: 50%;
-    margin: 5px;
+    padding: 0.5rem 0;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
 }
 
 .botaoFechar {
-    border: none;
-    background: none;
-    padding: 0;
-    cursor: auto;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border-radius: var(--r-sm);
 }
 
-.botaoFechar span {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 15;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
+.botaoFechar:hover {
+    background: rgba(255, 255, 255, 0.18);
 }
 
-@media (min-width: 600px) {
+/* xIcon já é branco, e o snackbar é sempre colorido — sem filtro */
+.botaoFechar img {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+@media (min-width: 900px) {
     .container {
-        width: 50vw;
-    }
-}
-
-@media (min-width: 1024px) {
-    .container {
-        width: 33vw;
+        bottom: 1.5rem;
     }
 }

@@ -207,7 +207,6 @@ Cada página é um **Server Component** que busca dados via `lib/*Api.ts` e dele
 | `/app/residences/[code]/members` | Gerenciar membros | ✅ |
 | `/app/residences/[code]/settings` | Configurações da residência | ✅ |
 | `/app/residences/[code]/expenses` | Consulta por competência | ✅ |
-| `/app/residences/[code]/expenses/new` | Lançar despesa | ✅ |
 | `/app/residences/[code]/expenses/recurring` | Despesas recorrentes | ✅ |
 | `/app/residences/[code]/reports` | Relatórios e gráficos | ✅ |
 
@@ -507,14 +506,16 @@ As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://gi
 | [`docs/plano-integracao-frontend-api.md`](docs/plano-integracao-frontend-api.md) | Plano de integração do front com a API |
 | [`docs/estrategia-tratamento-erros-api.md`](docs/estrategia-tratamento-erros-api.md) | Estratégia de tratamento de erros nas chamadas à API |
 | [`docs/migracao-typescript.md`](docs/migracao-typescript.md) | Registro da migração de JavaScript para TypeScript |
+| [`docs/backlog-e-casos-de-teste.md`](docs/backlog-e-casos-de-teste.md) | Backlog de funcionalidades com cobertura de teste, e documentação de cada caso de teste do front-end |
 | [`docs/relatorios/RELATORIO_V1.1.md`](docs/relatorios/RELATORIO_V1.1.md) | Relatório da versão anterior |
 
 ---
 
 ## ⚠️ Pendências conhecidas
 
-- **O setup Docker está quebrado.** Continua sendo o do monolito da V1: o [`docker-compose.yml`](docker-compose.yml) sobe um Postgres, define `DATABASE_URL` e roda `prisma generate && prisma migrate deploy` no front — que não tem mais Prisma nem acessa banco. E o [`Dockerfile.dev`](Dockerfile.dev) faz `COPY prisma ./prisma`, uma pasta que não existe mais aqui, então **a imagem sequer constrói**. Precisa ser reescrito para orquestrar front + API + Postgres, ou removido. Por isso as instruções acima sobem os serviços manualmente.
 - **`NEXT_PUBLIC_API_URL` não é usada** por nenhum código — resquício em `.env.local` que pode ser removido.
+- **O `docker-compose.yml` só sobe o front.** A API e o Postgres dela vivem em outro repositório, hoje sem Dockerfile próprio — então `docker compose up` aqui não substitui os passos manuais de "Como rodar" acima, só empacota o front (aponta `API_URL` para onde a API estiver ouvindo). Orquestrar os três serviços num compose só exigiria criar um Dockerfile na API.
+- **O CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) cobre lint, testes unitários (Jest) e build de produção — não roda os testes E2E (Cypress).** Os specs de E2E fazem cadastro/login reais contra a API pela UI, sem mocks; rodar isso no Actions exigiria subir API + Postgres dentro do workflow, o que depende de infraestrutura que ainda não existe no repo da API. Por enquanto, E2E continua só local (`npm run test:e2e`).
 - **Épico de administração e auditoria** (papel ADMIN, trilha de auditoria, monitoramento de acessos) está fora do escopo da V2.0 e não iniciado.
 
 ---

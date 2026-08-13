@@ -1,0 +1,106 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.secao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.secao h3 {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0;
+    list-style: none;
+}
+
+.pendencia {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 0.75rem;
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+}
+
+.pendenciaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.pendenciaTitulo {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.pendenciaDetalhe {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+}
+
+.pendenciaAcoes {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.botaoAceitar,
+.botaoRecusar {
+    border-radius: 1.875rem;
+    padding: 0.3rem 0.7rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.botaoAceitar {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.botaoAceitar:hover:not(:disabled) {
+    background: var(--accent-hover);
+    cursor: pointer;
+}
+
+.botaoRecusar {
+    background: var(--surface-2);
+    border: 1px solid var(--ink-3);
+    color: var(--ink-3);
+}
+
+.botaoRecusar:hover:not(:disabled) {
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+.botaoAceitar:disabled,
+.botaoRecusar:disabled {
+    opacity: 0.6;
+    cursor: default;
+}

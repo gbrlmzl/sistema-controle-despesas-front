@@ -3,8 +3,9 @@
 import { apiFetch, ApiError } from "@/lib/apiClient";
 import { registerSchema } from "@/schemas/usuarios";
 import type { ActionState } from "@/types/actions";
+import type { AuthUser } from "@/types/auth";
 
-export default async function registerAction(_prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+export default async function registerAction(_prevState: ActionState<AuthUser> | null, formData: FormData): Promise<ActionState<AuthUser>> {
     const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
     //O nome de usuário é sempre normalizado (sem espaços nas pontas e em minúsculas)
@@ -33,10 +34,13 @@ export default async function registerAction(_prevState: ActionState | null, for
     const payload = parseResult.data;
 
     //4 -> Cadastra o usuário na API — ela já valida email/username em uso e, em caso de
-    //sucesso, já estabelece a sessão (cookies JWT + refreshToken), diferente do fluxo
+    //sucesso, já estabelece a sessão (cookies JWT + REFRESH), diferente do fluxo
     //antigo que só criava o usuário e mandava pro /login.
     try {
-        await apiFetch("/auth/register", {
+        //A API devolve o AuthUser atualizado no corpo da resposta (mesmo shape de
+        //login/refresh/GET/PATCH users/me) — repassado no "data" pro chamador poder
+        //atualizar o UserProvider direto, sem precisar de router.refresh().
+        const { user } = await apiFetch<{ user: AuthUser }>("/auth/register", {
             method: "POST",
             skipAuthRetry: true,
             body: {
@@ -51,6 +55,7 @@ export default async function registerAction(_prevState: ActionState | null, for
         return {
             success: true,
             message: 'Usuário cadastrado com sucesso!',
+            data: user,
         }
     } catch (e) {
         if (e instanceof ApiError) {

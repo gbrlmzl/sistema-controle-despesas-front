@@ -1,0 +1,146 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    color: var(--ink);
+    font-family: var(--font-body);
+}
+
+.container h2 {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+/* Seta, título e canto direito na mesma linha, com o título centralizado */
+.cabecalho {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.25rem;
+}
+
+.cabecalho h2 {
+    flex: 1;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.espacoCanto {
+    width: 2.25rem;
+    flex-shrink: 0;
+}
+
+.botaoCanto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.botaoCanto:hover {
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+.tituloContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.nomeResidencia {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--ink-3);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.seloArquivada {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--amber-ink);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    border-radius: 1rem;
+    padding: 0.2rem 0.75rem;
+}
+
+.avisoArquivada {
+    margin-top: 1.25rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.5rem;
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    font-size: 0.8rem;
+    color: var(--ink-3);
+    text-align: center;
+}
+
+.opcoesContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 18rem;
+    margin-top: 2.5rem;
+}
+
+.botaoOpcao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+    background: var(--accent);
+    padding: 0.75rem 1.25rem;
+    border-radius: 2.5rem;
+    border: 1px solid var(--border);
+    transition: background 0.2s;
+    font-size: 1rem;
+    color: var(--accent-contrast);
+    border: none;
+    font-family: var(--font-body);
+}
+
+.botaoOpcao:hover:not(:disabled) {
+    background: var(--accent-hover);
+    cursor: pointer;
+}
+
+.botaoOpcao:disabled {
+    background: var(--surface-3);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Sair da residência: ação destrutiva, tratada visualmente à parte das demais */
+.botaoPerigo {
+    width: 100%;
+    text-align: center;
+    background: var(--surface-2);
+    border: 1px solid var(--neg);
+    color: var(--neg);
+    padding: 0.7rem 1.25rem;
+    border-radius: 2.5rem;
+    font-family: var(--font-body);
+    font-size: 1rem;
+}
+
+.botaoPerigo:hover {
+    background: var(--neg);
+    color: var(--accent-contrast);
+    cursor: pointer;
+}

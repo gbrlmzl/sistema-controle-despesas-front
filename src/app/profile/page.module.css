@@ -1,0 +1,9 @@
+/* O AppShell já ocupa a altura da janela e cuida da rolagem: fixar 100vh aqui dentro
+   criaria uma segunda barra de rolagem. */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    color: var(--ink);
+}

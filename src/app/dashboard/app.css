@@ -1,0 +1,104 @@
+/* Classes compartilhadas pelas telas de /dashboard/**.
+   O antigo `.primaryCard` era travado em 75vh e larguras em vw — o conteúdo maior do
+   redesign não cabia. Agora a superfície cresce com o conteúdo e a largura é limitada
+   em rem, para o texto não esticar em monitor largo. */
+
+.superficie {
+  width: 100%;
+  padding: 1.5rem 1.25rem;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.cabecalhoPagina {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.25rem;
+  margin-bottom: 1rem;
+}
+
+.cabecalhoPagina h2 {
+  flex: 1;
+  text-align: center;
+  font-size: 1.35rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.botaoCanto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.botaoCanto:hover {
+  color: var(--ink);
+  border-color: var(--border-strong);
+}
+
+/* Preserva a centralização do título quando não há botão do lado direito */
+.espacoCanto {
+  width: 2.25rem;
+  flex-shrink: 0;
+}
+
+.botaoPrimario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.botaoPrimario:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.botaoPrimario:disabled {
+  background: var(--surface-3);
+  color: var(--ink-3);
+}
+
+.botaoSecundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.botaoSecundario:hover:not(:disabled) {
+  border-color: var(--ink-3);
+}
+
+.botaoSecundario:disabled {
+  color: var(--ink-3);
+  border-color: var(--border);
+}

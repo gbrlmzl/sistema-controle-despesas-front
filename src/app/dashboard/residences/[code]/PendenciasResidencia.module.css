@@ -1,0 +1,110 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+    margin-top: 0.85rem;
+}
+
+.secao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 1.25rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.secao h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* Pendência usa o âmbar: é o único estado do painel que pede uma decisão do usuário */
+.pendencia {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: var(--r-md);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+}
+
+.pendenciaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.pendenciaTitulo {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.pendenciaDetalhe {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    overflow-wrap: anywhere;
+}
+
+.pendenciaAcoes {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.botaoAceitar,
+.botaoNeutro {
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--r-sm);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.botaoAceitar {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 500;
+}
+
+.botaoAceitar:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.botaoNeutro {
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--ink-2);
+}
+
+.botaoNeutro:hover:not(:disabled) {
+    color: var(--ink);
+    border-color: var(--ink-3);
+}
+
+.botaoAceitar:disabled,
+.botaoNeutro:disabled {
+    opacity: 0.5;
+}

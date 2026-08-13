@@ -1,10 +1,9 @@
-
 'use client';
 import Form from "next/form";
-import { useLogin } from "@/hooks/useLogin";
 import Link from 'next/link';
 
-import styles from './LoginForm.module.css';
+import { useLogin } from "@/hooks/useLogin";
+import styles from '../authForm.module.css';
 
 const GOOGLE_LOGIN_URL = "/api/auth/google";
 
@@ -23,47 +22,46 @@ export default function LoginForm() {
     } = useLogin();
 
     return (
-        <div className={styles.container}>
-            <h1>Fazer login</h1>
-            {state?.success === false && (
-                <div className={styles.errorMessage}>
-                    <span className="aa">{state?.message}</span>
-                </div>
+        <div>
+            <h1 className={styles.titulo}>Entrar</h1>
+            <p className={styles.subtitulo}>Bem-vindo de volta.</p>
 
+            {state?.success === false && (
+                <div className={styles.erro}>
+                    <span>{state?.message}</span>
+                </div>
             )}
 
             <Form action={formAction}>
-                <div className={styles.formFields}>
-                    <input type="text" name="username" placeholder="Nome de usuário" value={username} onChange={(e) => setUsername(e.target.value)} />
-                    <div className={styles.passwordField}>
-                        <input type={showPassword ? 'text' : 'password'} name="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
-                        <span className={styles.passwordToggle} onClick={togglePasswordVisibility}>
-                            {showPassword ? (
-                                <img src="/icons/olhoIcon.svg" alt="Mostrar/Ocultar senha" />
-                            ) : (
-                                <img src="/icons/olhoCortadoIcon.svg" alt="Mostrar/Ocultar senha" />)
-                            }
+                <div className={styles.campos}>
+                    <input type="text" name="username" placeholder="Nome de usuário" value={username}
+                        onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
 
+                    <div className={styles.campoSenha}>
+                        <input type={showPassword ? 'text' : 'password'} name="password" placeholder="Senha"
+                            value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+                        <span className={styles.alternarSenha} onClick={togglePasswordVisibility}>
+                            <img src={showPassword ? "/icons/olhoIcon.svg" : "/icons/olhoCortadoIcon.svg"}
+                                alt="Mostrar/Ocultar senha" />
                         </span>
                     </div>
                 </div>
-                <div className={styles.socialMediaLoginContainer}>
-                    <a href={GOOGLE_LOGIN_URL} className={styles.socialMediaLogin}>
-                        <img src="/icons/googleIcon.svg" alt="Login com Google" />
-                    </a>
-                </div>
 
-                <div className={styles.submitButtonContainer}>
-                    <button type="submit" disabled={isPending || !dadosPreenchidos}>
-                        <span>
-                            <img src="/icons/avancarIcon.svg" alt="Login" />
-                        </span>
-                    </button>
-                </div>
+                <button type="submit" className={styles.botaoEnviar} disabled={isPending || !dadosPreenchidos}>
+                    {isPending ? "Entrando..." : "Entrar"}
+                </button>
             </Form>
-            <Link href="/cadastro">
-                Criar conta
-            </Link>
+
+            <div className={styles.separador}>ou</div>
+
+            <a href={GOOGLE_LOGIN_URL} className={styles.botaoGoogle}>
+                <img src="/icons/googleIcon.svg" alt="" />
+                Continuar com Google
+            </a>
+
+            <p className={styles.rodape}>
+                Ainda não tem conta? <Link href="/cadastro">Criar conta</Link>
+            </p>
         </div>
     )
 }

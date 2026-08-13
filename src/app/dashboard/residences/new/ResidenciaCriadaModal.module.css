@@ -1,0 +1,96 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 7, 15, 0.72);
+    z-index: 10;
+    padding: 1rem;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 22rem;
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--r-xl);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--ink);
+}
+
+.mensagemContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.mensagemContainer h3 {
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    font-weight: 500;
+}
+
+.nomeResidencia {
+    font-family: var(--font-body);
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.codigoResidencia {
+    font-family: var(--font-body);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--surface-2);
+}
+
+.botoesContainer {
+    display: flex;
+    justify-content: center;
+    gap: 0.85rem;
+}
+
+.botaoIconeSecundario,
+.botaoIconePrimario {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+}
+
+.botaoIconeSecundario {
+    background: var(--surface-3);
+    border: 1px solid var(--border-strong);
+}
+
+.botaoIconeSecundario:hover {
+    border-color: var(--ink-3);
+}
+
+.botaoIconePrimario {
+    background: var(--accent);
+}
+
+.botaoIconePrimario:hover {
+    background: var(--accent-hover);
+}
+
+.botaoIcone {
+    display: grid;
+    place-items: center;
+}
+
+.botaoIcone img {
+    width: 1.4rem;
+    height: 1.4rem;
+}

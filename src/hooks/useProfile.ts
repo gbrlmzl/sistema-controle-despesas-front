@@ -2,12 +2,11 @@ import { useState } from "react";
 import { AVATARS } from "@/lib/avatars";
 import { apiFetchClient } from "@/lib/apiClient.client";
 import { ApiError } from "@/lib/apiError";
+import { useSetCurrentUser } from "@/components/providers/UserProvider";
+import type { AuthUser } from "@/types/auth";
 
-interface UseProfileParams {
-    onProfileUpdated?: () => void;
-}
-
-export const useProfile = ({ onProfileUpdated }: UseProfileParams) => {
+export const useProfile = () => {
+    const setUser = useSetCurrentUser();
 
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
@@ -47,14 +46,16 @@ export const useProfile = ({ onProfileUpdated }: UseProfileParams) => {
         setLoadingChangeProfilePicture(true);
 
         try {
-            await apiFetchClient("/users/me", {
+            //A API devolve o AuthUser atualizado no corpo da resposta — atualiza o
+            //contexto (UserProvider) direto, sem round-trip via router.refresh(). Ver
+            //docs/decisao-sincronizacao-usuario-pos-acao.md.
+            const { user } = await apiFetchClient<{ user: AuthUser }>("/users/me", {
                 method: "PATCH",
                 body: { avatar: selectedAvatar },
             });
 
             showSnackbar("Foto de perfil atualizada com sucesso!", "success");
-            //Atualiza o usuário no contexto (UserProvider) pra refletir a nova foto
-            onProfileUpdated?.();
+            setUser(user);
             closeGallery();
         } catch (err) {
             const message = err instanceof ApiError ? err.message : "Erro ao atualizar a foto de perfil.";
@@ -89,13 +90,13 @@ export const useProfile = ({ onProfileUpdated }: UseProfileParams) => {
         setSavingName(true);
 
         try {
-            await apiFetchClient("/users/me", {
+            const { user } = await apiFetchClient<{ user: AuthUser }>("/users/me", {
                 method: "PATCH",
                 body: { name: trimmed },
             });
 
             showSnackbar("Nome atualizado com sucesso!", "success");
-            onProfileUpdated?.();
+            setUser(user);
             setEditingName(false);
         } catch (err) {
             const message = err instanceof ApiError ? err.message : "Erro ao atualizar o nome.";

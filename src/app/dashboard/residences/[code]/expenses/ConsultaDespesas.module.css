@@ -1,0 +1,378 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    color: var(--ink);
+    font-family: var(--font-body);
+}
+
+.container h2 {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+/* Seta, título e canto direito na mesma linha, com o título centralizado */
+.cabecalho {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.25rem;
+}
+
+.cabecalho h2 {
+    flex: 1;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.botaoCanto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.botaoCanto:hover {
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+/* Ocupa o mesmo espaço da seta do lado oposto, mantendo o título no centro */
+.espacoCanto {
+    width: 2.25rem;
+    flex-shrink: 0;
+}
+
+.seloFechado {
+    margin-top: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--amber-ink);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    border-radius: 1rem;
+    padding: 0.2rem 0.75rem;
+    text-align: center;
+}
+
+.totalGeral {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    margin-top: 1.25rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.85rem;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    width: 100%;
+}
+
+.totalRotulo {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+}
+
+.totalValor {
+    font-family: var(--font-body);
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+.listaVazia {
+    margin-top: 2rem;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--ink-3);
+}
+
+.grupoMembro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+    margin-top: 1.25rem;
+}
+
+/* Cabeçalho do grupo é o gatilho do accordion */
+.grupoCabecalho {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.25rem;
+    text-align: left;
+}
+
+.grupoCabecalho:hover {
+    cursor: pointer;
+    border-bottom-color: var(--accent);
+}
+
+.seta {
+    flex-shrink: 0;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* O ícone aponta para baixo quando recolhido; ao expandir, gira para cima */
+.setaExpandida {
+    transform: rotate(180deg);
+}
+
+.grupoNome {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.marcadorVoce {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--accent-contrast);
+    background: var(--accent);
+    border-radius: 1rem;
+    padding: 0.1rem 0.45rem;
+}
+
+.grupoTotal {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.listaDespesas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0;
+    list-style: none;
+}
+
+/* Animação do accordion.
+   display:none e height:auto não são transicionáveis, então a área é uma grade de
+   uma linha e o que anima é a própria linha, de 1fr (altura natural) para 0fr.
+   É o único jeito puramente em CSS de animar até a altura real do conteúdo,
+   sem precisar chutar um max-height nem medir nada em JavaScript. */
+.areaDespesas {
+    display: grid;
+    grid-template-rows: 1fr;
+    width: 100%;
+    transition: grid-template-rows 0.25s ease-in-out;
+}
+
+.areaRecolhida {
+    grid-template-rows: 0fr;
+}
+
+/* overflow:hidden corta o conteúdo enquanto a linha encolhe, e min-height:0 é o
+   que permite a linha chegar a zero — sem ele o conteúdo trava a altura mínima. */
+.areaInterna {
+    overflow: hidden;
+    min-height: 0;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.areaRecolhida .areaInterna {
+    opacity: 0;
+}
+
+/* Respeita quem pediu menos animação no sistema operacional */
+@media (prefers-reduced-motion: reduce) {
+    .areaDespesas,
+    .areaInterna,
+    .seta {
+        transition: none;
+    }
+}
+
+.despesa {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.6rem;
+    background: var(--surface-2);
+}
+
+.despesaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.despesaNome {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+}
+
+.marcadorRecorrente {
+    font-size: 0.6rem;
+    color: var(--pos);
+    background: var(--pos-bg);
+    border-radius: 1rem;
+    padding: 0.1rem 0.4rem;
+    white-space: nowrap;
+}
+
+.despesaCategoria {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+}
+
+.despesaLado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.despesaValor {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.despesaAcoes {
+    display: flex;
+    flex-direction: row;
+    gap: 0.35rem;
+}
+
+.botaoEditar,
+.botaoExcluir {
+    border-radius: 1.875rem;
+    padding: 0.15rem 0.6rem;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.botaoEditar {
+    background: var(--surface-2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.botaoEditar:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    cursor: pointer;
+}
+
+.botaoExcluir {
+    background: var(--surface-2);
+    border: 1px solid var(--neg);
+    color: var(--neg);
+}
+
+.botaoExcluir:hover:not(:disabled) {
+    background: var(--neg);
+    color: var(--accent-contrast);
+    cursor: pointer;
+}
+
+.botaoEditar:disabled,
+.botaoExcluir:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.acoes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 18rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.botaoPrincipal {
+    width: 100%;
+    text-align: center;
+    background: var(--accent);
+    padding: 0.75rem 1.25rem;
+    border-radius: 2.5rem;
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    color: var(--accent-contrast);
+    font-family: var(--font-body);
+}
+
+.botaoPrincipal:hover {
+    background: var(--accent-hover);
+    cursor: pointer;
+}
+
+.botaoRecorrentes {
+    /* width: 80%; */
+    margin-top: 0.5rem;
+    text-align: center;
+    background: var(--surface-2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.6rem 2rem;
+    border-radius: 2.5rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+}
+
+.botaoRecorrentes:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    cursor: pointer;
+}
+
+.botaoSecundario {
+    width: 100%;
+    text-align: center;
+    background: var(--surface-2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.6rem 1.25rem;
+    border-radius: 2.5rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+}
+
+.botaoSecundario:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    cursor: pointer;
+}
+
+.botaoSecundario:disabled {
+    opacity: 0.6;
+    cursor: default;
+}

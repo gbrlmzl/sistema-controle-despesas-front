@@ -1,0 +1,372 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
+}
+
+.cabecalho h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--ink);
+}
+
+.subtitulo {
+    margin: 0.3rem 0 0;
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+
+/* ============================================================
+   ABAS
+   ============================================================ */
+.abas {
+    display: inline-flex;
+    gap: 0.15rem;
+    padding: 0.25rem;
+    margin-bottom: 0.85rem;
+    border-radius: var(--r-full);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+}
+
+.aba,
+.abaAtiva {
+    padding: 0.45rem 1rem;
+    border-radius: var(--r-full);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+}
+
+.aba {
+    color: var(--ink-2);
+}
+
+.aba:hover {
+    color: var(--ink);
+}
+
+.abaAtiva {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 500;
+}
+
+.seletorLinha {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+}
+
+/* ============================================================
+   TOTAL
+   ============================================================ */
+.totalGeral {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.4rem 1.25rem;
+    border-radius: var(--r-xl);
+    background: linear-gradient(150deg, var(--surface-2), var(--surface) 60%);
+    border: 1px solid var(--border-strong);
+}
+
+.totalGeral::after {
+    content: '';
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(79, 142, 247, 0.2), transparent 62%);
+    pointer-events: none;
+}
+
+.totalGeral > * {
+    position: relative;
+    z-index: 1;
+}
+
+.totalRotulo {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.totalValor {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+}
+
+.totalDetalhe {
+    font-size: 0.78rem;
+    color: var(--ink-2);
+}
+
+.listaVazia {
+    margin-top: 1.5rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--ink-3);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+}
+
+/* ============================================================
+   SEÇÕES
+   ============================================================ */
+.secao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 0.85rem;
+    padding: 1.25rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.secao h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.listaCategorias {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.categoria {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.categoriaTopo {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.categoriaNome {
+    font-size: 0.88rem;
+    color: var(--ink);
+}
+
+.categoriaValor {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.barraFundo {
+    width: 100%;
+    height: 0.35rem;
+    border-radius: var(--r-full);
+    background: var(--surface-3);
+    overflow: hidden;
+}
+
+.barraPreenchida {
+    height: 100%;
+    border-radius: var(--r-full);
+    background: var(--accent);
+}
+
+.categoriaRodape {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--ink-3);
+}
+
+.desvioAlto,
+.variacaoAlta {
+    color: var(--neg);
+    font-weight: 500;
+}
+
+.desvioBaixo,
+.variacaoBaixa {
+    color: var(--pos);
+    font-weight: 500;
+}
+
+.semComparacao {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+}
+
+.listaComparativo {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    font-size: 0.85rem;
+}
+
+.listaComparativo li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--border);
+    color: var(--ink);
+}
+
+.listaComparativo li:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+/* ============================================================
+   RATEIO
+   ============================================================ */
+.cota {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+
+.listaRateio {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.participante {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.participante:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.participanteInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.participanteNome {
+    font-size: 0.9rem;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.participanteGasto {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+}
+
+.recebe,
+.paga,
+.quitado {
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--r-full);
+    font-size: 0.78rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.recebe {
+    background: var(--pos-bg);
+    color: var(--pos);
+}
+
+.paga {
+    background: var(--neg-bg);
+    color: var(--neg);
+}
+
+.quitado {
+    background: var(--surface-2);
+    color: var(--ink-3);
+}
+
+/* ============================================================
+   AÇÕES
+   ============================================================ */
+.acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+    margin: 1.25rem 0 0.5rem;
+}
+
+.botaoSecundario {
+    flex: 1;
+    min-width: 10rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    text-align: center;
+}
+
+.botaoSecundario:hover:not(:disabled) {
+    border-color: var(--ink-3);
+}
+
+.botaoSecundario:disabled {
+    color: var(--ink-3);
+    border-color: var(--border);
+}
+
+@media (min-width: 900px) {
+    .cabecalho h1 {
+        font-size: 1.75rem;
+    }
+
+    .totalValor {
+        font-size: 2.4rem;
+    }
+
+    .acoes {
+        justify-content: flex-start;
+    }
+
+    .botaoSecundario {
+        flex: 0 0 auto;
+    }
+}

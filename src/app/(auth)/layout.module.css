@@ -1,0 +1,200 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+/* ============================================================
+   PAINEL DE APRESENTAÇÃO — só aparece no desktop
+   ============================================================ */
+.pitch {
+    display: none;
+}
+
+.pitchMarca {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink);
+}
+
+.pitchIcone {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: linear-gradient(140deg, var(--accent), #8B5CF6);
+    color: #fff;
+    font-size: 0.85rem;
+}
+
+.pitchMeio {
+    position: relative;
+    z-index: 1;
+}
+
+.pitchMeio h2 {
+    margin: 0 0 0.9rem;
+    font-size: 1.9rem;
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+
+.pitchMeio p {
+    margin: 0;
+    max-width: 36ch;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--ink-2);
+}
+
+/* Mini extrato: mostra o resultado do produto em vez de descrevê-lo */
+.previa {
+    position: relative;
+    z-index: 1;
+    padding: 1.1rem;
+    border-radius: var(--r-lg);
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+}
+
+.previaRotulo {
+    display: block;
+    margin-bottom: 0.85rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.previaLista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.previaLista li {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.previaAvatar {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    color: #06101F;
+    font-size: 0.68rem;
+    font-weight: 500;
+}
+
+.previaNome {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--ink);
+}
+
+.previaRecebe,
+.previaPaga {
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--r-full);
+    font-size: 0.74rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.previaRecebe {
+    background: var(--pos-bg);
+    color: var(--pos);
+}
+
+.previaPaga {
+    background: var(--neg-bg);
+    color: var(--neg);
+}
+
+/* ============================================================
+   FORMULÁRIO
+   ============================================================ */
+.formulario {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.25rem 2.5rem;
+    overflow-y: auto;
+}
+
+/* No mobile o painel de apresentação some, então a marca precisa reaparecer aqui */
+.marcaMobile {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink);
+}
+
+.marcaMobile .pitchIcone {
+    width: 30px;
+    height: 30px;
+}
+
+.formularioInterno {
+    width: 100%;
+    max-width: 24rem;
+    margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+    .pitch {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 45%;
+        padding: 2.9rem;
+        overflow: hidden;
+        background: linear-gradient(160deg, var(--surface-2), var(--bg) 65%);
+        border-right: 1px solid var(--border);
+    }
+
+    /* Halo difuso no canto: dá profundidade sem carregar imagem */
+    .pitch::after {
+        content: '';
+        position: absolute;
+        bottom: -140px;
+        left: -100px;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 62%);
+        pointer-events: none;
+    }
+
+    .pitchMeio h2 {
+        font-size: 2.15rem;
+    }
+
+    .formulario {
+        justify-content: center;
+        padding: 2.9rem 3.4rem;
+    }
+
+    .marcaMobile {
+        display: none;
+    }
+}

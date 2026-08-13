@@ -14,6 +14,19 @@ export function rotuloCategoria(valor: ExpenseCategory): string {
     return CATEGORIAS.find(categoria => categoria.value === valor)?.label ?? valor;
 }
 
+//A cor acompanha a posição da categoria em CATEGORIAS, que é a mesma ordem das
+//variáveis --cat-1..5 em globals.css.
+export function corCategoria(valor: ExpenseCategory): string {
+    const indice = CATEGORIAS.findIndex(categoria => categoria.value === valor);
+    return `var(--cat-${indice === -1 ? 5 : indice + 1})`;
+}
+
+//Mesma cor, na variante translúcida usada como fundo de selo/ícone.
+export function corCategoriaFundo(valor: ExpenseCategory): string {
+    const indice = CATEGORIAS.findIndex(categoria => categoria.value === valor);
+    return `var(--cat-${indice === -1 ? 5 : indice + 1}-bg)`;
+}
+
 const MESES = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",

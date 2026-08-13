@@ -1,0 +1,104 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+}
+
+.identidade h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.tituloLinha {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.botaoVoltar {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    color: var(--ink-2);
+}
+
+.botaoVoltar:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.codigo {
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+}
+
+.criador {
+    font-size: 0.78rem;
+    color: var(--ink-3);
+}
+
+.seloArquivada {
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--r-full);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber-ink);
+    font-size: 0.68rem;
+}
+
+.botaoEngrenagem {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink-2);
+}
+
+.botaoEngrenagem:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
+}
+
+.mensagemNaoEncontrada {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--ink-3);
+}
+
+@media (min-width: 900px) {
+    .identidade h1 {
+        font-size: 1.75rem;
+    }
+}

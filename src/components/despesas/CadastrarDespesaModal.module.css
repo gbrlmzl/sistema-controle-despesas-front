@@ -1,0 +1,217 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 7, 15, 0.72);
+    z-index: 30;
+    padding: 1rem;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 26rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.25rem 1.25rem 1.5rem;
+    border-radius: var(--r-xl);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--ink);
+    font-family: var(--font-body);
+}
+
+.cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.cabecalho h3 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.botaoFechar {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: var(--ink-2);
+}
+
+.botaoFechar:hover {
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.competencia {
+    margin: 0.35rem 0 0;
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+
+.errorMessage {
+    background-color: var(--neg-bg);
+    border: 1px solid rgba(251, 113, 133, 0.25);
+    color: var(--neg);
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 0.9rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   FORMULÁRIO
+   ============================================================ */
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.rotulo {
+    display: block;
+    margin-bottom: 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* ---------- valor, em destaque ---------- */
+.valorStage {
+    text-align: center;
+    padding: 0.25rem 0 1.1rem;
+}
+
+.valorStage .rotulo {
+    text-align: center;
+}
+
+.valorInputLinha {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.35rem;
+    max-width: 16rem;
+    margin: 0 auto;
+}
+
+.valorMoeda {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--ink-3);
+}
+
+.valorInput {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 2.6rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-align: center;
+}
+
+.valorInput:focus {
+    outline: none;
+}
+
+.valorInput::placeholder {
+    color: var(--ink-3);
+}
+
+/* ---------- descrição + sugestões ---------- */
+.campo {
+    width: 100%;
+    margin-bottom: 1.1rem;
+}
+
+.campo input[type="text"] {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--r-md);
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--ink);
+}
+
+.sugestoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+}
+
+/* No desktop o fluxo é só teclado (Tab), então os atalhos de sugestão somem: eles
+   só valem a pena quando dá pra tocar direto no nome, como no mobile. */
+@media (min-width: 900px) {
+    .sugestoes {
+        display: none;
+    }
+}
+
+.botaoSugestao {
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--r-full);
+    border: 1px dashed var(--border-strong);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--ink-2);
+}
+
+.botaoSugestao:hover {
+    border-style: solid;
+    border-color: var(--accent);
+    color: var(--accent);
+    cursor: pointer;
+}
+
+/* ---------- categoria ---------- */
+/* Grade mobile, dropdown desktop e todo o comportamento de teclado vêm do
+   SeletorCategoria (compartilhado com DespesasRecorrentes); aqui só o ritmo
+   vertical em relação aos campos vizinhos, que cada formulário decide sozinho. */
+.categoriaSeletor {
+    margin-bottom: 1.25rem;
+}
+
+/* ---------- envio ---------- */
+.botaoSubmit {
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--r-md);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.botaoSubmit:hover:not(:disabled) {
+    background: var(--accent-hover);
+    cursor: pointer;
+}
+
+.botaoSubmit:disabled {
+    background: var(--surface-3);
+    color: var(--ink-3);
+    cursor: not-allowed;
+}

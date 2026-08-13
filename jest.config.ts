@@ -21,6 +21,20 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   testEnvironment: "jsdom",
+
+  // Denominador único e honesto: sempre todo o src/, não só o que os testes
+  // atuais importam. Exclui apenas o que estruturalmente não compensa testar
+  // via Jest (composição de rota, tipos, e o que já está marcado para E2E
+  // em docs/backlog-e-casos-de-teste.md).
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}",
+    "!src/**/page.tsx",
+    "!src/**/layout.tsx",
+    "!src/types/**",
+    "!src/**/*.d.ts",
+    "!src/proxy.ts",
+    "!src/utils/resumoImagem.ts",
+  ],
 };
 
 // createJestConfig é exportado dessa forma para garantir que next/jest possa
