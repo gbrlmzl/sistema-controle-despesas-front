@@ -1,30 +1,12 @@
 describe('deveria criar uma residência', () => {
-  it('deveria fazer login e criar uma residência', () => {
+  it('deveria criar uma residência', () => {
     // Sufixo curto para o nome da residência ser único a cada execução.
     const identificadorUnico = Date.now().toString().slice(-8);
 
-    // Login
-    cy.visit('/login');
-
-    cy.get("input[name='username']").type('cy_84438271');
-    cy.get("input[name='password']").type('Senha123!');
-
-    // Os campos são inputs controlados pelo React (LoginForm.tsx). Se a hidratação
-    // ainda não tiver terminado quando o usuário foi digitado, o primeiro
-    // re-render disparado pelo campo de senha reconcilia o campo de usuário de
-    // volta ao estado real (vazio), apagando o texto. Quando isso acontece a
-    // hidratação já terminou, então basta preencher de novo.
-    cy.get("input[name='username']").then(($input) => {
-      if ($input.val() !== 'cy_84438271') {
-        cy.wrap($input).clear().type('cy_84438271');
-      }
-    });
-
-    cy.get("input[name='username']").should('have.value', 'cy_84438271');
-    cy.get("input[name='password']").should('have.value', 'Senha123!');
-    cy.get("button[type='submit']").should('be.enabled').click();
-
-    cy.location('pathname').should('eq', '/');
+    // Cadastra o próprio usuário em vez de logar com um fixo: o banco do e2e
+    // sobe vazio (só migrations, sem seed), então depender de um usuário
+    // pré-existente faria este spec falhar sempre no CI.
+    cy.cadastrarUsuario();
 
     // Vai para a lista de residências
     cy.get("a[href='/dashboard/residences']").first().click();
