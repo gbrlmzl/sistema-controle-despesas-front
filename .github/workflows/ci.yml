@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-test:
-    name: Lint e testes
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +29,19 @@ jobs:
 
       - run: npm run lint
 
+  test:
+    name: Testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
       # NODE_ENV=test é setado pelo próprio Jest, então .env.test (versionado,
       # sem segredo) já é carregado automaticamente pelo next/jest — sem
       # precisar declarar API_URL aqui.
@@ -36,7 +49,7 @@ jobs:
 
   build:
     name: Build de produção
-    needs: lint-test
+    needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
