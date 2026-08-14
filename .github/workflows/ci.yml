@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - "dev/**"
   pull_request:
     branches:
       - main
@@ -15,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-test-build:
-    name: Lint, testes e build
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,22 +29,48 @@ jobs:
 
       - run: npm run lint
 
+  test:
+    name: Testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
       # NODE_ENV=test é setado pelo próprio Jest, então .env.test (versionado,
       # sem segredo) já é carregado automaticamente pelo next/jest — sem
       # precisar declarar API_URL aqui.
       - run: npm run test:coverage -- --ci
 
+  build:
+    name: Build de produção
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
       # next.config.ts exige API_URL na hora de resolver o rewrite /api/*;
       # fora do NODE_ENV=test o Next não carrega .env.test/.env.local
       # sozinho, então precisa vir do ambiente do step.
-      - name: Build de produção
-        run: npm run build
+      - run: npm run build
         env:
           API_URL: http://localhost:8080
 
   docker-publish:
     name: Build e publica imagem Docker (GHCR)
-    needs: lint-test-build
+    needs: build
     # Só publica a partir de push direto no branch principal — PRs só
     # validam build/lint/test acima.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -71,6 +96,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha
+            type=sha,format=long
 
       - uses: docker/build-push-action@v6
         with:
@@ -85,3 +111,23 @@ jobs:
             API_URL=${{ vars.API_URL || 'http://localhost:8080' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  dispatch:
+    name: Disparar e2e no repo de deploy
+    needs: docker-publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      # Pede pro repo orquestrador (sistema-controle-despesas-deploy) rodar o
+      # e2e contra este SHA exato — se passar, ele re-taggeia esta imagem
+      # (tag "sha-<sha completo>", gerada no job anterior) como :stable.
+      # Isolado num job próprio: se o curl falhar (ex.: secret ainda não
+      # configurado), só este job fica vermelho — a imagem já publicada em
+      # "docker-publish" continua contando como sucesso.
+      - name: Disparar e2e
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_DISPATCH_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/gbrlmzl/sistema-controle-despesas-deploy/dispatches \
+            -d '{"event_type":"front-published","client_payload":{"sha":"${{ github.sha }}","image_tag":"sha-${{ github.sha }}"}}'
