@@ -96,6 +96,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha
+            type=sha,format=long
 
       - uses: docker/build-push-action@v6
         with:
@@ -110,3 +111,23 @@ jobs:
             API_URL=${{ vars.API_URL || 'http://localhost:8080' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  dispatch:
+    name: Disparar e2e no repo de deploy
+    needs: docker-publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      # Pede pro repo orquestrador (sistema-controle-despesas-deploy) rodar o
+      # e2e contra este SHA exato — se passar, ele re-taggeia esta imagem
+      # (tag "sha-<sha completo>", gerada no job anterior) como :stable.
+      # Isolado num job próprio: se o curl falhar (ex.: secret ainda não
+      # configurado), só este job fica vermelho — a imagem já publicada em
+      # "docker-publish" continua contando como sucesso.
+      - name: Disparar e2e
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_DISPATCH_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/gbrlmzl/sistema-controle-despesas-deploy/dispatches \
+            -d '{"event_type":"front-published","client_payload":{"sha":"${{ github.sha }}","image_tag":"sha-${{ github.sha }}"}}'
