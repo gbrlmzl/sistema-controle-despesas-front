@@ -7,8 +7,12 @@ Dockerfile
 Dockerfile.dev
 docker-compose.yml
 .dockerignore
+# Nenhum arquivo de ambiente entra na imagem: a configuração chega por
+# --build-arg (API_URL) no build e por variável de ambiente em runtime.
+# O padrão glob cobre qualquer .env.<algo> criado no futuro (.env.staging,
+# .env.production...) sem precisar listar nome por nome.
 .env
-.env.local
+.env.*
 README.md
 coverage
 cypress
