@@ -10,7 +10,7 @@ export interface UsuarioTeste {
 // em milissegundos próximos (Date.now() sozinho não é suficiente nesse caso).
 let contadorUsuario = 0;
 
-// Cadastra um usuário novo com dados únicos (via UI, /cadastro) e devolve as
+// Cadastra um usuário novo com dados únicos (via UI, /register) e devolve as
 // credenciais. O /auth/register já estabelece sessão (mesma resposta do
 // login), então quem só precisa de "um usuário logado" não precisa chamar
 // cy.login em seguida — as credenciais retornadas servem para logins
@@ -23,12 +23,12 @@ Cypress.Commands.add('cadastrarUsuario', () => {
   const password = 'Senha123!';
   const name = 'Teste Cypress';
 
-  // Quem já está logado é redirecionado para fora de /cadastro (ver
+  // Quem já está logado é redirecionado para fora de /register (ver
   // src/proxy.ts) — limpa a sessão antes, para funcionar mesmo chamado depois
   // de outro cy.cadastrarUsuario()/cy.login() no mesmo teste (ex: fluxos com
   // dois usuários).
   cy.clearCookies();
-  cy.visit('/cadastro');
+  cy.visit('/register');
   cy.get("input[name='name']").type(name);
   cy.get("input[name='username']").type(username);
   cy.get("input[name='email']").type(`${username}@example.com`);

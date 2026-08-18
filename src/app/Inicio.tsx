@@ -21,7 +21,7 @@ export default function Inicio() {
                 ) : (
                     <div className={styles.cabecalhoAcoes}>
                         <Link href="/login" className={styles.botaoTexto}>Entrar</Link>
-                        <Link href="/cadastro" className={styles.botaoPrimario}>Criar conta</Link>
+                        <Link href="/register" className={styles.botaoPrimario}>Criar conta</Link>
                     </div>
                 )}
             </header>
@@ -40,7 +40,7 @@ export default function Inicio() {
                             <Link href="/dashboard/residences" className={styles.botaoPrimario}>Começar a utilizar</Link>
                         ) : (
                             <>
-                                <Link href="/cadastro" className={styles.botaoPrimario}>Criar conta grátis</Link>
+                                <Link href="/register" className={styles.botaoPrimario}>Criar conta grátis</Link>
                                 <Link href="/login" className={styles.botaoSecundario}>Já tenho conta</Link>
                             </>
                         )}

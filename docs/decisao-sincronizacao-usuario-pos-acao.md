@@ -142,9 +142,9 @@ vez de substituir (`null` explícito continua limpando tudo, para o logout).
 - **`src/components/providers/UserProvider.tsx`** — `useState` inicializado pela prop SSR;
   novo `useSetCurrentUser()` expõe um setter que faz merge (`{...prev, ...patch}`) e só
   zera de fato quando `patch === null`.
-- **`src/app/(auth)/cadastro/registerAction.ts`** — tipado como `ActionState<AuthUser>`;
+- **`src/app/(auth)/register/registerAction.ts`** — tipado como `ActionState<AuthUser>`;
   captura `{ user }` da resposta de `/auth/register` e devolve em `data`.
-- **`src/app/(auth)/cadastro/RegisterForm.tsx`** — `setUser(state.data)` seguido de
+- **`src/app/(auth)/register/RegisterForm.tsx`** — `setUser(state.data)` seguido de
   `router.push("/")`, sem `startTransition` (deixou de ser necessário: não há mais duas
   operações concorrentes).
 - **`src/hooks/useLogin.ts`** — mesmo padrão, capturando `{ user }` de `/auth/login`.

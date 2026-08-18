@@ -47,7 +47,7 @@ Ordem sugerida (da mais rica em branches para a mais simples):
 - [x] `src/app/dashboard/residences/responderConviteAction.ts`
 - [x] `src/app/dashboard/residences/new/criarResidenciaAction.ts`
 - [x] `src/app/dashboard/residences/join/entrarResidenciaAction.ts` — já parcialmente exercitado indiretamente via `EntrarResidenciaForm.test.tsx`, mas sem teste unitário próprio
-- [x] `src/app/(auth)/cadastro/registerAction.ts` — mesmo caso: mockado em `RegisterForm.test.tsx`, sem teste unitário próprio
+- [x] `src/app/(auth)/register/registerAction.ts` — mesmo caso: mockado em `RegisterForm.test.tsx`, sem teste unitário próprio
 - [x] `src/app/profile/settings/password/changePasswordAction.ts`
 
 **Etapa 1 concluída:** as 21 Server Actions estão em 100% statements/funcs/lines (branches ~100%, alguns arquivos com pequenas exceções não testáveis). 38 suites, 223 testes, todos passando.

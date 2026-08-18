@@ -32,6 +32,7 @@ Mesma organização por épico do [`README`](../README.md#-funcionalidades). A c
 | Cadastro (nome, username, e-mail, senha) | 🧩 `RegisterForm.test.tsx` + 🧪 `usuarios.test.ts` |
 | Login por `username` | 🧩 `LoginForm.test.tsx` |
 | Login com Google (OAuth) | ⬜ |
+| Recuperação de senha (esqueci minha senha) | 🧩 `EsqueciSenhaForm.test.tsx` + `RedefinirSenhaForm.test.tsx` + 🧪 `usuarios.test.ts` (`esqueciSenhaSchema`, `redefinirSenhaSchema`) |
 | Identificador público (`username`) | 🧪 `usuarios.test.ts` (`usernameSchema`) |
 | Perfil (nome, avatar) | ⬜ |
 | Alterar senha | ⬜ (mesmo padrão de `RegisterForm`, ainda não replicado) |
@@ -125,10 +126,10 @@ Testam **regras de negócio isoladas**: entrada → saída, sem renderizar UI. F
 | [`src/lib/avatars.test.ts`](../src/lib/avatars.test.ts) | `isValidAvatar` | Todos os avatares da whitelist são aceitos; caminho fora da lista (incluindo tentativa de path traversal / URL externa) é rejeitado |
 | [`src/lib/apiError.test.ts`](../src/lib/apiError.test.ts) | `ApiError`, `parseApiResponse` | `ApiError` guarda `status`/`message`/`name` corretamente; `parseApiResponse` trata status `204` sem ler corpo, devolve o JSON em sucesso, e lança `ApiError` com a mensagem da API (ou mensagem padrão quando o corpo não tem `message` ou não é JSON válido) |
 | [`src/schemas/despesas.test.ts`](../src/schemas/despesas.test.ts) | `despesaSchema` (Zod) | Aceita despesa válida; rejeita nome fora de 2–60 caracteres, valor não inteiro ou ≤ 0, categoria fora do enum |
-| [`src/schemas/usuarios.test.ts`](../src/schemas/usuarios.test.ts) | `usernameSchema`, `registerSchema` (Zod) | Regras do username (tamanho, `a-z0-9_`); cadastro completo, incluindo e-mail inválido, senha fraca (sem dígito/símbolo) e confirmação de senha divergente (com verificação do `path` do erro) |
+| [`src/schemas/usuarios.test.ts`](../src/schemas/usuarios.test.ts) | `usernameSchema`, `registerSchema`, `esqueciSenhaSchema`, `redefinirSenhaSchema` (Zod) | Regras do username (tamanho, `a-z0-9_`); cadastro completo, incluindo e-mail inválido, senha fraca (sem dígito/símbolo) e confirmação de senha divergente (com verificação do `path` do erro); email válido/inválido em `esqueciSenhaSchema`; token vazio, senha fraca e confirmação divergente em `redefinirSenhaSchema` |
 | [`src/schemas/residencias.test.ts`](../src/schemas/residencias.test.ts) | `residenceNameSchema`, `criarResidenciaSchema`, `residenceCodeSchema`, `entrarResidenciaSchema` (Zod) | Regras do nome da residência (tamanho, caracteres permitidos, trim) e do código (exatamente 6 caracteres `A-Z0-9`) |
 
-**Total:** 10 arquivos, 69 casos de teste.
+**Total:** 10 arquivos, 75 casos de teste.
 
 ---
 
@@ -139,12 +140,14 @@ Testam **comportamento visível ao usuário**: o que aparece na tela e como o co
 | Arquivo | Componente | O que é verificado |
 |---|---|---|
 | [`src/components/ui/Snackbar.test.tsx`](../src/components/ui/Snackbar.test.tsx) | `Snackbar` | Não renderiza nada fechado; exibe a mensagem aberto; chama `onClose` ao clicar em fechar; permanece montado durante o fade-out e desmonta 300ms depois (fake timers); cor de fundo muda conforme o `type` |
-| [`src/app/(auth)/cadastro/RegisterForm.test.tsx`](<../src/app/(auth)/cadastro/RegisterForm.test.tsx>) | `RegisterForm` | Botão de envio desabilitado até o formulário ficar válido; normalização do username ao digitar; alternância de visibilidade da senha (afeta senha e confirmação); checklist de condições de senha atualiza em tempo real; submissão chama a action com os dados corretos e redireciona em caso de sucesso; mensagem de erro exibida em caso de falha |
-| [`src/app/(auth)/login/LoginForm.test.tsx`](<../src/app/(auth)/login/LoginForm.test.tsx>) | `LoginForm` (+ hook `useLogin`) | Botão de envio desabilitado até username e senha preenchidos; alternância de visibilidade da senha; chamada à API com o corpo correto e redirecionamento em caso de sucesso; mensagem de erro da API exibida em caso de falha |
+| [`src/app/(auth)/register/RegisterForm.test.tsx`](<../src/app/(auth)/register/RegisterForm.test.tsx>) | `RegisterForm` | Botão de envio desabilitado até o formulário ficar válido; normalização do username ao digitar; alternância de visibilidade da senha (afeta senha e confirmação); checklist de condições de senha atualiza em tempo real; submissão chama a action com os dados corretos e redireciona em caso de sucesso; mensagem de erro exibida em caso de falha |
+| [`src/app/(auth)/login/LoginForm.test.tsx`](<../src/app/(auth)/login/LoginForm.test.tsx>) | `LoginForm` (+ hook `useLogin`) | Botão de envio desabilitado até username e senha preenchidos; alternância de visibilidade da senha; chamada à API com o corpo correto e redirecionamento em caso de sucesso; mensagem de erro da API exibida em caso de falha; link para `/forgot-password` |
 | [`src/app/dashboard/residences/join/EntrarResidenciaForm.test.tsx`](<../src/app/dashboard/residences/join/EntrarResidenciaForm.test.tsx>) | `EntrarResidenciaForm` | Normalização do código digitado (maiúsculas, filtro de caracteres inválidos, limite de 6); botão de envio só habilita com 6 caracteres; mensagens de sucesso e de erro devolvidas pela action |
 | [`src/components/despesas/CadastrarDespesaModal.test.tsx`](../src/components/despesas/CadastrarDespesaModal.test.tsx) | `CadastrarDespesaModal` | Não renderiza nada fechado; exibe a competência aberta quando aberto; chama `onFechar` ao clicar em fechar; botão de envio exige nome, valor **e** categoria; preenche a descrição a partir de uma sugestão; em sucesso, limpa os campos e mostra a confirmação; em erro, mantém os campos preenchidos e mostra a mensagem |
+| [`src/app/(auth)/forgot-password/EsqueciSenhaForm.test.tsx`](<../src/app/(auth)/forgot-password/EsqueciSenhaForm.test.tsx>) | `EsqueciSenhaForm` (+ hook `useEsqueciSenha`) | Botão de envio desabilitado com o campo vazio; email inválido não chama a API; mensagem de sucesso exibida é a **devolvida pelo mock** (prova que não está hardcoded — F-08); mensagem de erro em `429`; botão "Reenviar" nasce desabilitado logo após o envio |
+| [`src/app/(auth)/change-password/RedefinirSenhaForm.test.tsx`](<../src/app/(auth)/change-password/RedefinirSenhaForm.test.tsx>) | `RedefinirSenhaForm` (+ hook `useRedefinirSenha`) | Sem `?token=`, vai direto para o estado inválido sem chamar a API (F-07); token recusado pelo `/verify` mostra o estado inválido sem formulário; token válido mostra o formulário com as condições de senha reagindo em tempo real; submissão bem-sucedida chama `/auth/reset-password` com o token e as duas senhas e **chama `logout()`** (prova do F-09); um `400` na submissão volta ao estado inválido; `router.replace` limpa o token da URL (prova do F-06) |
 
-**Total:** 5 arquivos, 28 casos de teste.
+**Total:** 7 arquivos, 42 casos de teste.
 
 ---
 
@@ -173,7 +176,7 @@ Antes de escrever os testes de formulário, foi verificado no código-fonte do N
 Em todo teste de componente, a fronteira mockada é sempre **rede ou navegação** — nunca o componente em si:
 
 - **Server Actions** (`registerAction`, `entrarResidenciaAction`, `cadastrarDespesaAction`) são substituídas por `jest.fn()` com retorno controlado por teste (`mockResolvedValue`), para testar a reação da UI a sucesso/erro sem depender de uma API real.
-- **`apiFetchClient`** é mockado em `LoginForm.test.tsx`, porque `useLogin` chama a API diretamente (não é uma Server Action) — mesmo princípio, fronteira diferente.
+- **`apiFetchClient`** é mockado em `LoginForm.test.tsx`, `EsqueciSenhaForm.test.tsx` e `RedefinirSenhaForm.test.tsx`, porque os hooks correspondentes (`useLogin`, `useEsqueciSenha`, `useRedefinirSenha`) chamam a API diretamente (não são Server Actions) — mesmo princípio, fronteira diferente. Em `RedefinirSenhaForm.test.tsx`, `useLogout` também é mockado, pra poder verificar que ele é chamado após o sucesso (F-09) sem depender do `useRouter`/`UserProvider` reais.
 - **`useRouter`** (`next/navigation`) é mockado para capturar `push`/`refresh` sem navegação real.
 
 ### Convenção de local dos arquivos
@@ -194,3 +197,4 @@ Fora do escopo desta rodada, por decisão consciente:
 - **`resumoImagem.ts`** (`compartilharResumoDaResidencia`) e `csv.ts#baixarCsv` — dependem de `fetch`, `canvas` e manipulação de DOM (`URL.createObjectURL`, download de arquivo); também candidatos a E2E.
 - **`CriarResidenciaForm`** e **`ChangePasswordForm`** — estruturalmente redundantes com `EntrarResidenciaForm` e `RegisterForm`, respectivamente, já cobertos. Podem ser replicados sob demanda.
 - **Perfil, notificações, relatórios, gráficos** — ver marcações ⬜ no [backlog](#-backlog-de-funcionalidades).
+- **Caminho feliz de ponta a ponta da recuperação de senha** (pedir o link, abrir o email, clicar e redefinir a senha) — decisão consciente (F-10 de `docs/plano-recuperacao-de-senha-frontend.md`), não esquecimento. O Cypress não lê email, e montar essa ponte (caixa de teste, IMAP, serviço de captura) custaria muito mais do que entrega aqui. O `cypress/e2e/recuperar-senha.cy.ts` cobre só o que dá pra testar sem isso: navegação a partir do login, mensagem genérica de confirmação (prova visível do D-03/anti-enumeração) e tela de link inválido. O caminho feliz completo é coberto pela suíte de **integração da API** (Fase 5 do plano da API), que tem o token em mãos porque injeta um `sendEmail` espião.

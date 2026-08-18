@@ -7,8 +7,13 @@ if (!API_URL) {
     throw new Error("Variável de ambiente API_URL não configurada.");
 }
 
-//Rotas que só fazem sentido pra quem ainda não está logado
-const ROTAS_SOMENTE_DESLOGADO = ["/login", "/cadastro"];
+//Rotas que só fazem sentido pra quem ainda não está logado. "/change-password"
+//NÃO entra aqui de propósito (F-03 do plano de recuperação de senha): o link do
+//email precisa funcionar mesmo com sessão ativa — é o caso comum de quem está
+//logado no computador (sessão de 7 dias) mas esqueceu a senha do celular. Se essa
+//rota entrasse "por consistência" com /login e /register, o proxy chutaria esse
+//usuário pra "/" antes de ele conseguir redefinir a senha.
+const ROTAS_SOMENTE_DESLOGADO = ["/login", "/register", "/forgot-password"];
 
 //Margem de segurança: renova um pouco antes do exp real, pra absorver o tempo entre
 //essa checagem e a chamada que a página vai fazer de fato.
@@ -104,5 +109,5 @@ export default async function proxy(req: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/profile/:path*", "/login", "/cadastro"],
+    matcher: ["/dashboard/:path*", "/profile/:path*", "/login", "/register", "/forgot-password"],
 };

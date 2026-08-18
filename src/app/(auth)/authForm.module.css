@@ -187,3 +187,52 @@
     color: var(--accent);
     font-weight: 500;
 }
+
+/* Link discreto de "Esqueci minha senha" no LoginForm — alinhado à direita, perto
+   do campo de senha, que é onde o usuário está olhando quando ela falha. */
+.esqueciSenha {
+    display: block;
+    margin: 0.5rem 0 0;
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+
+.esqueciSenha:hover {
+    color: var(--accent);
+}
+
+/* Espelha .erro, com a paleta positiva no lugar da negativa. */
+.sucesso {
+    display: flex;
+    padding: 0.7rem 0.85rem;
+    margin-bottom: 1rem;
+    border-radius: var(--r-md);
+    background: var(--pos-bg);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    color: var(--pos);
+    font-size: 0.85rem;
+}
+
+/* Botão de ação secundária (ex.: "Reenviar" em EsqueciSenhaForm) — mesmo formato do
+   botaoEnviar, mas sem o peso visual do CTA principal. */
+.botaoSecundario {
+    width: 100%;
+    margin-top: 0.9rem;
+    padding: 0.7rem 1.25rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.botaoSecundario:hover:not(:disabled) {
+    border-color: var(--ink-3);
+}
+
+.botaoSecundario:disabled {
+    color: var(--ink-3);
+}

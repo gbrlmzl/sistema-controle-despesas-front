@@ -47,6 +47,8 @@ export default function LoginForm() {
                     </div>
                 </div>
 
+                <Link href="/forgot-password" className={styles.esqueciSenha}>Esqueci minha senha</Link>
+
                 <button type="submit" className={styles.botaoEnviar} disabled={isPending || !dadosPreenchidos}>
                     {isPending ? "Entrando..." : "Entrar"}
                 </button>
@@ -60,7 +62,7 @@ export default function LoginForm() {
             </a>
 
             <p className={styles.rodape}>
-                Ainda não tem conta? <Link href="/cadastro">Criar conta</Link>
+                Ainda não tem conta? <Link href="/register">Criar conta</Link>
             </p>
         </div>
     )
