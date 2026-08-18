@@ -1,4 +1,4 @@
-import { registerSchema, usernameSchema } from "./usuarios";
+import { esqueciSenhaSchema, redefinirSenhaSchema, registerSchema, usernameSchema } from "./usuarios";
 
 describe("usernameSchema", () => {
     it("aceita letras minúsculas, números e _", () => {
@@ -70,6 +70,55 @@ describe("registerSchema", () => {
         expect(resultado.success).toBe(false);
         if (!resultado.success) {
             expect(resultado.error.issues[0].path).toEqual(["confirmPassword"]);
+        }
+    });
+});
+
+describe("esqueciSenhaSchema", () => {
+    it("aceita um email válido", () => {
+        expect(esqueciSenhaSchema.safeParse({ email: "victor@example.com" }).success).toBe(true);
+    });
+
+    it("rejeita email inválido", () => {
+        expect(esqueciSenhaSchema.safeParse({ email: "não-é-email" }).success).toBe(false);
+    });
+});
+
+function redefinicaoValida() {
+    return {
+        token: "token-do-email",
+        newPassword: "senha123",
+        confirmNewPassword: "senha123",
+    };
+}
+
+describe("redefinirSenhaSchema", () => {
+    it("aceita uma redefinição válida", () => {
+        expect(redefinirSenhaSchema.safeParse(redefinicaoValida()).success).toBe(true);
+    });
+
+    it("rejeita token vazio", () => {
+        expect(redefinirSenhaSchema.safeParse({ ...redefinicaoValida(), token: "" }).success).toBe(false);
+    });
+
+    it("rejeita senha com menos de 8 caracteres", () => {
+        const resultado = redefinirSenhaSchema.safeParse({
+            ...redefinicaoValida(),
+            newPassword: "abc123",
+            confirmNewPassword: "abc123",
+        });
+        expect(resultado.success).toBe(false);
+    });
+
+    it("rejeita quando newPassword e confirmNewPassword não coincidem, apontando o campo confirmNewPassword", () => {
+        const resultado = redefinirSenhaSchema.safeParse({
+            ...redefinicaoValida(),
+            confirmNewPassword: "outrasenha1",
+        });
+
+        expect(resultado.success).toBe(false);
+        if (!resultado.success) {
+            expect(resultado.error.issues[0].path).toEqual(["confirmNewPassword"]);
         }
     });
 });

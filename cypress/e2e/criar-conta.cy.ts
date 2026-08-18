@@ -5,7 +5,7 @@ describe('deveria criar uma conta', () => {
     const identificadorUnico = Date.now().toString().slice(-8);
 
     cy.visit('');
-    cy.get("a[href='/cadastro']").first().click();
+    cy.get("a[href='/register']").first().click();
   
     cy.get("input[name='name']").type('Teste Cypress');
     cy.get("input[name='username']").type(`cy_${identificadorUnico}`);

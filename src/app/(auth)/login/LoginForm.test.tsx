@@ -84,6 +84,11 @@ describe("LoginForm", () => {
         expect(mockSetUser).toHaveBeenCalledWith(USUARIO_LOGADO);
     });
 
+    it("traz um link para /forgot-password", () => {
+        render(<LoginForm />);
+        expect(screen.getByRole("link", { name: "Esqueci minha senha" })).toHaveAttribute("href", "/forgot-password");
+    });
+
     it("exibe a mensagem de erro da API quando a autenticação falha", async () => {
         mockApiFetchClient.mockRejectedValue(new ApiError(401, "Usuário ou senha inválidos"));
         const user = userEvent.setup();

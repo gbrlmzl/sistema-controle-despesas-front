@@ -59,6 +59,7 @@ Organizadas pelos épicos do [documento de requisitos da V2.0](docs/release-v2.0
 |---|---|
 | **Cadastro e login** | Conta com nome, `username`, e-mail e senha. O **login é feito pelo `username`**, não pelo e-mail. |
 | **Login com Google** | OAuth via Google (opcional — a API funciona sem ele). Gera um `username` automático a partir do e-mail. |
+| **Recuperação de senha** | Link por email (`/forgot-password` → `/change-password`), sem abrir sessão ao final — o usuário faz login com a senha nova. Resposta sempre `200`, mesmo para email inexistente (anti-enumeração). |
 | **Identificador público (`username`)** | Campo único e público que permite convidar alguém sem expor o e-mail. |
 | **Perfil** | Edição do nome e escolha entre **20 avatares SVG**; conta Google traz a foto da conta. |
 | **Alterar senha** | Só para contas com senha local (contas só-Google não têm o que trocar). |
@@ -149,7 +150,7 @@ src/
 │   ├── page.tsx / Inicio.tsx       # Landing page
 │   ├── error.tsx / global-error.tsx
 │   └── (auth)/                     # Route group das telas de aplicação
-│       ├── login/  cadastro/       # Autenticação (Server Actions)
+│       ├── login/  register/       # Autenticação (Server Actions)
 │       ├── profile/                # Perfil, avatares e troca de senha
 │       └── app/
 │           ├── page.tsx            # Menu principal
@@ -195,7 +196,9 @@ Cada página é um **Server Component** que busca dados via `lib/*Api.ts` e dele
 |---|---|---|
 | `/` | Landing page | — |
 | `/login` | Login por `username` + senha | só deslogado |
-| `/cadastro` | Criação de conta | só deslogado |
+| `/register` | Criação de conta | só deslogado |
+| `/forgot-password` | Pede o link de redefinição de senha por email | só deslogado |
+| `/change-password` | Redefine a senha a partir do link do email | — (funciona com ou sem sessão, ver F-03 em `docs/plano-recuperacao-de-senha-frontend.md`) |
 | `/profile` | Perfil e galeria de avatares | ✅ |
 | `/profile/settings/password` | Troca de senha | ✅ |
 | `/app` | Menu principal | ✅ |
