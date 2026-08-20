@@ -81,6 +81,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Habilita a emulação necessária pro buildx cross-compilar arm64 neste
+      # runner amd64 (ubuntu-latest). Sem QEMU, "platforms: linux/arm64" abaixo
+      # falha — mesma peça usada na API (sistema-controle-despesas-api,
+      # commit 365de83).
+      - uses: docker/setup-qemu-action@v3
+
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
@@ -102,11 +108,20 @@ jobs:
         with:
           context: .
           push: true
+          # Só linux/arm64: o único destino de deploy é uma instância Graviton
+          # (t4g.small). Multi-arch (linux/amd64,linux/arm64) foi cogitado, mas
+          # custaria tempo extra de build via emulação QEMU sem uso real hoje —
+          # mesma escolha feita na API (sistema-controle-despesas-api, commit
+          # 365de83). Se o front um dia precisar rodar em x86, é só somar
+          # "linux/amd64" aqui.
+          platforms: linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Congela a API alvo dentro da imagem (ver comentário no Dockerfile).
           # Defina uma Repository Variable "API_URL" para apontar pra API real;
-          # sem ela, cai no placeholder do .env.example.
+          # sem ela, cai no placeholder do .env.example. Em produção (ECS,
+          # front e API na mesma task, network mode bridge) o valor correto é
+          # http://api:3001 — ver README, seção "Variáveis de ambiente".
           build-args: |
             API_URL=${{ vars.API_URL || 'http://localhost:8080' }}
           cache-from: type=gha
