@@ -32,28 +32,28 @@ ARG API_URL=http://localhost:8080
 ENV API_URL=$API_URL
 RUN npm run build
 
-# ---- prod-deps: só as dependências de produção, para a imagem final ----
-# `next` é dependency (não devDependency), então sobrevive ao --omit=dev e o
-# `next start` continua funcionando no runtime.
-FROM node:${NODE_VERSION} AS prod-deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
 # ---- runtime: imagem final ----
+# output: 'standalone' (next.config.ts) faz o `next build` já rastrear e copiar,
+# dentro de .next/standalone, só o server.js gerado e o subconjunto podado de
+# node_modules que o app realmente usa em runtime — dispensa o antigo estágio
+# prod-deps (um `npm ci --omit=dev` à parte) e derruba o payload da aplicação
+# de >1 GB (node_modules de produção inteiro) para ~47 MB (medido localmente:
+# standalone 43 MB + .next/static 2 MB + public 2 MB). A imagem final soma
+# ~390 MB porque a base node:24-bookworm-slim (glibc, ver ARG acima) já
+# contribui uns 250 MB sozinha — trocar a base está fora do escopo aqui.
 FROM node:${NODE_VERSION} AS runtime
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
-# --chown=node:node: os estágios anteriores rodam como root; sem isso o
-# processo (que roda como "node" logo abaixo) não teria permissão sobre os
-# arquivos, e o Next precisa escrever o cache de imagens/fetch em .next/cache.
-COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
-COPY --chown=node:node --from=build /app/.next ./.next
+# --chown=node:node: o estágio anterior roda como root; sem isso o processo
+# (que roda como "node" logo abaixo) não teria permissão sobre os arquivos, e
+# o Next precisa escrever o cache de imagens/fetch em .next/cache.
+COPY --chown=node:node --from=build /app/.next/standalone ./
+# O standalone NÃO traz .next/static nem public sozinho (só o server e o
+# node_modules podado) — sem essas duas cópias manuais a app sobe normalmente,
+# mas serve páginas sem CSS, sem JS de cliente e sem imagens.
+COPY --chown=node:node --from=build /app/.next/static ./.next/static
 COPY --chown=node:node --from=build /app/public ./public
-# next.config.ts é lido pelo `next start` no boot — sem ele, o rewrite /api/*
-# não é registrado e o proxy para a API simplesmente não existe.
-COPY --chown=node:node package.json next.config.ts ./
 
 USER node
 EXPOSE 3000
@@ -62,4 +62,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://localhost:'+(process.env.PORT||3000)).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["npm", "start"]
+# server.js é gerado pelo próprio Next dentro do standalone, com o config já
+# resolvido embutido (rewrites incluso) — substitui o "npm start" (next start),
+# que exigia o node_modules de produção completo para funcionar.
+CMD ["node", "server.js"]

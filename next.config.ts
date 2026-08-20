@@ -11,6 +11,12 @@ if (!API_URL) {
 //sessão (JWT/refreshToken) pertencerem ao domínio do front, não ao da API —
 //essencial pro proxy.ts (guarda de rota) conseguir enxergá-los.
 const nextConfig: NextConfig = {
+    // standalone: o Next rastreia só os arquivos e o subconjunto de node_modules
+    // realmente usados em runtime, em vez de exigir o node_modules de produção
+    // inteiro na imagem (>1 GB vira ~47 MB de payload da app — ver Dockerfile).
+    // Essencial pra caber na instância t4g.small (2 GB de RAM, divididos com o
+    // Postgres e a API, que rodam na mesma máquina).
+    output: "standalone",
     async rewrites() {
         return [
             {
