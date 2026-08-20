@@ -413,12 +413,14 @@ npm test
 
 São **dois processos** — a API precisa estar no ar para o front funcionar.
 
+> **Caminho mais curto:** o repositório da API tem `docker-compose.yml` próprio, que sobe o Postgres, aplica as migrations e serve a API de uma vez. Com ele no ar, pule direto para o passo 3. O passo a passo manual abaixo continua válido para quem quer rodar a API fora de container. Para subir o sistema **inteiro** (front + API + banco) num comando só, use o [`sistema-controle-despesas-deploy`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy).
+
 ### 1. Banco de dados
 
 Um PostgreSQL acessível. A forma mais rápida:
 
 ```bash
-docker run --name cronos-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=sistema_controle_despesas -p 5432:5432 -d postgres:16-alpine
+docker run --name cronos-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=sistema_controle_despesas -p 5432:5432 -d postgres:17-alpine
 ```
 
 ### 2. API
@@ -469,6 +471,16 @@ npm run dev                  # sobe em http://localhost:3000
 
 Definida em `.env.local` (desenvolvimento) e `.env.test` (testes, versionado por não conter segredo).
 
+**Em produção**, `API_URL` é resolvida **em build-time** (o Next grava o destino do rewrite em `routes-manifest.json`; trocar de API alvo exige rebuild — ver comentário em [`next.config.ts`](next.config.ts) e no [`Dockerfile`](Dockerfile)). O workflow [`ci.yml`](.github/workflows/ci.yml) passa essa variável como `--build-arg` a partir da **Repository Variable** `API_URL` do GitHub. No ECS, front e API rodam como containers da **mesma task** (`cronos-app`, network mode `bridge`) e se enxergam pelo nome do container — então essa variable deve valer:
+
+```
+API_URL=http://api:3001
+```
+
+Esse valor é uma constante da arquitetura (sempre o container `api` na mesma task), não algo que varia por ambiente. Sem a variable configurada, a imagem publicada cai no placeholder `http://localhost:8080`, que não aponta pra lugar nenhum útil — configurar essa Repository Variable é feito manualmente na interface do GitHub (Settings → Secrets and variables → Actions → Variables), fora do escopo deste repositório.
+
+> ⚠️ **`API_URL` também precisa existir em runtime, não só em build-time.** O rewrite `/api/*` do `next.config.ts` é resolvido em build (baked em `routes-manifest.json`), mas o [`src/proxy.ts`](src/proxy.ts) (guarda de rota) chama `POST /auth/refresh` **a cada request**, em runtime, e por isso lê `process.env.API_URL` no boot do container — sem essa env var no ambiente do container (não só como build-arg), o proxy lança `Error: Variável de ambiente API_URL não configurada.` e **toda página retorna 500**. Na task definition do ECS (repositório de deploy), o container do front precisa ter `API_URL=http://api:3001` também como variável de ambiente de runtime, com o mesmo valor usado no build.
+
 ### API
 
 | Variável | Padrão | Descrição |
@@ -482,7 +494,7 @@ Definida em `.env.local` (desenvolvimento) e `.env.test` (testes, versionado por
 | `REFRESH_TOKEN_EXPIRES_IN` | `7d` | Vida do refresh token. |
 | `GOOGLE_CLIENT_ID`<br>`GOOGLE_CLIENT_SECRET`<br>`GOOGLE_CALLBACK_URL`<br>`COOKIE_SESSION_SECRET` | — | Login com Google. **Opcionais, mas tudo ou nada**: ou as quatro são preenchidas, ou nenhuma. Sem elas a API sobe normalmente só com login por credenciais. |
 
-As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://github.com/gbrlmzl/sistema-controle-despesas-api/blob/master/src/config/env.ts)): se algo estiver faltando ou malformado, a API falha imediatamente com a mensagem do erro, em vez de quebrar mais tarde.
+As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://github.com/gbrlmzl/sistema-controle-despesas-api/blob/main/src/config/env.ts)): se algo estiver faltando ou malformado, a API falha imediatamente com a mensagem do erro, em vez de quebrar mais tarde.
 
 ---
 
@@ -496,6 +508,24 @@ As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://gi
 - **Exclusão lógica** em `Expense` (`deletedAt`) — leituras sempre filtram `deletedAt: null`.
 - **Comentários explicam o porquê, não o quê.** O código da API é denso em comentários que justificam decisões e citam a regra de negócio correspondente.
 - Models, rotas e campos em **inglês**; UI, hooks, schemas e mensagens em **português**.
+
+---
+
+## 🐳 Build de produção (Docker)
+
+A imagem de produção ([`Dockerfile`](Dockerfile)) é multi-stage e usa `output: 'standalone'` do Next.js: o build já rastreia e copia só o `server.js` gerado e o subconjunto podado de `node_modules` usado em runtime, em vez do `node_modules` de produção inteiro. Isso derruba o **payload da aplicação** de >1 GB para ~47 MB (medido localmente). A imagem final fecha em ~390 MB no total — o restante é a base `node:24-bookworm-slim` (glibc, necessária pelos binários prebuilt do SWC), que já não muda com o `standalone`. Isso importa porque o destino de deploy (instância `t4g.small`) tem **2 GB de RAM**, divididos com o Postgres (limite de 384 MB) e a API (448 MB).
+
+O entrypoint é `node server.js` (não `npm start`/`next start`) — o `server.js` é gerado pelo próprio Next dentro de `.next/standalone`, com o rewrite `/api/*` já resolvido para o `API_URL` de build (ver seção anterior).
+
+**A imagem publicada no GHCR é `linux/arm64` puro** ([`ci.yml`](.github/workflows/ci.yml), job `docker-publish`), porque o único destino de deploy hoje é uma instância Graviton (ARM64). Isso significa que:
+
+- Rodar `docker pull ghcr.io/gbrlmzl/sistema-controle-despesas-front` numa máquina x86 (Intel/AMD) só funciona via emulação (QEMU/Rosetta), mais lento.
+- Para desenvolvimento local, isso não afeta nada — [`docker-compose.yml`](docker-compose.yml) builda a partir do `Dockerfile.dev` na sua própria arquitetura, não consome a imagem do GHCR.
+- Buildar a imagem de produção localmente funciona normalmente em qualquer arquitetura (`docker build --build-arg API_URL=... .`); só a imagem *publicada* é arm64-only.
+
+### Onde o E2E roda
+
+O CI **deste** repositório cobre lint, testes unitários (Jest) e build de produção — os specs do Cypress vivem aqui (`cypress/`), mas não rodam aqui. Depois de publicar a imagem, o job `dispatch` do [`ci.yml`](.github/workflows/ci.yml) avisa o [`sistema-controle-despesas-deploy`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy), que sobe a stack completa (front + API + Postgres) e roda os specs contra ela. Se passarem, aquele repositório re-taggeia **esta mesma imagem** como `:stable` — build once, promote everywhere. Localmente, `npm run test:e2e` continua funcionando contra uma API no host.
 
 ---
 
@@ -516,9 +546,7 @@ As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://gi
 
 ## ⚠️ Pendências conhecidas
 
-- **`NEXT_PUBLIC_API_URL` não é usada** por nenhum código — resquício em `.env.local` que pode ser removido.
-- **O `docker-compose.yml` só sobe o front.** A API e o Postgres dela vivem em outro repositório, hoje sem Dockerfile próprio — então `docker compose up` aqui não substitui os passos manuais de "Como rodar" acima, só empacota o front (aponta `API_URL` para onde a API estiver ouvindo). Orquestrar os três serviços num compose só exigiria criar um Dockerfile na API.
-- **O CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) cobre lint, testes unitários (Jest) e build de produção — não roda os testes E2E (Cypress).** Os specs de E2E fazem cadastro/login reais contra a API pela UI, sem mocks; rodar isso no Actions exigiria subir API + Postgres dentro do workflow, o que depende de infraestrutura que ainda não existe no repo da API. Por enquanto, E2E continua só local (`npm run test:e2e`).
+- **O `docker-compose.yml` deste repositório só sobe o front** — e isso é uma decisão, não uma limitação: a API tem compose próprio, que sobe ela junto com o Postgres dela. Ver "Como rodar" acima para as três formas de subir o sistema.
 - **Épico de administração e auditoria** (papel ADMIN, trilha de auditoria, monitoramento de acessos) está fora do escopo da V2.0 e não iniciado.
 
 ---

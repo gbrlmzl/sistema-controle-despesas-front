@@ -1,7 +1,8 @@
-# Sobe só o front. A API (sistema-controle-despesas-api) e o Postgres dela
-# rodam fora deste compose — em outro repo, hoje sem Dockerfile/compose
-# próprio. Aponte API_URL para onde a API estiver ouvindo (default assume
-# API rodando no host, na porta 3001, como descrito no README).
+# Sobe só o front, de propósito: a API (sistema-controle-despesas-api) tem
+# compose próprio, e é ele que sobe a API junto com o Postgres dela. Para o
+# sistema inteiro integrado (front + API + banco), use o repo orquestrador
+# sistema-controle-despesas-deploy. Aponte API_URL para onde a API estiver
+# ouvindo (default assume API rodando no host, na porta 3001).
 services:
   app:
     build:
