@@ -61,9 +61,14 @@ jobs:
 
       - run: npm ci
 
-      # next.config.ts exige API_URL na hora de resolver o rewrite /api/*;
-      # fora do NODE_ENV=test o Next não carrega .env.test/.env.local
-      # sozinho, então precisa vir do ambiente do step.
+      # src/lib/apiClient.ts, src/proxy.ts e src/app/api/[...path]/route.ts
+      # lançam erro se API_URL estiver vazia (fail-fast em runtime), e o
+      # `next build` avalia esses módulos durante "Collecting page data" —
+      # então mesmo esta build de validação, que nunca vai virar imagem,
+      # precisa de um valor não-vazio aqui. Não precisa ser o valor real: o
+      # endereço da API só importa em runtime (ver docs/problema-rewrite-api-build-time.md,
+      # Abordagem B). Fora do NODE_ENV=test o Next não carrega
+      # .env.test/.env.local sozinho, então precisa vir do ambiente do step.
       - run: npm run build
         env:
           API_URL: http://localhost:8080
@@ -117,13 +122,22 @@ jobs:
           platforms: linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Congela a API alvo dentro da imagem (ver comentário no Dockerfile).
-          # Defina uma Repository Variable "API_URL" para apontar pra API real;
-          # sem ela, cai no placeholder do .env.example. Em produção (ECS,
-          # front e API na mesma task, network mode bridge) o valor correto é
-          # http://api:3001 — ver README, seção "Variáveis de ambiente".
+          # Placeholder fixo, não a Repository Variable "API_URL" de antes: desde
+          # a Abordagem B (docs/problema-rewrite-api-build-time.md), o endereço
+          # da API não fica mais congelado em nenhum manifesto — o Route Handler
+          # em src/app/api/[...path]/route.ts lê process.env.API_URL a cada
+          # requisição, em runtime. Este build-arg só existe para satisfazer o
+          # guard de "não suba sem API_URL configurada" que o `next build`
+          # avalia em Collecting page data (ver comentário no Dockerfile); o
+          # valor em si não sobrevive à imagem publicada. O endereço real é
+          # responsabilidade só do ambiente do container (ECS, task
+          # definition) — ver README, seção "Variáveis de ambiente". Antes
+          # desta mudança, esquecer de configurar a Repository Variable
+          # "API_URL" no GitHub congelava esse placeholder na imagem e
+          # quebrava toda chamada feita pelo navegador em produção — foi o
+          # incidente de 20/08/2026. Essa classe de erro deixou de existir.
           build-args: |
-            API_URL=${{ vars.API_URL || 'http://localhost:8080' }}
+            API_URL=http://localhost:8080
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

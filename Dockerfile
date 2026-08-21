@@ -24,10 +24,16 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # ARG depois do COPY de propósito: como um ARG só invalida o cache das camadas
 # seguintes, trocar o API_URL refaz apenas o `npm run build` — não o npm ci.
 #
-# next.config.ts lê API_URL para montar o rewrite /api/* -> API_URL/* e falha a
-# build sem ela. O valor fica congelado no build (Next resolve o destino do
-# rewrite em routes-manifest.json na hora do build, não a cada request) — para
-# apontar pra outra API, é preciso rebuildar com outro --build-arg API_URL.
+# Este valor NÃO fica congelado em nenhum manifesto — desde que o rewrite de
+# next.config.ts virou o Route Handler em src/app/api/[...path]/route.ts
+# (Abordagem B de docs/problema-rewrite-api-build-time.md), o endereço da API
+# é lido de process.env.API_URL a cada requisição, em runtime. O ARG só
+# precisa existir porque o Next avalia o módulo de cada rota durante
+# "Collecting page data" (etapa do `next build`), e o route handler acima
+# (junto com src/lib/apiClient.ts e src/proxy.ts) lança erro se a variável
+# estiver vazia — é um guard de "não suba sem isso", não uma resolução de
+# endereço. Um placeholder aqui é suficiente; o endereço real vem do
+# ambiente do container em runtime (task definition / docker-compose).
 ARG API_URL=http://localhost:8080
 ENV API_URL=$API_URL
 RUN npm run build
