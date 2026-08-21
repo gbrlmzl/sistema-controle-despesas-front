@@ -57,6 +57,11 @@ COPY --chown=node:node --from=build /app/public ./public
 
 USER node
 EXPOSE 3000
+# server.js do standalone faz bind em process.env.HOSTNAME, e o Docker define
+# essa variável como o ID do container — sem forçar 0.0.0.0, o servidor escuta
+# só no IP da bridge e qualquer sonda via localhost (HEALTHCHECK, compose,
+# ECS) é recusada. O "next start" antigo não tinha esse comportamento.
+ENV HOSTNAME=0.0.0.0
 
 # Reusa o fetch global do Node 24 — evita instalar curl só para o healthcheck.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
