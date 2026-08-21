@@ -11,7 +11,13 @@ import styles from '../authForm.module.css';
 
 const GOOGLE_LOGIN_URL = "/api/auth/google";
 
-export default function RegisterForm() {
+interface RegisterFormProps {
+    //Vem de process.env.GOOGLE_AUTH_ENABLED, lido pelo Server Component em
+    //page.tsx. Ver o mesmo comentário em ../login/LoginForm.tsx.
+    googleAuthEnabled?: boolean;
+}
+
+export default function RegisterForm({ googleAuthEnabled = false }: RegisterFormProps) {
     const [state, formAction, isPending] = useActionState(registerAction, null);  // Hook para gerenciar o estado da ação do formulário
     //isPending -> indica se a ação do formulário está em andamento, desabilitando o botão de envio para evitar envios múltiplos.
     const [name, setName] = useState('');
@@ -106,12 +112,16 @@ export default function RegisterForm() {
                 </button>
             </Form>
 
-            <div className={styles.separador}>ou</div>
+            {googleAuthEnabled && (
+                <>
+                    <div className={styles.separador}>ou</div>
 
-            <a href={GOOGLE_LOGIN_URL} className={styles.botaoGoogle}>
-                <img src="/icons/googleIcon.svg" alt="" />
-                Continuar com Google
-            </a>
+                    <a href={GOOGLE_LOGIN_URL} className={styles.botaoGoogle}>
+                        <img src="/icons/googleIcon.svg" alt="" />
+                        Continuar com Google
+                    </a>
+                </>
+            )}
 
             <p className={styles.rodape}>
                 Já possuo uma conta. <Link href="/login">Entrar</Link>

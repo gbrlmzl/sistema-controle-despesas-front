@@ -468,6 +468,7 @@ npm run dev                  # sobe em http://localhost:3000
 | Variável | Descrição |
 |---|---|
 | `API_URL` | URL base da API. Lida em **runtime**, a cada requisição, pelos três consumidores: o Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>) (chamadas do navegador), [`src/lib/apiClient.ts`](src/lib/apiClient.ts) (Server Components/Actions) e [`src/proxy.ts`](src/proxy.ts) (guarda de rota). **Obrigatória** — os três lançam erro na primeira chamada se ela estiver vazia. |
+| `GOOGLE_AUTH_ENABLED` | `"true"` mostra o botão "Continuar com Google" em [`login/LoginForm.tsx`](<src/app/(auth)/login/LoginForm.tsx>) e [`register/RegisterForm.tsx`](<src/app/(auth)/register/RegisterForm.tsx>). **Opcional, default `false`.** Independente da API: ela tem seu próprio grupo de 4 variáveis "tudo ou nada" para o OAuth (ver seção "API" abaixo) — as duas flags precisam ser mantidas em sincronia manualmente. Com a flag do front em `true` e a API sem o OAuth configurado, o botão aparece mas leva a um 404. |
 
 Definida em `.env.local` (desenvolvimento) e `.env.test` (testes, versionado por não conter segredo).
 
@@ -557,7 +558,8 @@ O CI **deste** repositório cobre lint, testes unitários (Jest) e build de prod
 Levantadas durante o incidente de 20-21/08/2026.
 
 - ~~O rewrite `/api/*` continua congelado em build-time.~~ **Resolvido em código**: o antigo `rewrite` de `next.config.ts` deu lugar ao Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>), que lê `API_URL` em runtime a cada requisição — a mesma imagem passa a servir qualquer ambiente, sem rebuild. Falta **validar via e2e e fazer o deploy**; até lá, produção continua rodando a correção mínima aplicada em 21/08/2026.
-- **Google OAuth e SMTP estão inertes em produção.** O código dos dois está pronto, mas as variáveis de ambiente não foram configuradas na task da API — o `env.ts` trata cada grupo como "tudo ou nada", então preencher pela metade **impede a API de subir**. Consequência hoje: o botão de login com Google não funciona, e a recuperação de senha completa o fluxo **sem nunca enviar o email**. As duas dependem do domínio da Fase 7 (o OAuth por exigência do `GOOGLE_CALLBACK_URL`; o SMTP por entregabilidade do `MAIL_FROM`).
+- **Google OAuth e SMTP estão inertes em produção.** O código dos dois está pronto, mas as variáveis de ambiente não foram configuradas na task da API — o `env.ts` trata cada grupo como "tudo ou nada", então preencher pela metade **impede a API de subir**. Consequência hoje: a recuperação de senha completa o fluxo **sem nunca enviar o email**. As duas dependem do domínio da Fase 7 (o OAuth por exigência do `GOOGLE_CALLBACK_URL`; o SMTP por entregabilidade do `MAIL_FROM`) — infra fora deste repositório, deliberadamente adiada até lá.
+  ~~O botão de login com Google leva a um 404 em produção.~~ **Resolvido neste repositório**: o botão só aparece quando `GOOGLE_AUTH_ENABLED=true` no ambiente do front (default `false`) — ver "Variáveis de ambiente" acima.
 - **A porta da API (`3001`) difere da do front (`3000`) em um dígito.** Fonte recorrente de confusão ao ler comando, log e task definition. Padronizar a API em `8080` custa 6 arquivos de código (nenhum neste repositório — só o **valor** da variável `API_URL` no ambiente do container) e 3 mudanças de infra na AWS. Vale agrupar com o deploy da mudança acima, para pagar um ciclo de deploy em vez de dois.
 
 ---
