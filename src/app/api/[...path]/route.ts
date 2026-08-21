@@ -1,10 +1,9 @@
 //Route Handler que substitui o rewrite de /api/:path* (ver a remoção em
 //next.config.ts): lê API_URL do process.env a CADA requisição, em vez de
-//congelar o destino em build-time no routes-manifest.json. É a Abordagem B de
-//docs/problema-rewrite-api-build-time.md — trocar de API sem rebuildar a
-//imagem, e um único mecanismo (process.env.API_URL em runtime) para os três
-//consumidores do endereço da API (este arquivo, src/lib/apiClient.ts e
-//src/proxy.ts).
+//congelar o destino em build-time no routes-manifest.json — trocar de API
+//não exige mais rebuildar a imagem, e os três consumidores do endereço da
+//API (este arquivo, src/lib/apiClient.ts e src/proxy.ts) passam a
+//compartilhar o mesmo mecanismo (process.env.API_URL em runtime).
 import { NextRequest } from "next/server";
 
 const API_URL = process.env.API_URL;

@@ -66,9 +66,9 @@ jobs:
       # `next build` avalia esses módulos durante "Collecting page data" —
       # então mesmo esta build de validação, que nunca vai virar imagem,
       # precisa de um valor não-vazio aqui. Não precisa ser o valor real: o
-      # endereço da API só importa em runtime (ver docs/problema-rewrite-api-build-time.md,
-      # Abordagem B). Fora do NODE_ENV=test o Next não carrega
-      # .env.test/.env.local sozinho, então precisa vir do ambiente do step.
+      # endereço da API só importa em runtime. Fora do NODE_ENV=test o Next
+      # não carrega .env.test/.env.local sozinho, então precisa vir do
+      # ambiente do step.
       - run: npm run build
         env:
           API_URL: http://localhost:8080
@@ -122,10 +122,9 @@ jobs:
           platforms: linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Placeholder fixo, não a Repository Variable "API_URL" de antes: desde
-          # a Abordagem B (docs/problema-rewrite-api-build-time.md), o endereço
-          # da API não fica mais congelado em nenhum manifesto — o Route Handler
-          # em src/app/api/[...path]/route.ts lê process.env.API_URL a cada
+          # Placeholder fixo, não a Repository Variable "API_URL" de antes: o
+          # endereço da API não fica mais congelado em nenhum manifesto — o
+          # Route Handler em src/app/api/[...path]/route.ts lê process.env.API_URL a cada
           # requisição, em runtime. Este build-arg só existe para satisfazer o
           # guard de "não suba sem API_URL configurada" que o `next build`
           # avalia em Collecting page data (ver comentário no Dockerfile); o

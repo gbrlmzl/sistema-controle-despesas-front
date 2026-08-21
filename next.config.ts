@@ -8,10 +8,9 @@ import type { NextConfig } from "next";
 //O proxy em si é o Route Handler em src/app/api/[...path]/route.ts, não um
 //rewrite deste arquivo: um rewrite tem o destino resolvido em build-time
 //(gravado em routes-manifest.json), então trocar API_URL em runtime não
-//tinha efeito nele — foi a causa do incidente registrado em
-//docs/problema-rewrite-api-build-time.md. O Route Handler lê
-//process.env.API_URL a cada requisição, como os outros dois consumidores
-//(apiClient.ts e proxy.ts) já faziam.
+//tinha efeito nele — foi a causa de uma indisponibilidade em produção em
+//20/08/2026. O Route Handler lê process.env.API_URL a cada requisição, como
+//os outros dois consumidores (apiClient.ts e proxy.ts) já faziam.
 const nextConfig: NextConfig = {
     // standalone: o Next rastreia só os arquivos e o subconjunto de node_modules
     // realmente usados em runtime, em vez de exigir o node_modules de produção

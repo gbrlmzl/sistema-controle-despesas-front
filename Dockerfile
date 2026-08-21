@@ -25,10 +25,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # seguintes, trocar o API_URL refaz apenas o `npm run build` — não o npm ci.
 #
 # Este valor NÃO fica congelado em nenhum manifesto — desde que o rewrite de
-# next.config.ts virou o Route Handler em src/app/api/[...path]/route.ts
-# (Abordagem B de docs/problema-rewrite-api-build-time.md), o endereço da API
-# é lido de process.env.API_URL a cada requisição, em runtime. O ARG só
-# precisa existir porque o Next avalia o módulo de cada rota durante
+# next.config.ts virou o Route Handler em src/app/api/[...path]/route.ts, o
+# endereço da API é lido de process.env.API_URL a cada requisição, em
+# runtime. O ARG só precisa existir porque o Next avalia o módulo de cada rota durante
 # "Collecting page data" (etapa do `next build`), e o route handler acima
 # (junto com src/lib/apiClient.ts e src/proxy.ts) lança erro se a variável
 # estiver vazia — é um guard de "não suba sem isso", não uma resolução de
