@@ -65,6 +65,17 @@ describe("LoginForm", () => {
         expect(campoSenha).toHaveAttribute("type", "text");
     });
 
+    it("não mostra o botão de login com Google quando googleAuthEnabled não é passado (default false)", () => {
+        render(<LoginForm />);
+        expect(screen.queryByText("Continuar com Google")).not.toBeInTheDocument();
+    });
+
+    it("mostra o botão de login com Google, apontando pro Route Handler de proxy, quando googleAuthEnabled é true", () => {
+        render(<LoginForm googleAuthEnabled />);
+        const botaoGoogle = screen.getByText("Continuar com Google").closest("a");
+        expect(botaoGoogle).toHaveAttribute("href", "/api/auth/google");
+    });
+
     it("envia usuário e senha para a API, atualiza o contexto de usuário e redireciona ao autenticar com sucesso", async () => {
         mockApiFetchClient.mockResolvedValue({ user: USUARIO_LOGADO });
         const user = userEvent.setup();

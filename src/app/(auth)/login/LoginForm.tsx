@@ -7,7 +7,17 @@ import styles from '../authForm.module.css';
 
 const GOOGLE_LOGIN_URL = "/api/auth/google";
 
-export default function LoginForm() {
+interface LoginFormProps {
+    //Vem de process.env.GOOGLE_AUTH_ENABLED, lido pelo Server Component em
+    //page.tsx. Falso por padrão: hoje a API não tem as 4 variáveis do OAuth
+    //configuradas em produção, então a rota nem existe no Express — mostrar o
+    //botão levaria a um 404 sem explicação. A ativação depende do domínio
+    //próprio (a URL de callback precisa ser real e registrada no Google
+    //Cloud Console) — até lá, esta flag fica false em produção.
+    googleAuthEnabled?: boolean;
+}
+
+export default function LoginForm({ googleAuthEnabled = false }: LoginFormProps) {
     const {
         state,
         formAction,
@@ -54,12 +64,16 @@ export default function LoginForm() {
                 </button>
             </Form>
 
-            <div className={styles.separador}>ou</div>
+            {googleAuthEnabled && (
+                <>
+                    <div className={styles.separador}>ou</div>
 
-            <a href={GOOGLE_LOGIN_URL} className={styles.botaoGoogle}>
-                <img src="/icons/googleIcon.svg" alt="" />
-                Continuar com Google
-            </a>
+                    <a href={GOOGLE_LOGIN_URL} className={styles.botaoGoogle}>
+                        <img src="/icons/googleIcon.svg" alt="" />
+                        Continuar com Google
+                    </a>
+                </>
+            )}
 
             <p className={styles.rodape}>
                 Ainda não tem conta? <Link href="/register">Criar conta</Link>

@@ -34,7 +34,7 @@ Na V1 o projeto era um monolito Next.js (Route Handlers + Server Actions + Prism
 
 ```
 ┌───────────────┐   /api/:path*      ┌──────────────────┐   Prisma    ┌────────────┐
-│   Navegador   │ ─── rewrite ─────► │  Next.js (front) │ ──────────► │            │
+│   Navegador   │ ─── proxy runtime ►│  Next.js (front) │ ──────────► │            │
 │               │                    │   :3000          │  fetch      │            │
 │  cookies do   │ ◄──────────────────│                  │ ──────────► │ API Express│ ──► PostgreSQL
 │  domínio do   │                    └──────────────────┘             │   :3001    │
@@ -44,7 +44,7 @@ Na V1 o projeto era um monolito Next.js (Route Handlers + Server Actions + Prism
 
 Dois pontos que definem essa integração:
 
-- **Proxy same-origin.** O navegador nunca fala direto com a API. O `rewrite` de `/api/:path*` em [`next.config.ts`](next.config.ts) encaminha as chamadas do cliente para a API no servidor. Assim não há CORS no navegador e os cookies de sessão pertencem ao domínio do front — o que é essencial para o [`src/proxy.ts`](src/proxy.ts) conseguir enxergá-los.
+- **Proxy same-origin.** O navegador nunca fala direto com a API. O Route Handler em [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>) encaminha as chamadas do cliente para a API, lendo `process.env.API_URL` a cada requisição — não em build-time (um `rewrite` anterior resolvia esse endereço em build, congelado em `routes-manifest.json`, e causou uma indisponibilidade em produção antes de ser substituído por este mecanismo). Assim não há CORS no navegador e os cookies de sessão pertencem ao domínio do front — o que é essencial para o [`src/proxy.ts`](src/proxy.ts) conseguir enxergá-los.
 - **Server Components chamam a API direto.** Páginas e Server Actions usam [`lib/apiClient.ts`](src/lib/apiClient.ts), que fala com a API server-to-server e repassa os cookies manualmente (o `fetch` do servidor não faz isso sozinho para outra origem).
 
 ---
@@ -467,19 +467,22 @@ npm run dev                  # sobe em http://localhost:3000
 
 | Variável | Descrição |
 |---|---|
-| `API_URL` | URL base da API, usada pelo rewrite e pelo `apiClient` server-side. **Obrigatória** — o `next.config.ts` falha na subida sem ela. |
+| `API_URL` | URL base da API. Lida em **runtime**, a cada requisição, pelos três consumidores: o Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>) (chamadas do navegador), [`src/lib/apiClient.ts`](src/lib/apiClient.ts) (Server Components/Actions) e [`src/proxy.ts`](src/proxy.ts) (guarda de rota). **Obrigatória** — os três lançam erro na primeira chamada se ela estiver vazia. |
+| `GOOGLE_AUTH_ENABLED` | `"true"` mostra o botão "Continuar com Google" em [`login/LoginForm.tsx`](<src/app/(auth)/login/LoginForm.tsx>) e [`register/RegisterForm.tsx`](<src/app/(auth)/register/RegisterForm.tsx>). **Opcional, default `false`.** Independente da API: ela tem seu próprio grupo de 4 variáveis "tudo ou nada" para o OAuth (ver seção "API" abaixo) — as duas flags precisam ser mantidas em sincronia manualmente. Com a flag do front em `true` e a API sem o OAuth configurado, o botão aparece mas leva a um 404. |
 
 Definida em `.env.local` (desenvolvimento) e `.env.test` (testes, versionado por não conter segredo).
 
-**Em produção**, `API_URL` é resolvida **em build-time** (o Next grava o destino do rewrite em `routes-manifest.json`; trocar de API alvo exige rebuild — ver comentário em [`next.config.ts`](next.config.ts) e no [`Dockerfile`](Dockerfile)). O workflow [`ci.yml`](.github/workflows/ci.yml) passa essa variável como `--build-arg` a partir da **Repository Variable** `API_URL` do GitHub. No ECS, front e API rodam como containers da **mesma task** (`cronos-app`, network mode `bridge`) e se enxergam pelo nome do container — então essa variable deve valer:
+**Em produção**, `API_URL` é lida do **ambiente do container em runtime** — trocar de API alvo é só mudar a variável e reiniciar o processo, sem rebuild. (Até 21/08/2026, o caminho do navegador passava por um `rewrite` do Next resolvido em **build-time**, congelado em `routes-manifest.json`; foi a causa de uma indisponibilidade em produção, corrigida trocando o rewrite pelo Route Handler acima.) No ECS, front e API rodam em **tasks separadas** (`cronos-front` e `cronos-app`, network mode `bridge`) e se acham pelo gateway da bridge do Docker (`172.17.0.1`), mapeado para o nome `api` via `extraHosts` na task definition do front — então essa variável deve valer:
 
 ```
 API_URL=http://api:3001
 ```
 
-Esse valor é uma constante da arquitetura (sempre o container `api` na mesma task), não algo que varia por ambiente. Sem a variable configurada, a imagem publicada cai no placeholder `http://localhost:8080`, que não aponta pra lugar nenhum útil — configurar essa Repository Variable é feito manualmente na interface do GitHub (Settings → Secrets and variables → Actions → Variables), fora do escopo deste repositório.
+**Detalhe de build que sobrevive à mudança acima:** o `next build` ainda precisa de `API_URL` **presente** (não necessariamente correta) durante a etapa "Collecting page data" — o Next avalia o módulo de cada rota nessa etapa, e o Route Handler acima (como `apiClient.ts` e `proxy.ts`) lança erro se a variável estiver vazia. É só um guard de "não suba sem isso"; o valor usado no build não influencia mais o comportamento da imagem publicada, então o [`Dockerfile`](Dockerfile) e o [`ci.yml`](.github/workflows/ci.yml) continuam passando um placeholder via `--build-arg`, mas a antiga **Repository Variable** `API_URL` do GitHub deixou de ser necessária.
 
-> ⚠️ **`API_URL` também precisa existir em runtime, não só em build-time.** O rewrite `/api/*` do `next.config.ts` é resolvido em build (baked em `routes-manifest.json`), mas o [`src/proxy.ts`](src/proxy.ts) (guarda de rota) chama `POST /auth/refresh` **a cada request**, em runtime, e por isso lê `process.env.API_URL` no boot do container — sem essa env var no ambiente do container (não só como build-arg), o proxy lança `Error: Variável de ambiente API_URL não configurada.` e **toda página retorna 500**. Na task definition do ECS (repositório de deploy), o container do front precisa ter `API_URL=http://api:3001` também como variável de ambiente de runtime, com o mesmo valor usado no build.
+Esse valor é uma constante da arquitetura (o `extraHosts` garante que `api` resolva dentro do container em qualquer deploy), não algo que varia por ambiente.
+
+> ⚠️ **`API_URL` precisa existir no ambiente do container em runtime**, não só como `--build-arg`. Os três consumidores (Route Handler, `apiClient.ts`, `proxy.ts`) lançam `Error: Variável de ambiente API_URL não configurada.` na primeira chamada se ela estiver ausente — e como `proxy.ts` roda a cada requisição para renovar a sessão, essa falha vira **toda página retornando 500**. Na task definition do ECS (repositório de deploy), o container do front precisa ter `API_URL=http://api:3001` configurada como variável de ambiente de runtime.
 
 ### API
 
@@ -515,7 +518,7 @@ As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://gi
 
 A imagem de produção ([`Dockerfile`](Dockerfile)) é multi-stage e usa `output: 'standalone'` do Next.js: o build já rastreia e copia só o `server.js` gerado e o subconjunto podado de `node_modules` usado em runtime, em vez do `node_modules` de produção inteiro. Isso derruba o **payload da aplicação** de >1 GB para ~47 MB (medido localmente). A imagem final fecha em ~390 MB no total — o restante é a base `node:24-bookworm-slim` (glibc, necessária pelos binários prebuilt do SWC), que já não muda com o `standalone`. Isso importa porque o destino de deploy (instância `t4g.small`) tem **2 GB de RAM**, divididos com o Postgres (limite de 384 MB) e a API (448 MB).
 
-O entrypoint é `node server.js` (não `npm start`/`next start`) — o `server.js` é gerado pelo próprio Next dentro de `.next/standalone`, com o rewrite `/api/*` já resolvido para o `API_URL` de build (ver seção anterior).
+O entrypoint é `node server.js` (não `npm start`/`next start`) — o `server.js` é gerado pelo próprio Next dentro de `.next/standalone`. O endereço da API **não** fica embutido nele: o Route Handler que faz proxy de `/api/*` lê `API_URL` do ambiente do container a cada requisição (ver seção anterior), então a mesma imagem serve qualquer ambiente — só muda a variável passada na hora de rodar o container.
 
 **A imagem publicada no GHCR é `linux/arm64` puro** ([`ci.yml`](.github/workflows/ci.yml), job `docker-publish`), porque o único destino de deploy hoje é uma instância Graviton (ARM64). Isso significa que:
 
@@ -540,6 +543,7 @@ O CI **deste** repositório cobre lint, testes unitários (Jest) e build de prod
 | [`docs/estrategia-tratamento-erros-api.md`](docs/estrategia-tratamento-erros-api.md) | Estratégia de tratamento de erros nas chamadas à API |
 | [`docs/migracao-typescript.md`](docs/migracao-typescript.md) | Registro da migração de JavaScript para TypeScript |
 | [`docs/backlog-e-casos-de-teste.md`](docs/backlog-e-casos-de-teste.md) | Backlog de funcionalidades com cobertura de teste, e documentação de cada caso de teste do front-end |
+| [`docs/plano-recuperacao-de-senha-frontend.md`](docs/plano-recuperacao-de-senha-frontend.md) | Plano do fluxo de recuperação de senha no front |
 | [`docs/relatorios/RELATORIO_V1.1.md`](docs/relatorios/RELATORIO_V1.1.md) | Relatório da versão anterior |
 
 ---
@@ -548,6 +552,15 @@ O CI **deste** repositório cobre lint, testes unitários (Jest) e build de prod
 
 - **O `docker-compose.yml` deste repositório só sobe o front** — e isso é uma decisão, não uma limitação: a API tem compose próprio, que sobe ela junto com o Postgres dela. Ver "Como rodar" acima para as três formas de subir o sistema.
 - **Épico de administração e auditoria** (papel ADMIN, trilha de auditoria, monitoramento de acessos) está fora do escopo da V2.0 e não iniciado.
+
+### Pendências de produção (AWS)
+
+Levantadas durante o incidente de 20-21/08/2026.
+
+- ~~O rewrite `/api/*` continua congelado em build-time.~~ **Resolvido em código**: o antigo `rewrite` de `next.config.ts` deu lugar ao Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>), que lê `API_URL` em runtime a cada requisição — a mesma imagem passa a servir qualquer ambiente, sem rebuild. Falta **validar via e2e e fazer o deploy**; até lá, produção continua rodando a correção mínima aplicada em 21/08/2026.
+- **Google OAuth e SMTP estão inertes em produção.** O código dos dois está pronto, mas as variáveis de ambiente não foram configuradas na task da API — o `env.ts` trata cada grupo como "tudo ou nada", então preencher pela metade **impede a API de subir**. Consequência hoje: a recuperação de senha completa o fluxo **sem nunca enviar o email**. As duas dependem do domínio da Fase 7 (o OAuth por exigência do `GOOGLE_CALLBACK_URL`; o SMTP por entregabilidade do `MAIL_FROM`) — infra fora deste repositório, deliberadamente adiada até lá.
+  ~~O botão de login com Google leva a um 404 em produção.~~ **Resolvido neste repositório**: o botão só aparece quando `GOOGLE_AUTH_ENABLED=true` no ambiente do front (default `false`) — ver "Variáveis de ambiente" acima.
+- **A porta da API (`3001`) difere da do front (`3000`) em um dígito.** Fonte recorrente de confusão ao ler comando, log e task definition. Padronizar a API em `8080` custa 6 arquivos de código (nenhum neste repositório — só o **valor** da variável `API_URL` no ambiente do container) e 3 mudanças de infra na AWS. Vale agrupar com o deploy da mudança acima, para pagar um ciclo de deploy em vez de dois.
 
 ---
 
