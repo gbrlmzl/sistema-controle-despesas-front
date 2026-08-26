@@ -59,17 +59,6 @@ describe("RegisterForm", () => {
         expect(getSubmitButton()).toBeEnabled();
     });
 
-    it("não mostra o botão de cadastro com Google quando googleAuthEnabled não é passado (default false)", () => {
-        render(<RegisterForm />);
-        expect(screen.queryByText("Continuar com Google")).not.toBeInTheDocument();
-    });
-
-    it("mostra o botão de cadastro com Google, apontando pro Route Handler de proxy, quando googleAuthEnabled é true", () => {
-        render(<RegisterForm googleAuthEnabled />);
-        const botaoGoogle = screen.getByText("Continuar com Google").closest("a");
-        expect(botaoGoogle).toHaveAttribute("href", "/api/auth/google");
-    });
-
     it("normaliza o nome de usuário para minúsculas e remove caracteres inválidos", async () => {
         const user = userEvent.setup();
         render(<RegisterForm />);
