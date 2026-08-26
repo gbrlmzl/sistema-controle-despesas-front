@@ -98,6 +98,7 @@ Complementos: **cancelamento** pelo próprio autor enquanto pendente, **central 
 | **Editar / excluir** | Apenas os próprios lançamentos, com exclusão lógica (`deletedAt`). |
 | **Despesa recorrente** | Marcada para ser recriada na competência seguinte quando o owner fecha o mês. Tela dedicada de gestão. |
 | **Fechar / reabrir mês** | O owner fecha a conta do mês; a competência fechada fica somente leitura e a aberta passa a ser a seguinte. |
+| **Acertos de pagamento** | No fechamento, o rateio vira **pares** devedor→credor (simplificação de dívidas). O devedor liquida anexando comprovante (compressão no navegador, upload direto ao S3); o credor liquida confirmando o recebimento — sem ordem obrigatória entre os dois. O owner pode dispensar uma linha, com motivo. |
 
 ### Relatórios e análise
 
@@ -212,6 +213,7 @@ Cada página é um **Server Component** que busca dados via `lib/*Api.ts` e dele
 | `/app/residences/[code]/expenses` | Consulta por competência | ✅ |
 | `/app/residences/[code]/expenses/recurring` | Despesas recorrentes | ✅ |
 | `/app/residences/[code]/reports` | Relatórios e gráficos | ✅ |
+| `/dashboard/residences/[code]/settlements` | Acertos de pagamento da competência fechada | ✅ |
 
 ---
 

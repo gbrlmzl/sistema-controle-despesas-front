@@ -1,0 +1,72 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+}
+
+.botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    padding: 0.4rem 0.9rem;
+    border-radius: 2.5rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.botao:hover {
+    background: var(--accent-hover);
+}
+
+.botao[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.inputOculto {
+    /* Continua acessível a leitor de tela e a navegação por teclado -- só sai
+       do fluxo visual, a label é o alvo do clique. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.erro {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--neg);
+}
+
+.botaoRetentar {
+    background: none;
+    border: 1px solid var(--neg);
+    color: var(--neg);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2.5rem;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+}
+
+.botaoRetentar:hover:not(:disabled) {
+    background: var(--neg);
+    color: var(--accent-contrast);
+    cursor: pointer;
+}
+
+.botaoRetentar:disabled {
+    opacity: 0.6;
+    cursor: default;
+}

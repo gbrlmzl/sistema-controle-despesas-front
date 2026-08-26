@@ -58,6 +58,7 @@ export default function PainelResidencia({
 
             {/* P-1 e P-2 -> como está o mês em aberto e o que aconteceu por último */}
             <ResumoDoMes
+                codigo={residencia.code}
                 competencia={competencia}
                 resumo={resumo}
                 atividade={atividade}

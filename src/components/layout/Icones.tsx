@@ -41,6 +41,15 @@ export function IconeMembros({ size = 19 }: IconeProps) {
     );
 }
 
+export function IconeAcertos({ size = 19 }: IconeProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 7h13M13 3l4 4-4 4" />
+            <path d="M20 17H7M11 21l-4-4 4-4" />
+        </svg>
+    );
+}
+
 export function IconeResidencias({ size = 19 }: IconeProps) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">

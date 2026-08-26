@@ -1,0 +1,98 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 7, 15, 0.72);
+    z-index: 20;
+    padding: 1rem;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    width: 100%;
+    max-width: 22rem;
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--r-xl);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--ink);
+}
+
+.modal h3 {
+    font-family: var(--font-body);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.previa {
+    display: block;
+    max-width: 100%;
+    max-height: 16rem;
+    border-radius: var(--r-md);
+    object-fit: contain;
+}
+
+.nomeArquivo {
+    margin: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.aviso {
+    margin: 0;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--ink-3);
+}
+
+.botoesContainer {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    margin-top: 0.3rem;
+}
+
+.botaoCancelar,
+.botaoConfirmar {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border-radius: var(--r-md);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.botaoCancelar {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.botaoCancelar:hover:not(:disabled) {
+    border-color: var(--ink-3);
+}
+
+.botaoConfirmar {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.botaoConfirmar:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.botaoCancelar:disabled,
+.botaoConfirmar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

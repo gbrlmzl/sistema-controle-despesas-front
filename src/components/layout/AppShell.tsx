@@ -11,8 +11,8 @@ import useNotificacoes from "@/hooks/useNotificacoes";
 import SinoNotificacoes from "@/components/ui/SinoNotificacoes";
 import CadastrarDespesaModal from "@/components/despesas/CadastrarDespesaModal";
 import {
-    IconePainel, IconeDespesas, IconeRelatorios, IconeMembros,
-    IconeResidencias, IconeConfiguracoes, IconeConta, IconeMais, IconeNovaResidencia, IconeAvancar,
+    IconePainel, IconeDespesas, IconeRelatorios, IconeMembros, IconeAcertos,
+    IconeResidencias, IconeConfiguracoes, IconeMais, IconeNovaResidencia, IconeAvancar,
     IconeSol, IconeLua,
 } from "./Icones";
 import styles from "./AppShell.module.css";
@@ -93,6 +93,7 @@ export default function AppShell({ children }: AppShellProps) {
             { href: `${base}/expenses`, rotulo: "Despesas", icone: <IconeDespesas /> },
             { href: `${base}/reports`, rotulo: "Relatórios", icone: <IconeRelatorios /> },
             { href: `${base}/members`, rotulo: "Membros", icone: <IconeMembros /> },
+            { href: `${base}/settlements`, rotulo: "Acertos", icone: <IconeAcertos /> },
         ]
         : [
             { href: "/dashboard/residences", rotulo: "Residências", icone: <IconeResidencias />, exato: true },
@@ -103,10 +104,10 @@ export default function AppShell({ children }: AppShellProps) {
     const estaAtivo = (item: ItemNavegacao) =>
         item.exato ? pathname === item.href : pathname.startsWith(item.href);
 
-    //Complementa a navegação até 4 colunas na tab bar do mobile, mantendo o acesso
-    //à conta sempre disponível mesmo dentro de uma residência.
+    //Complementa a navegação até 4 colunas na tab bar do mobile com Acertos (última
+    //coluna do array de base). Membros fica de fora, mora nas configurações.
     const navegacaoMobile = base
-        ? [...navegacao.slice(0, 3), { href: "/profile", rotulo: "Conta", icone: <IconeConta />, exato: false }]
+        ? [...navegacao.slice(0, 3), navegacao[4]]
         : navegacao;
 
     return (
@@ -178,8 +179,11 @@ export default function AppShell({ children }: AppShellProps) {
                 (ver ListaMembros) — manter os dois juntos confundiria o que o toque faz.
                 Em /expenses/recurring já existe o botão "Nova despesa recorrente" na
                 própria tela — o FAB abriria o cadastro de despesa avulsa, confundindo
-                qual "+" faz o quê. */}
-            {base && !pathname.startsWith(`${base}/members`) && !pathname.startsWith(`${base}/expenses/recurring`) && (
+                qual "+" faz o quê. Em /settlements a competência em exibição está
+                fechada (só se chega lá com um mês fechado) — lançar despesa nova ali
+                cairia no mês seguinte, sem relação nenhuma com a tela de acertos. */}
+            {base && !pathname.startsWith(`${base}/members`) && !pathname.startsWith(`${base}/expenses/recurring`)
+                && !pathname.startsWith(`${base}/settlements`) && (
                 <button type="button" className={styles.fab} aria-label="Lançar despesa"
                     onClick={() => setCadastrandoDespesa(true)}>
                     <IconeMais />
@@ -191,7 +195,8 @@ export default function AppShell({ children }: AppShellProps) {
                     onFechar={() => setCadastrandoDespesa(false)} />
             )}
 
-            <nav className={styles.tabbar} aria-label="Navegação">
+            <nav className={styles.tabbar} aria-label="Navegação"
+                style={{ gridTemplateColumns: `repeat(${navegacaoMobile.length}, 1fr)` }}>
                 {navegacaoMobile.map(item => (
                     <Link key={item.href} href={item.href}
                         aria-current={estaAtivo(item) ? "page" : undefined}

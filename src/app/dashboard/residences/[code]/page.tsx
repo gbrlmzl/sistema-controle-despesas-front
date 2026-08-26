@@ -56,6 +56,7 @@ export default async function Residencia({ params }: ParamsResidencia) {
                 totalInCents: resumo.totalInCents,
                 quantidade: resumo.quantidade,
                 isClosed: resumo.isClosed,
+                settlement: resumo.settlement,
                 porMembro: resumo.porMembro.map(grupo => ({
                     userId: grupo.userId,
                     name: grupo.name,

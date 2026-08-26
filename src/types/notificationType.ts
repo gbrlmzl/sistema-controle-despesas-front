@@ -6,6 +6,10 @@ export const NotificationType = {
     MEMBER_REMOVED: 'MEMBER_REMOVED',
     OWNERSHIP_TRANSFERRED: 'OWNERSHIP_TRANSFERRED',
     MONTH_CLOSED: 'MONTH_CLOSED',
+    SETTLEMENT_PENDING: 'SETTLEMENT_PENDING',
+    SETTLEMENT_READY: 'SETTLEMENT_READY',
+    MONTH_SETTLED: 'MONTH_SETTLED',
+    SETTLEMENT_WAIVED: 'SETTLEMENT_WAIVED',
 } as const;
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];

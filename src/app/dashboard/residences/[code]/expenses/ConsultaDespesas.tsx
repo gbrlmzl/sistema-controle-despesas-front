@@ -127,9 +127,19 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
             </button>
 
             {resumo.isClosed && (
-                <span className={styles.seloFechado}>
-                    Mês fechado{resumo.closedByName ? ` por ${resumo.closedByName}` : ''} · somente leitura
-                </span>
+                <div className={styles.avisoFechado}>
+                    <span className={styles.seloFechado}>
+                        Mês fechado{resumo.closedByName ? ` por ${resumo.closedByName}` : ''} · somente leitura
+                    </span>
+
+                    {/* C.2 -> um dos dois caminhos até a tela de acertos (o outro é o
+                        card de saldo do painel). Sempre visível quando fechado, mesmo em
+                        fechamento legado sem settlement -- a tela lida com a lista vazia. */}
+                    <Link href={`/dashboard/residences/${residencia.code}/settlements?mes=${competencia.month}&ano=${competencia.year}`}
+                        className={styles.linkAcertos}>
+                        Ver acertos
+                    </Link>
+                </div>
             )}
 
             {/* Q-4 -> total geral em destaque */}

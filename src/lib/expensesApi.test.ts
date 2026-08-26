@@ -1,4 +1,4 @@
-import { getResidenceCompetencies } from "./expensesApi";
+import { getResidenceCompetencies, getResidenceExpenses } from "./expensesApi";
 import { apiFetch } from "./apiClient";
 
 //Factory explícita: apiClient.ts importa next/headers, que só existe dentro do
@@ -40,5 +40,41 @@ describe("getResidenceCompetencies", () => {
         mockApiFetch.mockRejectedValue(new Error("Falha de rede"));
 
         await expect(getResidenceCompetencies("AB12CD")).rejects.toThrow("Falha de rede");
+    });
+});
+
+describe("getResidenceExpenses", () => {
+    const RESPOSTA_BASE = {
+        competency: { month: 8, year: 2026 },
+        byMember: [],
+        totalInCents: 0,
+        count: 0,
+        isClosed: true,
+        closedAt: "2026-09-01T14:02:11.000Z",
+        closedByName: "Gabriel Mizael",
+    };
+
+    it("repassa settlement como null sem alteração", async () => {
+        mockApiFetch.mockResolvedValue({ ...RESPOSTA_BASE, settlement: null });
+
+        const { resumo } = await getResidenceExpenses("AB12CD");
+
+        expect(resumo.settlement).toBeNull();
+    });
+
+    it("repassa o bloco settlement preenchido sem tradução -- já nasce no formato do front", async () => {
+        const settlement = {
+            status: "AWAITING_PAYMENT" as const,
+            totals: { payerSide: { lines: 2, paid: 1 }, receiverSide: { lines: 2, confirmed: 0 } },
+            mine: [
+                { id: "s1", role: "PAYER" as const, counterpartyName: "Gabriel Mizael", amountInCents: 21910, status: "PENDING" as const },
+                { id: "s2", role: "PAYER" as const, counterpartyName: "Ana Prado", amountInCents: 10762, status: "SETTLED" as const },
+            ],
+        };
+        mockApiFetch.mockResolvedValue({ ...RESPOSTA_BASE, settlement });
+
+        const { resumo } = await getResidenceExpenses("AB12CD");
+
+        expect(resumo.settlement).toEqual(settlement);
     });
 });

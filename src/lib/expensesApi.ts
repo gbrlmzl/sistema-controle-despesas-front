@@ -2,6 +2,7 @@ import { apiFetch } from "./apiClient";
 import type { Competencia } from "@/types/competencia";
 import type { ResumoDespesas, DespesaRecorrente, CompetenciaComDespesas } from "@/types/residencia";
 import type { ExpenseCategory } from "@/types/expenseCategory";
+import type { AcertosDaCompetencia } from "@/types/acerto";
 
 interface ExpensesApiResponse {
     competency: Competencia;
@@ -24,6 +25,9 @@ interface ExpensesApiResponse {
     isClosed: boolean;
     closedAt: string | null;
     closedByName: string | null;
+    //Já vem no formato usado pelo front -- é o único bloco desta resposta que
+    //nasceu do lado da API sem precisar de tradução EN->PT (ver plano de arquitetura, §6.7).
+    settlement: AcertosDaCompetencia | null;
 }
 
 export interface ExpensesResult {
@@ -44,6 +48,7 @@ export async function getResidenceExpenses(code: string, competencia?: Competenc
             isClosed: data.isClosed,
             closedAt: data.closedAt,
             closedByName: data.closedByName,
+            settlement: data.settlement,
             porMembro: data.byMember.map(grupo => ({
                 userId: grupo.userId,
                 name: grupo.name,
