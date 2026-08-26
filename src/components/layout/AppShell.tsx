@@ -12,7 +12,7 @@ import SinoNotificacoes from "@/components/ui/SinoNotificacoes";
 import CadastrarDespesaModal from "@/components/despesas/CadastrarDespesaModal";
 import {
     IconePainel, IconeDespesas, IconeRelatorios, IconeMembros,
-    IconeResidencias, IconeConfiguracoes, IconeConta, IconeMais, IconeSino,
+    IconeResidencias, IconeConfiguracoes, IconeConta, IconeMais, IconeNovaResidencia, IconeAvancar,
     IconeSol, IconeLua,
 } from "./Icones";
 import styles from "./AppShell.module.css";
@@ -95,9 +95,9 @@ export default function AppShell({ children }: AppShellProps) {
             { href: `${base}/members`, rotulo: "Membros", icone: <IconeMembros /> },
         ]
         : [
-            { href: "/dashboard/residences", rotulo: "Residências", icone: <IconeResidencias /> },
-            { href: "/dashboard/alerts", rotulo: "Alertas", icone: <IconeSino size={19} /> },
-            { href: "/profile", rotulo: "Conta", icone: <IconeConta /> },
+            { href: "/dashboard/residences", rotulo: "Residências", icone: <IconeResidencias />, exato: true },
+            { href: "/dashboard/residences/new", rotulo: "Nova residência", icone: <IconeNovaResidencia /> },
+            { href: "/dashboard/residences/join", rotulo: "Entrar em residência", icone: <IconeAvancar /> },
         ];
 
     const estaAtivo = (item: ItemNavegacao) =>

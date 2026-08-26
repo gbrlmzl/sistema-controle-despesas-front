@@ -8,6 +8,7 @@ import useResidencias, { type Residencia } from "@/hooks/useResidencias";
 import Loading from "@/components/ui/Loading";
 import Snackbar from "@/components/ui/Snackbar";
 import PendenciasAcesso from "./PendenciasAcesso";
+import { IconeCopiar, IconeAvancar } from "@/components/layout/Icones";
 import styles from './ListaResidencias.module.css';
 import type { ActionState } from "@/types/actions";
 
@@ -79,16 +80,16 @@ export default function ListaResidencias() {
                 </div>
             </div>
             <div className={styles.residenciaAcoes}>
-                <button type="button" title="Copiar código da residência"
+                <button type="button" aria-label="Copiar código da residência" title="Copiar código da residência"
                     onClick={(e) => { e.stopPropagation(); copiarCodigo(residencia.code); }}>
                     <span className={styles.botaoAcao}>
-                        <img src="/icons/copiarIcon.svg" alt="Copiar código da residência" />
+                        <IconeCopiar size={16} />
                     </span>
                 </button>
-                <Link href={`/dashboard/residences/${residencia.code}`} title="Ver residência"
+                <Link href={`/dashboard/residences/${residencia.code}`} aria-label="Ver residência" title="Ver residência"
                     onClick={(e) => e.stopPropagation()}>
                     <span className={styles.botaoAcao}>
-                        <img src="/icons/avancarIcon.svg" alt="Ver residência" />
+                        <IconeAvancar size={18} />
                     </span>
                 </Link>
             </div>

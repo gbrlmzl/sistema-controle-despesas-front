@@ -6,7 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useLogout } from '@/hooks/useLogout';
 import { useCurrentUser } from '@/components/providers/UserProvider';
 import Snackbar from '@/components/ui/Snackbar';
-import { IconeSair } from '@/components/layout/Icones';
+import { IconeSair, IconeCamera } from '@/components/layout/Icones';
 
 
 
@@ -43,15 +43,18 @@ export default function Profile() {
     return (
         <div className={styles.container}>
             <h1>Minha conta</h1>
-            <div>
+            <div className={styles.subContainer}>
                 <div className={styles.profilePictureContainer}>
                     <div className={styles.profilePicture}>
                         <img src={user.profilePic || "/icons/profileIcon.svg"} alt="Perfil" />
                     </div>
-                    <button className={styles.profilePictureEdit} onClick={openGallery}>
-                        <span className={styles.profilePictureEditIcon}>
-                            <img src="/icons/penEditIcon.svg" alt="Editar foto" />
-                        </span>
+                    <button
+                        type="button"
+                        className={styles.profilePictureEdit}
+                        onClick={openGallery}
+                        aria-label="Alterar foto de perfil"
+                    >
+                        <IconeCamera size={16} />
                     </button>
                 </div>
 
