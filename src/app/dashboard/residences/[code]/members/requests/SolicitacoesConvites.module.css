@@ -1,9 +1,63 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    align-items: center;
     width: 100%;
-    margin-top: 0.85rem;
+    color: var(--ink);
+    font-family: var(--font-body);
+}
+
+.container h2 {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+/* Seta, título e canto direito na mesma linha, com o título centralizado */
+.cabecalho {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.25rem;
+}
+
+.cabecalho h2 {
+    flex: 1;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.botaoCanto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.botaoCanto:hover {
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+.espacoCanto {
+    width: 2.25rem;
+    flex-shrink: 0;
+}
+
+.nomeResidencia {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--ink-3);
+    text-align: center;
+    overflow-wrap: anywhere;
+    margin-bottom: 0.5rem;
 }
 
 .secao {
@@ -11,16 +65,24 @@
     flex-direction: column;
     gap: 0.6rem;
     width: 100%;
-    padding: 1.25rem;
-    border-radius: var(--r-lg);
-    background: var(--surface);
-    border: 1px solid var(--border);
+    margin-top: 1rem;
 }
 
 .secao h3 {
     margin: 0;
     font-size: 0.9rem;
     color: var(--ink);
+}
+
+.vazio {
+    margin: 0;
+    padding: 1rem 0.85rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--ink-3);
 }
 
 .lista {
@@ -33,7 +95,7 @@
     list-style: none;
 }
 
-/* Pendência usa o âmbar: é o único estado do painel que pede uma decisão do usuário */
+/* Pendência usa o âmbar: é o único estado da tela que pede uma decisão do usuário */
 .pendencia {
     display: flex;
     flex-direction: row;

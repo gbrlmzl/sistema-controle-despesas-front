@@ -24,7 +24,8 @@ export default async function cancelarConviteAction(code: string, inviteId: numb
             method: "DELETE",
         });
 
-        revalidatePath(`/dashboard/residences/${code}`);
+        revalidatePath(`/dashboard/residences/${code}/members/requests`);
+        revalidatePath(`/dashboard/residences/${code}/members`);
 
         return {
             success: true,

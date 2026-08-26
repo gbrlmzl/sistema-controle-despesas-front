@@ -55,7 +55,7 @@ export default function ListaAlertas() {
                 <ul className={styles.lista}>
                     {notificacoes.map(notificacao => (
                         <li key={notificacao.id} className={notificacao.isRead ? styles.item : styles.itemNaoLido}>
-                            <Link href={linkNotificacao(notificacao.linkTo)}>
+                            <Link href={linkNotificacao(notificacao.linkTo, notificacao.type)}>
                                 <span className={styles.itemTitulo}>{notificacao.title}</span>
                                 <span className={styles.itemMensagem}>{notificacao.message}</span>
                                 <span className={styles.itemData}>{formatarMomento(notificacao.createdAt)}</span>

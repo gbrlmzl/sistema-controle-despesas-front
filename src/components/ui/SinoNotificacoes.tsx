@@ -39,7 +39,7 @@ export default function SinoNotificacoes({ notificacoes, naoLidas, painelAberto,
                                 {notificacoes.map(notificacao => (
                                     <li key={notificacao.id} className={notificacao.isRead ? styles.item : styles.itemNaoLido}>
                                         {/* CA-10 -> clicar leva ao contexto da notificação */}
-                                        <Link href={linkNotificacao(notificacao.linkTo)} onClick={fecharPainel}>
+                                        <Link href={linkNotificacao(notificacao.linkTo, notificacao.type)} onClick={fecharPainel}>
                                             <span className={styles.itemTitulo}>{notificacao.title}</span>
                                             <span className={styles.itemMensagem}>{notificacao.message}</span>
                                             <span className={styles.itemData}>{formatarMomento(notificacao.createdAt)}</span>

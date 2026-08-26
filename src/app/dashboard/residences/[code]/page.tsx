@@ -20,7 +20,7 @@ export default async function Residencia({ params }: ParamsResidencia) {
         notFound();
     }
 
-    const { residence: residencia, sentInvites: convites, pendingJoinRequests: solicitacoes } = detalhe;
+    const { residence: residencia } = detalhe;
 
     //P-1 e P-2 -> resumo da competência aberta e últimos lançamentos.
     //A "atividade recente" é derivada dos lançamentos da própria competência aberta
@@ -51,8 +51,6 @@ export default async function Residencia({ params }: ParamsResidencia) {
     return (
         <PainelResidencia
             residencia={residencia}
-            solicitacoes={solicitacoes}
-            convites={convites}
             competencia={competencia}
             resumo={{
                 totalInCents: resumo.totalInCents,

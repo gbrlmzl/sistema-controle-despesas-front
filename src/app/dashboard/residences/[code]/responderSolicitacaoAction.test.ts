@@ -50,7 +50,8 @@ describe("responderSolicitacaoAction", () => {
             method: "PATCH",
             body: { status: "accepted" },
         });
-        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/residences/AB12CD");
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/residences/AB12CD/members/requests");
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/residences/AB12CD/members");
         expect(resultado).toEqual({ success: true, message: "Bruno agora é membro da residência." });
     });
 
