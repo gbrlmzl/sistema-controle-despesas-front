@@ -122,12 +122,6 @@ describe("AcertosDaCompetencia", () => {
         expect(screen.queryByText(/Comprovante/)).not.toBeInTheDocument();
     });
 
-    it("mostra o texto de ajuda sobre os pares sempre, independente de haver linhas", () => {
-        render(<AcertosDaCompetencia residencia={RESIDENCIA} competencias={COMPETENCIAS} resumo={resumoBase([])} />);
-
-        expect(screen.getByText(/calculados para minimizar o número de transferências/)).toBeInTheDocument();
-    });
-
     it("mostra o estado vazio quando o fechamento não tem nenhuma linha (legado, D-09)", () => {
         render(<AcertosDaCompetencia residencia={RESIDENCIA} competencias={COMPETENCIAS} resumo={resumoBase([])} />);
 

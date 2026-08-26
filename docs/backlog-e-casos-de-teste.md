@@ -174,7 +174,7 @@ Testam **comportamento visível ao usuário**: o que aparece na tela e como o co
 | [`src/app/dashboard/residences/[code]/settlements/useAnexarComprovante.test.ts`](<../src/app/dashboard/residences/[code]/settlements/useAnexarComprovante.test.ts>) | `useAnexarComprovante` | Os 4 passos do upload na ordem certa (C.4); `file` como último campo do `FormData`; passo 3 usa `fetch` puro (não `apiFetchClient`), sem `credentials`; falha no passo 3 não chama o passo 4; falha no passo 4 preserva o `receiptId` — `tentarNovamente` refaz só o passo 4, nunca o 3 (armadilha nº4 do C.4); mensagens do C.7 para `503`/`422`, mensagem crua da API nos demais status (F-08) |
 | [`src/app/dashboard/residences/[code]/settlements/Comprovante.test.tsx`](<../src/app/dashboard/residences/[code]/settlements/Comprovante.test.tsx>) | `Comprovante` | Busca a URL ao montar (nunca recebida pronta do servidor, D-25); `<img>` para tipos de imagem; link em nova aba para PDF, sem tentar embutir; mensagem amigável quando a busca falha; busca de novo quando o `receiptId` muda |
 
-**Total:** 14 arquivos, 106 casos de teste.
+**Total:** 14 arquivos, 105 casos de teste.
 
 ---
 
