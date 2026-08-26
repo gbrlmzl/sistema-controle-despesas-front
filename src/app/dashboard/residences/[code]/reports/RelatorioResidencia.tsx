@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import SeletorCompetencia from "../expenses/SeletorCompetencia";
@@ -88,17 +89,24 @@ export default function RelatorioResidencia({
 
     return (
         <div className={styles.container}>
-            <header className={styles.cabecalho}>
-                <div>
-                    <h1>Relatórios</h1>
-                    <p className={styles.subtitulo}>
-                        {competenciaTexto(competencia.month, competencia.year)}
-                        {despesas.length > 0 && ` · ${despesas.length} lançamento${despesas.length > 1 ? 's' : ''}`}
-                    </p>
-                </div>
-            </header>
+            <div className={styles.cabecalho}>
+                <Link href={`/dashboard/residences/${residencia.code}`} className={styles.botaoCanto}
+                    aria-label="Retornar à residência" title="Retornar à residência">
+                    <img src="/icons/voltarIcon.svg" alt="Retornar à residência" width={22} height={22} />
+                </Link>
+                <h2>Relatórios</h2>
+                <span className={styles.espacoCanto} />
+            </div>
 
-            <div className={styles.abas} role="tablist">
+            {/* Atalhos para os meses recentes + calendário para qualquer competência anterior */}
+            <div className={styles.seletorLinha}>
+                <SeletorCompetencia
+                    competencia={competencia}
+                    competencias={competencias}
+                    onSelecionar={trocarCompetencia} />
+            </div>
+            <div className={styles.abasContainer}>
+                <div className={styles.abas} role="tablist">
                 <button type="button" role="tab" aria-selected={!ehPessoal}
                     className={!ehPessoal ? styles.abaAtiva : styles.aba}
                     onClick={() => trocarAba('residencia')}>
@@ -111,13 +119,8 @@ export default function RelatorioResidencia({
                 </button>
             </div>
 
-            {/* Atalhos para os meses recentes + calendário para qualquer competência anterior */}
-            <div className={styles.seletorLinha}>
-                <SeletorCompetencia
-                    competencia={competencia}
-                    competencias={competencias}
-                    onSelecionar={trocarCompetencia} />
             </div>
+            
 
             <div className={styles.totalGeral}>
                 <span className={styles.totalRotulo}>{ehPessoal ? "Meus gastos" : "Total da residência"}</span>

@@ -4,29 +4,58 @@
     width: 100%;
 }
 
+/* Seta, título e espaço vazio na mesma linha, com o título centralizado --
+   mesmo molde de PainelResidencia/ConsultaDespesas/AcertosDaCompetencia */
 .cabecalho {
     display: flex;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.25rem;
     margin-bottom: 1.1rem;
 }
 
-.cabecalho h1 {
-    margin: 0;
-    font-size: 1.5rem;
+.cabecalho h2 {
+    flex: 1;
+    text-align: center;
+    overflow-wrap: anywhere;
     color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.4rem;
 }
 
-.subtitulo {
-    margin: 0.3rem 0 0;
-    font-size: 0.8rem;
-    color: var(--ink-3);
+.botaoCanto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.botaoCanto:hover {
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+.espacoCanto {
+    width: 2.25rem;
+    flex-shrink: 0;
 }
 
 /* ============================================================
    ABAS
    ============================================================ */
+.abasContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
 .abas {
     display: inline-flex;
     gap: 0.15rem;
@@ -35,6 +64,7 @@
     border-radius: var(--r-full);
     background: var(--surface-2);
     border: 1px solid var(--border);
+    width: fit-content;    
 }
 
 .aba,
@@ -354,10 +384,6 @@
 }
 
 @media (min-width: 900px) {
-    .cabecalho h1 {
-        font-size: 1.75rem;
-    }
-
     .totalValor {
         font-size: 2.4rem;
     }
