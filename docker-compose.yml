@@ -2,7 +2,7 @@
 # compose próprio, e é ele que sobe a API junto com o Postgres dela. Para o
 # sistema inteiro integrado (front + API + banco), use o repo orquestrador
 # sistema-controle-despesas-deploy. Aponte API_URL para onde a API estiver
-# ouvindo (default assume API rodando no host, na porta 3001).
+# ouvindo (default assume API rodando no host, na porta 8080).
 services:
   app:
     build:
@@ -11,7 +11,7 @@ services:
     container_name: sistema-controle-despesas-front
     environment:
       NODE_ENV: development
-      API_URL: ${API_URL:-http://host.docker.internal:3001}
+      API_URL: ${API_URL:-http://host.docker.internal:8080}
       NEXT_TELEMETRY_DISABLED: 1
     ports:
       - "3000:3000"

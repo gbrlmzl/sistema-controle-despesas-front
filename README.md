@@ -37,7 +37,7 @@ Na V1 o projeto era um monolito Next.js (Route Handlers + Server Actions + Prism
 │   Navegador   │ ─── proxy runtime ►│  Next.js (front) │ ──────────► │            │
 │               │                    │   :3000          │  fetch      │            │
 │  cookies do   │ ◄──────────────────│                  │ ──────────► │ API Express│ ──► PostgreSQL
-│  domínio do   │                    └──────────────────┘             │   :3001    │
+│  domínio do   │                    └──────────────────┘             │   :8080    │
 │    front      │                                                     └────────────┘
 └───────────────┘
 ```
@@ -63,6 +63,7 @@ Organizadas pelos épicos do [documento de requisitos da V2.0](docs/release-v2.0
 | **Identificador público (`username`)** | Campo único e público que permite convidar alguém sem expor o e-mail. |
 | **Perfil** | Edição do nome e escolha entre **20 avatares SVG**; conta Google traz a foto da conta. |
 | **Alterar senha** | Só para contas com senha local (contas só-Google não têm o que trocar). |
+| **Tema claro / escuro** | Alternância pelo botão de sol/lua do [`AppShell`](src/components/layout/AppShell.tsx). O escuro é o tema original e o padrão; a escolha fica em `localStorage` e é aplicada por um script inline antes da hidratação, para não piscar. |
 
 ### Residências
 
@@ -86,13 +87,15 @@ Dois fluxos simétricos de entrada:
 | **De fora para dentro** — solicitação | O usuário digita o **código** da residência e gera uma solicitação, que o owner aceita ou recusa. |
 | **De dentro para fora** — convite | O owner convida alguém pelo **`username`**; o convidado aceita ou recusa. Convites expiram em **7 dias**. |
 
-Complementos: **cancelamento** pelo próprio autor enquanto pendente, **central de notificações** (sino na navbar + tela dedicada) e **proteção contra tentativa em massa** de códigos.
+Complementos: **cancelamento** pelo próprio autor enquanto pendente, **central de notificações** (sino no `AppShell` + tela dedicada) e **proteção contra tentativa em massa** de códigos.
+
+Do lado de dentro, convites enviados e solicitações recebidas moram em uma **tela própria** (`/dashboard/residences/[code]/members/requests`), separada da gestão de membros. Do lado de fora, as pendências do próprio usuário (convites recebidos e solicitações enviadas) aparecem na lista de residências.
 
 ### Despesas colaborativas
 
 | Funcionalidade | Descrição |
 |---|---|
-| **Lançar despesa** | Qualquer membro lança, de forma incremental, a qualquer momento do mês. Valor guardado **em centavos**. |
+| **Lançar despesa** | Qualquer membro lança, de forma incremental, a qualquer momento do mês. Valor guardado **em centavos**. O formulário é um **modal** aberto pelo botão `+` do `AppShell`, disponível de qualquer rota da residência — não há mais uma rota `/new` para despesa. |
 | **Categoria** | Obrigatória, com cinco valores fixos: Alimentação, Contas domésticas, Assinaturas, Lazer e Outros. |
 | **Consultar por competência** | Agrupamento por membro, com total por membro e total geral, navegando entre meses. |
 | **Editar / excluir** | Apenas os próprios lançamentos, com exclusão lógica (`deletedAt`). |
@@ -122,11 +125,12 @@ Complementos: **cancelamento** pelo próprio autor enquanto pendente, **central 
 |---|---|
 | **Framework** | Next.js 16 (App Router, Turbopack) + React 19 |
 | **Linguagem** | TypeScript (`strict`) |
-| **Estilo** | CSS Modules + `modern-css-reset` + `next/font` |
+| **Estilo** | CSS Modules + `modern-css-reset` + `next/font`, sobre design tokens semânticos em `globals.css` (temas por `[data-theme]`) |
 | **Validação** | Zod 4 |
 | **Gráficos** | Recharts 3 |
+| **Ícones** | SVG inline em [`components/layout/Icones.tsx`](src/components/layout/Icones.tsx) — herdam `currentColor` e acompanham o tema |
 | **Datas** | date-fns, react-datepicker |
-| **Testes** | Jest 30 + Testing Library + `next/jest` (SWC) |
+| **Testes** | Jest 30 + Testing Library + `next/jest` (SWC); Cypress 15 para E2E |
 
 ### API ([repositório separado](https://github.com/gbrlmzl/sistema-controle-despesas-api))
 
@@ -147,40 +151,50 @@ Complementos: **cancelamento** pelo próprio autor enquanto pendente, **central 
 ```
 src/
 ├── app/
-│   ├── layout.tsx                  # Root layout: fontes, Navbar, UserProvider (resolve a sessão)
+│   ├── layout.tsx                  # Root layout: fontes, ThemeProvider, UserProvider (resolve a sessão)
+│   ├── globals.css                 # Design tokens (cores por [data-theme], raios, fontes)
 │   ├── page.tsx / Inicio.tsx       # Landing page
 │   ├── error.tsx / global-error.tsx
-│   └── (auth)/                     # Route group das telas de aplicação
-│       ├── login/  register/       # Autenticação (Server Actions)
-│       ├── profile/                # Perfil, avatares e troca de senha
-│       └── app/
-│           ├── page.tsx            # Menu principal
-│           ├── alerts/             # Central de notificações
-│           └── residences/
-│               ├── page.tsx        # Lista + pendências de acesso
-│               ├── new/  join/     # Criar / entrar por código
-│               └── [code]/         # Contexto da residência
-│                   ├── page.tsx    # Painel
-│                   ├── members/    # Gestão de membros
-│                   ├── settings/   # Renomear, arquivar, regenerar código
-│                   ├── expenses/   # Consulta, cadastro (new/) e recorrentes (recurring/)
-│                   └── reports/    # Relatórios e gráficos
+│   ├── api/[...path]/route.ts      # Proxy same-origin do navegador para a API
+│   ├── (auth)/                     # Route group das telas SEM sessão (moldura própria, sem navegação)
+│   │   ├── login/  register/       # Autenticação
+│   │   └── forgot-password/  change-password/
+│   ├── profile/                    # Minha conta: perfil, avatares e settings/password/
+│   └── dashboard/                  # Área autenticada — layout.tsx envolve tudo no AppShell
+│       ├── page.tsx                # Redireciona para /dashboard/residences
+│       ├── alerts/                 # Central de notificações
+│       └── residences/
+│           ├── page.tsx            # Lista + pendências de acesso do usuário
+│           ├── new/  join/         # Criar / entrar por código
+│           └── [code]/             # Contexto da residência
+│               ├── page.tsx        # Painel + Server Actions da residência (*Action.ts)
+│               ├── members/        # Gestão de membros (+ requests/: convites e solicitações)
+│               ├── settings/       # Renomear, arquivar, regenerar código
+│               ├── expenses/       # Consulta por competência e recorrentes (recurring/)
+│               ├── settlements/    # Acertos de pagamento (comprovantes, dispensa)
+│               └── reports/        # Relatórios e gráficos
 ├── components/
+│   ├── layout/AppShell.tsx         # Casca da área autenticada: rail no desktop, header/tab bar no mobile
+│   ├── layout/Icones.tsx           # Ícones SVG inline (+ IconesCategoria.tsx)
 │   ├── providers/UserProvider.tsx  # Contexto de "quem está logado" (substitui o useSession)
-│   ├── residencias/                # ResidenciasMenu
-│   └── ui/                         # Navbar, Snackbar, Loading, SinoNotificacoes
-├── hooks/                          # useLogin, useProfile, useResidencias, useAlertas, useNotificacoes
+│   ├── providers/ThemeProvider.tsx # Tema claro/escuro via <html data-theme> + localStorage
+│   ├── despesas/                   # CadastrarDespesaModal, SeletorCategoria
+│   └── ui/                         # Snackbar, Loading, SinoNotificacoes
+├── hooks/                          # useLogin, useLogout, useProfile, useResidencias, useAlertas,
+│                                   # useNotificacoes, useCompetenciaAberta, useEsqueciSenha, useRedefinirSenha
 ├── lib/
 │   ├── apiClient.ts                # Cliente HTTP server-side (repassa cookies, retry de refresh)
 │   ├── apiClient.client.ts         # Cliente HTTP client-side (refresh deduplicado + cooldown)
 │   ├── apiError.ts                 # ApiError + parse do envelope de erro
 │   ├── session.ts                  # getCurrentUser() — substitui o auth() do NextAuth
-│   ├── expensesApi.ts / reportsApi.ts / residenceApi.ts
+│   ├── setCookie.ts                # Parse de Set-Cookie (usado pelo proxy.ts no Edge)
+│   ├── expensesApi.ts / reportsApi.ts / residenceApi.ts / acertosApi.ts
 │   └── avatars.ts / residenceCode.ts
 ├── schemas/                        # Schemas Zod (despesas, residências, usuários)
-├── types/                          # Tipos compartilhados (auth, residencia, competencia, …)
-├── utils/                          # dinheiro (centavos), categorias, csv, resumoImagem, formatarMomento
-└── proxy.ts                        # Guarda de rota (middleware do Next.js)
+├── types/                          # Tipos compartilhados (auth, residencia, competencia, acerto, …)
+├── utils/                          # dinheiro (centavos), competencia, categorias, csv, resumoImagem,
+│                                   # formatarMomento, acerto, comprimirImagem, converterParaPng, linkNotificacao
+└── proxy.ts                        # Guarda de rota + renovação de sessão (middleware do Next.js)
 
 public/
 ├── avatars/                        # avatar-01.svg … avatar-20.svg
@@ -188,6 +202,8 @@ public/
 ```
 
 Cada página é um **Server Component** que busca dados via `lib/*Api.ts` e delega a interação a um Client Component irmão. As mutações são **Server Actions** (arquivos `*Action.ts`), que validam com Zod, chamam a API e disparam `revalidatePath`.
+
+Três áreas, três molduras: a landing tem cabeçalho próprio, `(auth)` não tem navegação nenhuma (quem chega ali ainda não tem sessão) e `/dashboard` + `/profile` compartilham o [`AppShell`](src/components/layout/AppShell.tsx) — que troca de navegação conforme haja ou não um código de residência na URL.
 
 ---
 
@@ -202,18 +218,21 @@ Cada página é um **Server Component** que busca dados via `lib/*Api.ts` e dele
 | `/change-password` | Redefine a senha a partir do link do email | — (funciona com ou sem sessão, ver F-03 em `docs/plano-recuperacao-de-senha-frontend.md`) |
 | `/profile` | Perfil e galeria de avatares | ✅ |
 | `/profile/settings/password` | Troca de senha | ✅ |
-| `/app` | Menu principal | ✅ |
-| `/app/alerts` | Histórico de notificações | ✅ |
-| `/app/residences` | Lista de residências + pendências | ✅ |
-| `/app/residences/new` | Criar residência | ✅ |
-| `/app/residences/join` | Entrar por código | ✅ |
-| `/app/residences/[code]` | Painel da residência | ✅ |
-| `/app/residences/[code]/members` | Gerenciar membros | ✅ |
-| `/app/residences/[code]/settings` | Configurações da residência | ✅ |
-| `/app/residences/[code]/expenses` | Consulta por competência | ✅ |
-| `/app/residences/[code]/expenses/recurring` | Despesas recorrentes | ✅ |
-| `/app/residences/[code]/reports` | Relatórios e gráficos | ✅ |
+| `/dashboard` | Redireciona para `/dashboard/residences` | ✅ |
+| `/dashboard/alerts` | Histórico de notificações | ✅ |
+| `/dashboard/residences` | Lista de residências + pendências | ✅ |
+| `/dashboard/residences/new` | Criar residência | ✅ |
+| `/dashboard/residences/join` | Entrar por código | ✅ |
+| `/dashboard/residences/[code]` | Painel da residência | ✅ |
+| `/dashboard/residences/[code]/members` | Gerenciar membros | ✅ |
+| `/dashboard/residences/[code]/members/requests` | Convites enviados e solicitações recebidas | ✅ |
+| `/dashboard/residences/[code]/settings` | Configurações da residência | ✅ |
+| `/dashboard/residences/[code]/expenses` | Consulta por competência | ✅ |
+| `/dashboard/residences/[code]/expenses/recurring` | Despesas recorrentes | ✅ |
 | `/dashboard/residences/[code]/settlements` | Acertos de pagamento da competência fechada | ✅ |
+| `/dashboard/residences/[code]/reports` | Relatórios e gráficos | ✅ |
+
+> As rotas da aplicação viviam sob `/app` (dentro do route group `(auth)`) até a reformulação de UI de 11/08/2026; hoje o prefixo é `/dashboard`, e `(auth)` guarda só as telas de quem ainda não tem sessão. O que o middleware protege é exatamente `/dashboard/:path*` e `/profile/:path*` (ver `matcher` em [`src/proxy.ts`](src/proxy.ts)).
 
 ---
 
@@ -226,7 +245,7 @@ O NextAuth foi removido na V2.0. Hoje a sessão é inteiramente da API, e o fron
 | Token | Formato | Vida | Cookie |
 |---|---|---|---|
 | **Access token** | JWT stateless (HS256) | 15 min | `JWT` — `httpOnly`, `sameSite: lax` |
-| **Refresh token** | Valor opaco aleatório (40 bytes) | 7 dias | `refreshToken` — `httpOnly`, `sameSite: strict`, `path=/auth` |
+| **Refresh token** | Valor opaco aleatório (40 bytes) | 7 dias | `REFRESH` — `httpOnly`, `sameSite: strict` |
 
 O refresh token **não é um JWT de propósito**: ele não carrega claim nenhuma, e o banco é a única fonte de verdade sobre validade. Só o **hash SHA-256** é guardado, nunca o valor em texto puro.
 
@@ -237,14 +256,16 @@ Cada refresh gera um token novo e revoga o anterior, todos agrupados por um `fam
 ### Como o front participa
 
 ```
-1. proxy.ts (Edge)     → só checa a PRESENÇA do cookie JWT, sem validar assinatura
+1. proxy.ts (Edge)     → decodifica o exp do JWT (sem validar assinatura); se estiver
+                         perto de expirar e houver REFRESH, chama POST /auth/refresh
+                         ANTES do render e propaga os cookies novos
 2. layout.tsx          → getCurrentUser() chama GET /users/me a cada render
 3. apiClient           → em 401, tenta POST /auth/refresh uma vez e repete a chamada
 ```
 
 Três detalhes que valem atenção:
 
-- **O `proxy.ts` não é autorização.** Ele roda no Edge Runtime, onde a biblioteca de JWT da API não funciona, então só resolve "tem cookie ou não" antes da página renderizar. A autorização de verdade é sempre da API, a cada chamada — um cookie presente mas expirado passa pelo proxy e falha depois.
+- **O `proxy.ts` não é autorização.** Ele roda no Edge Runtime, onde a biblioteca de JWT da API não funciona, então só lê o `exp` do payload — uma heurística de "provavelmente expirado", nunca uma validação. A autorização de verdade é sempre da API, a cada chamada: um cookie presente mas inválido passa pelo proxy e falha depois. Ele é, porém, **o único ponto do fluxo que roda antes do render e onde o Next.js deixa escrever cookie de fato** — por isso a renovação proativa mora ali, e os cookies renovados são gravados tanto na resposta quanto no header `Cookie` do próprio request (o `cookies()` de `next/headers` lê o request, não o `Set-Cookie` do middleware).
 - **O `apiClient` do servidor repassa os cookies na mão** e reaplica os `Set-Cookie` da API via `next/headers`, porque nada disso é automático em `fetch` server-to-server.
 - **O `apiClient.client` deduplica o refresh**: se duas chamadas tomam 401 ao mesmo tempo, a segunda espera a promise que a primeira já disparou. Há ainda um cooldown de 30s após uma falha, para não entrar em loop.
 
@@ -252,7 +273,7 @@ Três detalhes que valem atenção:
 
 ## 🔌 API REST
 
-Base local: `http://localhost:3001`. Do front, tudo passa por `/api/*` (rewrite). Erros sempre respondem `{ message }` com o status apropriado.
+Base local: `http://localhost:8080`. Do front, tudo passa por `/api/*` — pelo Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>) quando a chamada nasce no navegador, e direto pelo `apiClient` quando nasce em Server Component ou Server Action. Erros sempre respondem `{ message }` com o status apropriado.
 
 ### Autenticação — `/auth` (público)
 
@@ -262,6 +283,9 @@ Base local: `http://localhost:3001`. Do front, tudo passa por `/api/*` (rewrite)
 | `POST` | `/auth/login` | Login por `username` + `password` |
 | `POST` | `/auth/refresh` | Rotaciona o refresh token e emite novo access token |
 | `POST` | `/auth/logout` | Revoga o refresh token e limpa os cookies |
+| `POST` | `/auth/forgot-password` | Dispara o email com o link de redefinição (sempre `200`, anti-enumeração) |
+| `POST` | `/auth/reset-password/verify` | Valida o token do link antes de mostrar o formulário |
+| `POST` | `/auth/reset-password` | Redefine a senha pelo token — **sem** abrir sessão |
 | `GET` | `/auth/google` | Início do OAuth _(só se o Google estiver configurado)_ |
 | `GET` | `/auth/google/callback` | Callback do OAuth |
 
@@ -296,7 +320,8 @@ Base local: `http://localhost:3001`. Do front, tudo passa por `/api/*` (rewrite)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/expenses?month=&year=` | Despesas da competência, agrupadas por membro _(sem query: a competência aberta)_ |
+| `GET` | `/expenses?month=&year=` | Despesas da competência, agrupadas por membro _(sem query: a competência aberta)_. Traz também o bloco `settlement` com "o meu lado" nos acertos |
+| `GET` | `/expenses/competencies` | Competências disponíveis para navegação no seletor |
 | `POST` | `/expenses` | Lança despesa na competência aberta |
 | `PATCH` | `/expenses/:expenseId` | Edita a própria despesa |
 | `DELETE` | `/expenses/:expenseId` | Exclui (lógico) a própria despesa |
@@ -304,6 +329,21 @@ Base local: `http://localhost:3001`. Do front, tudo passa por `/api/*` (rewrite)
 | `DELETE` | `/expenses/:expenseId/recurrence` | Para a recorrência sem excluir o lançamento |
 | `POST` | `/expenses/month-closures` | Fecha o mês _(owner)_ |
 | `DELETE` | `/expenses/month-closures/:period` | Reabre o mês _(owner)_ |
+
+### Acertos de pagamento — `/residences/:code/closures/:period` 🔒
+
+`:period` é a competência no formato `AAAAMM`. Só existe para competência **fechada**: período aberto (ou usuário que não é membro) responde `404`, e o front trata como `notFound()`.
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/settlements` | Pares devedor→credor da competência, com totais, comprovantes e o que o usuário pode fazer (`canAct` / `canUpload`) |
+| `POST` | `/settlements/:id/confirm` | O credor confirma o recebimento |
+| `POST` | `/settlements/:id/waive` | O owner dispensa a linha, com motivo |
+| `POST` | `/settlements/:id/receipts` | Pede a URL pré-assinada de upload (envia `contentType`, `sizeInBytes`, `originalName`) |
+| `POST` | `/settlements/:id/receipts/:receiptId/complete` | Confirma o upload concluído e marca a linha como paga |
+| `GET` | `/receipts/:receiptId/url` | URL temporária para visualizar um comprovante |
+
+O arquivo em si **não passa pela API**: o navegador comprime a imagem (PDF passa direto), pede a URL pré-assinada, faz `POST` do form direto ao S3 e só então chama `/complete`.
 
 ### Relatórios e notificações 🔒
 
@@ -346,6 +386,13 @@ User ──< UserAuthProvider          (provedores de login: local | google)
 | **JoinAttempt** | `userId`, `createdAt` | Contador persistido, para sobreviver a restart e múltiplas instâncias. |
 
 **Enums:** `MembershipRole`, `AccessStatus`, `ExpenseCategory` (`ALIMENTACAO`, `DOMESTICAS`, `ASSINATURAS`, `LAZER`, `OUTROS`) e `NotificationType` (convite recebido, solicitação recebida/aceita/recusada, membro removido, propriedade transferida, mês fechado).
+
+**Acertos.** O fechamento do mês passou a gerar também as linhas de acerto, penduradas no `MonthClosure`. O schema fica na API; o contrato que este repositório consome está tipado em [`src/types/acerto.ts`](src/types/acerto.ts):
+
+- Uma linha por **par** devedor→credor (nunca por pessoa: quem deve para dois membros aparece em duas linhas), com `payer`, `receiver`, `amountInCents`, `paidAt`, `confirmedAt`, `waivedAt` e `waiveReason`.
+- Status da linha: `PENDING` → `AWAITING_CONFIRMATION` → `SETTLED`, ou `WAIVED` quando o owner dispensa. O fechamento inteiro tem o seu próprio status agregado (`AWAITING_PAYMENT`, `AWAITING_CONFIRMATION`, `SETTLED`).
+- Cada linha guarda os **comprovantes** enviados (`contentType`, `sizeInBytes`, `originalName`, `uploadedAt`, `uploadedByName`) — o binário fica no S3, não no banco.
+- Fechamento antigo, anterior à funcionalidade, devolve a lista vazia em vez de `404`.
 
 ---
 
@@ -401,6 +448,31 @@ npm test
 
 > Testes ficam junto do código, em arquivos `*.test.tsx` / `*.spec.tsx` ou dentro de `__tests__/`.
 
+O plano de ampliação de cobertura — o que vale testar e em que ordem — está em [`docs/plano-cobertura-testes.md`](docs/plano-cobertura-testes.md); o catálogo de casos, em [`docs/backlog-e-casos-de-teste.md`](docs/backlog-e-casos-de-teste.md).
+
+### E2E (Cypress)
+
+Os specs vivem em [`cypress/e2e/`](cypress/e2e) e rodam **contra um build de produção** na porta `3100`, não contra o dev server: em dev com Turbopack a hidratação de algumas rotas às vezes não termina a tempo, e cliques do Cypress passam silenciosamente sem efeito. A API precisa estar no ar.
+
+```bash
+npm run test:e2e        # build + next start -p 3100 + cypress run
+npm run test:e2e:fast   # o mesmo, reaproveitando o build existente
+npm run test:e2e:open   # abre a interface do Cypress
+```
+
+| Spec | Fluxo coberto |
+|---|---|
+| `criar-conta.cy.ts` / `recuperar-senha.cy.ts` | Cadastro e recuperação de senha |
+| `perfil-e-logout.cy.ts` | Perfil, avatares e saída da sessão |
+| `criar-residencia.cy.ts` / `entrar-residencia-codigo.cy.ts` | Criação e entrada por código |
+| `convite-membro.cy.ts` / `gerenciar-membros.cy.ts` | Convites, solicitações e gestão de membros |
+| `painel-residencia.cy.ts` / `configuracoes-residencia.cy.ts` | Painel e configurações da residência |
+| `lancar-despesa.cy.ts` / `editar-excluir-despesa.cy.ts` / `despesa-recorrente.cy.ts` | Ciclo de vida das despesas |
+| `fechar-reabrir-mes.cy.ts` / `acertos-de-pagamento.cy.ts` | Fechamento do mês e acertos |
+| `relatorios-residencia.cy.ts` / `central-notificacoes.cy.ts` | Relatórios e central de notificações |
+
+> No CI, esses specs **não rodam neste repositório** — quem os executa é o repositório de deploy, contra a stack completa. Ver [Onde o E2E roda](#onde-o-e2e-roda).
+
 ### API
 
 Jest + Supertest, separados em `tests/unit` (services e schemas) e `tests/integration` (rotas de ponta a ponta).
@@ -432,7 +504,7 @@ cd ../sistema-controle-despesas-api
 npm install
 cp .env.example .env    # preencha DATABASE_URL e JWT_SECRET
 npx prisma migrate dev  # aplica as migrations e gera o client
-npm run dev             # sobe em http://localhost:3001
+npm run dev             # sobe em http://localhost:8080
 ```
 
 > `JWT_SECRET` precisa de no mínimo 32 caracteres. Gere um com:
@@ -454,8 +526,14 @@ npm run dev                  # sobe em http://localhost:3000
 |---|---|---|
 | **Front** | `npm run dev` | Servidor de desenvolvimento (Turbopack) |
 | | `npm run build` / `npm start` | Build e servidor de produção |
+| | `npm run start:e2e` | Servidor de produção na porta `3100`, usada pelo Cypress |
 | | `npm run lint` | ESLint |
 | | `npm test` | Jest |
+| | `npm run test:watch` | Jest em modo watch |
+| | `npm run test:coverage` | Jest com relatório de cobertura (o que o CI roda) |
+| | `npm run test:low-cost` | Jest em série (`--runInBand`), para máquina com pouca memória |
+| | `npm run test:e2e` / `test:e2e:fast` / `test:e2e:open` | Cypress contra o build de produção (ver "Testes") |
+| | `npm run cypress:run` / `cypress:open` | Cypress avulso, contra um servidor já no ar |
 | **API** | `npm run dev` | `tsx watch` em `src/server.ts` |
 | | `npm run build` / `npm start` | Compila para `dist/` e executa |
 | | `npm test` | Jest (unitários + integração) |
@@ -476,14 +554,14 @@ Definida em `.env.local` (desenvolvimento) e `.env.test` (testes, versionado por
 **Em produção**, `API_URL` é lida do **ambiente do container em runtime** — trocar de API alvo é só mudar a variável e reiniciar o processo, sem rebuild. (Até 21/08/2026, o caminho do navegador passava por um `rewrite` do Next resolvido em **build-time**, congelado em `routes-manifest.json`; foi a causa de uma indisponibilidade em produção, corrigida trocando o rewrite pelo Route Handler acima.) No ECS, front e API rodam em **tasks separadas** (`cronos-front` e `cronos-app`, network mode `bridge`) e se acham pelo gateway da bridge do Docker (`172.17.0.1`), mapeado para o nome `api` via `extraHosts` na task definition do front — então essa variável deve valer:
 
 ```
-API_URL=http://api:3001
+API_URL=http://api:8080
 ```
 
 **Detalhe de build que sobrevive à mudança acima:** o `next build` ainda precisa de `API_URL` **presente** (não necessariamente correta) durante a etapa "Collecting page data" — o Next avalia o módulo de cada rota nessa etapa, e o Route Handler acima (como `apiClient.ts` e `proxy.ts`) lança erro se a variável estiver vazia. É só um guard de "não suba sem isso"; o valor usado no build não influencia mais o comportamento da imagem publicada, então o [`Dockerfile`](Dockerfile) e o [`ci.yml`](.github/workflows/ci.yml) continuam passando um placeholder via `--build-arg`, mas a antiga **Repository Variable** `API_URL` do GitHub deixou de ser necessária.
 
 Esse valor é uma constante da arquitetura (o `extraHosts` garante que `api` resolva dentro do container em qualquer deploy), não algo que varia por ambiente.
 
-> ⚠️ **`API_URL` precisa existir no ambiente do container em runtime**, não só como `--build-arg`. Os três consumidores (Route Handler, `apiClient.ts`, `proxy.ts`) lançam `Error: Variável de ambiente API_URL não configurada.` na primeira chamada se ela estiver ausente — e como `proxy.ts` roda a cada requisição para renovar a sessão, essa falha vira **toda página retornando 500**. Na task definition do ECS (repositório de deploy), o container do front precisa ter `API_URL=http://api:3001` configurada como variável de ambiente de runtime.
+> ⚠️ **`API_URL` precisa existir no ambiente do container em runtime**, não só como `--build-arg`. Os três consumidores (Route Handler, `apiClient.ts`, `proxy.ts`) lançam `Error: Variável de ambiente API_URL não configurada.` na primeira chamada se ela estiver ausente — e como `proxy.ts` roda a cada requisição para renovar a sessão, essa falha vira **toda página retornando 500**. Na task definition do ECS (repositório de deploy), o container do front precisa ter `API_URL=http://api:8080` configurada como variável de ambiente de runtime.
 
 ### API
 
@@ -491,7 +569,7 @@ Esse valor é uma constante da arquitetura (o `extraHosts` garante que `api` res
 |---|---|---|
 | `DATABASE_URL` | — | **Obrigatória.** Conexão do PostgreSQL. |
 | `JWT_SECRET` | — | **Obrigatória.** Mínimo de 32 caracteres. |
-| `PORT` | `3001` | Porta do servidor. |
+| `PORT` | `8080` | Porta do servidor. |
 | `NODE_ENV` | `development` | `development` \| `test` \| `production`. |
 | `FRONTEND_URL` | `http://localhost:3000` | Origem do front (CORS com credenciais + redirect do OAuth). |
 | `JWT_EXPIRES_IN` | `15m` | Vida do access token. |
@@ -505,6 +583,8 @@ As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://gi
 ## 📐 Convenções de código
 
 - **CSS Modules por componente** (`*.module.css`), com variáveis globais em `globals.css` e fontes injetadas via `next/font` como CSS vars.
+- **Design tokens semânticos, não literais** (`--surface`, `--ink`, `--accent` — nunca `--azul`). Os tokens de cor moram em blocos por tema (`:root[data-theme="…"]`), então trocar de tema é reescrever esse bloco, sem tocar em componente nenhum.
+- **Ícones são componentes SVG inline** ([`components/layout/Icones.tsx`](src/components/layout/Icones.tsx)), não `<img>` de `public/icons`: herdam `currentColor`, acompanham o tema e não custam uma requisição cada.
 - **Server Components buscam, Client Components interagem.** A página resolve os dados e passa para um componente cliente irmão.
 - **Mutação é Server Action.** Arquivos `*Action.ts` com `'use server'`, retornando o `ActionState` comum (`{ success, message, data? }`) e chamando `revalidatePath`.
 - **Zod em toda entrada**, tanto nas Server Actions quanto nas rotas da API.
@@ -543,8 +623,12 @@ O CI **deste** repositório cobre lint, testes unitários (Jest) e build de prod
 | [`docs/plano-integracao-frontend-api.md`](docs/plano-integracao-frontend-api.md) | Plano de integração do front com a API |
 | [`docs/estrategia-tratamento-erros-api.md`](docs/estrategia-tratamento-erros-api.md) | Estratégia de tratamento de erros nas chamadas à API |
 | [`docs/migracao-typescript.md`](docs/migracao-typescript.md) | Registro da migração de JavaScript para TypeScript |
+| [`docs/decisao-sincronizacao-usuario-pos-acao.md`](docs/decisao-sincronizacao-usuario-pos-acao.md) | Como o usuário do contexto é sincronizado após login/cadastro/logout/perfil, e por que |
 | [`docs/backlog-e-casos-de-teste.md`](docs/backlog-e-casos-de-teste.md) | Backlog de funcionalidades com cobertura de teste, e documentação de cada caso de teste do front-end |
+| [`docs/plano-cobertura-testes.md`](docs/plano-cobertura-testes.md) | Sequência de trabalho para elevar a cobertura, priorizando Server Actions e hooks |
 | [`docs/plano-recuperacao-de-senha-frontend.md`](docs/plano-recuperacao-de-senha-frontend.md) | Plano do fluxo de recuperação de senha no front |
+| [`docs/plano-registro-de-pagamentos-frontend.md`](docs/plano-registro-de-pagamentos-frontend.md) | Plano do front para o registro e rastreio de pagamentos (base dos acertos) |
+| [`docs/funcionalidade-pagamentos.md`](docs/funcionalidade-pagamentos.md) | Proposta de evolução dos pagamentos — **em discussão, nada implementado** |
 | [`docs/relatorios/RELATORIO_V1.1.md`](docs/relatorios/RELATORIO_V1.1.md) | Relatório da versão anterior |
 
 ---
@@ -560,7 +644,7 @@ Levantadas durante o incidente de 20-21/08/2026.
 
 - ~~O rewrite `/api/*` continua congelado em build-time.~~ **Resolvido em código**: o antigo `rewrite` de `next.config.ts` deu lugar ao Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>), que lê `API_URL` em runtime a cada requisição — a mesma imagem passa a servir qualquer ambiente, sem rebuild. Falta **validar via e2e e fazer o deploy**; até lá, produção continua rodando a correção mínima aplicada em 21/08/2026.
 - **Google OAuth e SMTP dependem de variáveis na task `cronos-app`.** O código dos dois está pronto nos dois repositórios; falta preencher os dois grupos de variáveis de ambiente da API. O `env.ts` trata cada grupo como "tudo ou nada" — preencher pela metade **impede a API de subir**. Enquanto o grupo do OAuth estiver ausente, `/auth/google` nem é registrada no Express e o botão "Continuar com Google" leva a um 404; enquanto o grupo SMTP estiver ausente, a recuperação de senha completa o fluxo **sem nunca enviar o email**. Nada disso é configurável neste repositório: as 4 + 5 variáveis moram na task definition da API, no [repositório de deploy](https://github.com/gbrlmzl/sistema-controle-despesas-deploy).
-- **A porta da API (`3001`) difere da do front (`3000`) em um dígito.** Fonte recorrente de confusão ao ler comando, log e task definition. Padronizar a API em `8080` custa 6 arquivos de código (nenhum neste repositório — só o **valor** da variável `API_URL` no ambiente do container) e 3 mudanças de infra na AWS. Vale agrupar com o deploy da mudança acima, para pagar um ciclo de deploy em vez de dois.
+- ~~A porta da API (`3001`) difere da do front (`3000`) em um dígito.~~ **Resolvido**: a API foi padronizada em **`8080`**, e o repositório inteiro passou a refletir isso — `.env.example`, `.env.test`, o placeholder do [`Dockerfile`](Dockerfile), o do [`ci.yml`](.github/workflows/ci.yml), o [`docker-compose.yml`](docker-compose.yml) e esta documentação. Em produção, isso implica `API_URL=http://api:8080` na task definition do front e `PORT=8080` na da API — as duas moram no [repositório de deploy](https://github.com/gbrlmzl/sistema-controle-despesas-deploy), então **confira se as duas foram atualizadas junto**; mudar uma só derruba a integração.
 
 ---
 
