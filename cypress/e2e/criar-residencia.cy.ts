@@ -12,8 +12,11 @@ describe('deveria criar uma residência', () => {
     cy.get("a[href='/dashboard/residences']").first().click();
     cy.location('pathname').should('eq', '/dashboard/residences');
 
-    // Abre o formulário de criação
-    cy.get("a[href='/dashboard/residences/new']").click();
+    // Abre o formulário de criação. O href sozinho casa com 3 elementos desde
+    // que o AppShell passou a oferecer "Nova residência" fora de uma residência
+    // (dois deles são da navegação, desktop e mobile) — cy.click() recusa mais
+    // de um elemento, então ancora no botão da própria lista.
+    cy.contains('a', 'Criar residência').click();
     cy.location('pathname').should('eq', '/dashboard/residences/new');
 
     // Preenche e envia o formulário
