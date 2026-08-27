@@ -14,7 +14,9 @@ describe('deveria editar o perfil, trocar a senha e sair', () => {
       cy.contains('strong', 'Nome:').parent().should('contain.text', `Cypress Editado ${identificadorUnico}`);
 
       // Editar avatar.
-      cy.get('img[alt="Editar foto"]').click();
+      // O gatilho do avatar virou um botão com SVG inline (IconeCamera em
+      // Profile.tsx): não há mais <img alt> pra ancorar o seletor.
+      cy.get('button[aria-label="Alterar foto de perfil"]').click();
       cy.get('[role="dialog"]').within(() => {
         cy.contains('Escolha uma foto de perfil').should('be.visible');
         cy.get('button[aria-pressed]').first().click();

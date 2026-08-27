@@ -14,10 +14,16 @@ describe('deveria gerenciar membros da residência', () => {
             cy.contains('button', 'Fechar').click();
           });
 
-          cy.visit(`/dashboard/residences/${codigo}`);
-          cy.contains('Convites enviados').should('be.visible');
-          cy.clicarAteSumir(() => cy.contains('button', 'Cancelar'), 'Convites enviados');
-          cy.contains('Convites enviados').should('not.exist');
+          // Convites enviados moram numa tela própria do owner, não mais no
+          // painel da residência (ver members/requests/SolicitacoesConvites.tsx).
+          cy.visit(`/dashboard/residences/${codigo}/members/requests`);
+
+          // O título da seção fica na página mesmo sem convites pendentes
+          // ("Nenhum convite enviado pendente."), então é o contador que
+          // diferencia ter um convite de não ter nenhum.
+          cy.contains('h3', 'Convites enviados (1)').should('be.visible');
+          cy.clicarAteSumir(() => cy.contains('button', 'Cancelar'), 'Convites enviados (1)');
+          cy.contains('Nenhum convite enviado pendente.').should('be.visible');
 
           // Convida de novo, e dessa vez o convidado aceita.
           cy.visit(`/dashboard/residences/${codigo}/members?convidar=1`);
