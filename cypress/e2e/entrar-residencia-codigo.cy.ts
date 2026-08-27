@@ -12,17 +12,24 @@ describe('deveria entrar em uma residência por código', () => {
           cy.contains('Solicitação enviada', { matchCase: false }).should('be.visible');
 
           cy.login(dono.username, dono.password);
-          cy.visit(`/dashboard/residences/${codigo}`);
 
-          cy.contains('Solicitações de entrada').should('be.visible');
+          // Solicitações e convites moram numa tela própria do owner, não mais
+          // no painel da residência (ver members/requests/SolicitacoesConvites.tsx).
+          cy.visit(`/dashboard/residences/${codigo}/members/requests`);
+
+          // O título da seção fica na página mesmo sem pendências ("Nenhuma
+          // solicitação pendente."), então o contador é o que diferencia ter
+          // uma solicitação de não ter nenhuma.
+          cy.contains('h3', 'Solicitações de entrada (1)').should('be.visible');
+
           // Primeira interação após um cy.visit: usa retentativa (ver
           // cypress/support/commands.ts) contra a rara corrida de hidratação.
           cy.clicarAteSumir(
             () => cy.contains('li', 'Teste Cypress').find('button:contains("Aceitar")'),
-            'Solicitações de entrada'
+            'Solicitações de entrada (1)'
           );
 
-          cy.contains('Solicitações de entrada').should('not.exist');
+          cy.contains('Nenhuma solicitação pendente.').should('be.visible');
 
           // Ambos os usuários de teste têm o mesmo nome genérico ("Teste
           // Cypress") — o sinal de que a solicitação virou associação de
