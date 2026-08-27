@@ -79,6 +79,24 @@
     color: var(--ink);
 }
 
+/* C.1 -> chamada pro que falta acertar, no card de saldo */
+.chamadaAcertos {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--ink-2);
+    text-decoration: none;
+}
+
+.chamadaAcertosLink {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.chamadaAcertos:hover .chamadaAcertosLink {
+    text-decoration: underline;
+}
+
 /* ============================================================
    CARD DE TOTAL DA CASA — número + histórico das competências
    ============================================================ */
@@ -98,13 +116,42 @@
     gap: 0.5rem;
 }
 
-.seloFechado {
+/* C.1 -> selo de 4 estados da competência fechada. .selo carrega o formato
+   comum; cada tom troca só a cor, igual --pos/--neg já fazem noutras telas. */
+.selo {
     padding: 0.15rem 0.55rem;
     border-radius: var(--r-full);
+    font-size: 0.65rem;
+    white-space: nowrap;
+}
+
+/* Fechamento sem nada a acertar (legado ou sem linhas, D-09) -- neutro de
+   propósito, pra não parecer que falta ação nenhuma */
+.seloNeutro {
+    background: var(--surface-3);
+    border: 1px solid var(--border-strong);
+    color: var(--ink-2);
+}
+
+/* Falta alguém pagar -- mesmo tom âmbar que o resto do app usa pra "pendente" */
+.seloAtencaoPagamento {
     background: var(--amber-bg);
     border: 1px solid var(--amber-border);
     color: var(--amber-ink);
-    font-size: 0.65rem;
+}
+
+/* Todo mundo já pagou, falta confirmar -- tom distinto de propósito (C.1):
+   não é mais "você precisa agir", é "está em andamento" */
+.seloAtencaoConfirmacao {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.seloPositivo {
+    background: var(--pos-bg);
+    border: 1px solid var(--pos);
+    color: var(--pos);
 }
 
 .totalValor {

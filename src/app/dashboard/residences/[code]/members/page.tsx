@@ -19,11 +19,12 @@ export default async function Membros({ params, searchParams }: PageProps) {
         notFound();
     }
 
-    const { residence: residencia } = detalhe;
+    const { residence: residencia, pendingJoinRequests: solicitacoes } = detalhe;
 
     return (
         <div className="superficie">
             <GerenciarMembros residencia={residencia}
+                quantidadeSolicitacoes={solicitacoes.length}
                 abrirConviteInicial={convidar === '1' && residencia.isOwner && !residencia.isArchived} />
         </div>
     )

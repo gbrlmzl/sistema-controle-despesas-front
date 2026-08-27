@@ -139,16 +139,12 @@
     border-radius: var(--r-md);
     border: 1px solid var(--border);
     background: var(--surface-2);
+    color: var(--ink-2);
 }
 
 .botaoAcao:hover {
     border-color: var(--accent);
-}
-
-/* copiarIcon e avancarIcon já são desenhados em branco — não levam filtro */
-.botaoAcao img {
-    width: 55%;
-    height: 55%;
+    color: var(--accent);
 }
 
 .secaoArquivadas {

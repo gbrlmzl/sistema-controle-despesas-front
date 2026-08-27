@@ -47,7 +47,8 @@ describe("cancelarConviteAction", () => {
         const resultado = await cancelarConviteAction("AB12CD", 5);
 
         expect(mockApiFetch).toHaveBeenCalledWith("/residences/invites/5", { method: "DELETE" });
-        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/residences/AB12CD");
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/residences/AB12CD/members/requests");
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/residences/AB12CD/members");
         expect(resultado).toEqual({ success: true, message: "Convite para Carla cancelado." });
     });
 

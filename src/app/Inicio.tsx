@@ -28,7 +28,6 @@ export default function Inicio() {
 
             <main className={styles.hero}>
                 <div className={styles.heroTexto}>
-                    <span className={styles.selo}>Despesas compartilhadas</span>
                     <h1>Ninguém mais pergunta &ldquo;quanto eu devo?&rdquo;</h1>
                     <p>
                         Cada morador lança o que pagou. O Cronos calcula a cota de cada um,

@@ -7,18 +7,20 @@ import ListaMembros from "../ListaMembros";
 import ConfirmacaoModal from "../ConfirmacaoModal";
 import ConvidarUsuarioModal from "../ConvidarUsuarioModal";
 import Snackbar from "@/components/ui/Snackbar";
+import { IconeSolicitacoes } from "@/components/layout/Icones";
 import styles from "./GerenciarMembros.module.css";
 import type { Residencia } from "@/types/residencia";
 
 interface GerenciarMembrosProps {
     residencia: Residencia;
+    quantidadeSolicitacoes: number;
     abrirConviteInicial?: boolean;
 }
 
 //FEAT-010 e FEAT-011 -> lista de membros com as ações de remover e transferir a
 //propriedade. Saiu do painel para uma tela própria, alcançada pelas configurações.
 //FEAT-007/US-007 -> convidar usuário mora aqui também, ao lado de quem já mora na casa.
-export default function GerenciarMembros({ residencia, abrirConviteInicial = false }: GerenciarMembrosProps) {
+export default function GerenciarMembros({ residencia, quantidadeSolicitacoes, abrirConviteInicial = false }: GerenciarMembrosProps) {
     const {
         confirmacao,
         fecharConfirmacao,
@@ -45,7 +47,23 @@ export default function GerenciarMembros({ residencia, abrirConviteInicial = fal
                     <img src="/icons/voltarIcon.svg" alt="Retornar" width={22} height={22} />
                 </Link>
                 <h2>Membros</h2>
-                <span className={styles.espacoCanto} />
+                {/* US-009 e US-022 -> só o owner administra convites e solicitações;
+                    o contador funciona como o do sino de notificações (CA-2). */}
+                {residencia.isOwner ? (
+                    <Link href={`/dashboard/residences/${residencia.code}/members/requests`}
+                        className={styles.botaoSolicitacoes}
+                        aria-label={quantidadeSolicitacoes > 0
+                            ? `Convites e solicitações, ${quantidadeSolicitacoes} solicitação(ões) pendente(s)`
+                            : "Convites e solicitações"}
+                        title="Convites e solicitações">
+                        <IconeSolicitacoes size={18} />
+                        {quantidadeSolicitacoes > 0 && (
+                            <span className={styles.indicador}>{quantidadeSolicitacoes > 9 ? "9+" : quantidadeSolicitacoes}</span>
+                        )}
+                    </Link>
+                ) : (
+                    <span className={styles.espacoCanto} />
+                )}
             </div>
 
             <p className={styles.nomeResidencia}>{residencia.name}</p>

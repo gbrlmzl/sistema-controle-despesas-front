@@ -51,6 +51,42 @@
     flex-shrink: 0;
 }
 
+.botaoSolicitacoes {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink-2);
+}
+
+.botaoSolicitacoes:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
+}
+
+.indicador {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: var(--r-full);
+    border: 2px solid var(--surface);
+    background: var(--neg);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 500;
+    line-height: 13px;
+    text-align: center;
+}
+
 .nomeResidencia {
     font-family: var(--font-body);
     font-size: 1rem;

@@ -1,4 +1,5 @@
 import type { ExpenseCategory } from "./expenseCategory";
+import type { AcertosDaCompetencia } from "./acerto";
 
 export interface MembroResidencia {
     userId: number;
@@ -46,6 +47,7 @@ export interface ResumoCompetencia {
     totalInCents: number;
     quantidade: number;
     isClosed: boolean;
+    settlement: AcertosDaCompetencia | null;
     porMembro: { userId: number; name: string; totalInCents: number }[];
 }
 
@@ -73,6 +75,9 @@ export interface ResumoDespesas {
     isClosed: boolean;
     closedAt: string | null;
     closedByName: string | null;
+    //Acertos de pagamento da competência -- null quando ela está aberta ou quando o
+    //fechamento não tem linhas (fechamento legado, D-09 do plano de arquitetura).
+    settlement: AcertosDaCompetencia | null;
 }
 
 export interface CompetenciaComDespesas {

@@ -1,14 +1,18 @@
 'use client'
 
+import Link from "next/link";
+
 import { formatarValor } from "@/utils/dinheiro";
 import { competenciaTexto, nomeDoMes, corCategoria } from "@/utils/categorias";
 import { formatarMomento } from "@/utils/formatarMomento";
+import { descricaoSelo, resumoMeusAcertos } from "@/utils/acerto";
 import styles from "./ResumoDoMes.module.css";
 import type { Competencia } from "@/types/competencia";
 import type { ResumoCompetencia, AtividadeItem } from "@/types/residencia";
 import type { ParticipanteRateio, Evolucao, Comparativo } from "@/types/relatorios";
 
 interface ResumoDoMesProps {
+    codigo: string;
     competencia: Competencia;
     resumo: ResumoCompetencia;
     atividade: AtividadeItem[];
@@ -16,6 +20,15 @@ interface ResumoDoMesProps {
     evolucao: Evolucao;
     comparativo: Comparativo;
 }
+
+//C.1 -> tom do selo vira a classe CSS correspondente. Um objeto em vez de um
+//switch porque é só uma tradução 1:1, sem lógica.
+const CLASSE_POR_TOM = {
+    neutro: 'seloNeutro',
+    atencaoPagamento: 'seloAtencaoPagamento',
+    atencaoConfirmacao: 'seloAtencaoConfirmacao',
+    positivo: 'seloPositivo',
+} as const;
 
 //Área útil do sparkline em unidades do viewBox. A curva nunca encosta nas bordas:
 //sem essa folga o ponto do último mês fica cortado pela metade.
@@ -45,12 +58,18 @@ function pontosDoGrafico(evolucao: Evolucao): string {
         .join(" ");
 }
 
-export default function ResumoDoMes({ competencia, resumo, atividade, saldoPessoal, evolucao, comparativo }: ResumoDoMesProps) {
+export default function ResumoDoMes({ codigo, competencia, resumo, atividade, saldoPessoal, evolucao, comparativo }: ResumoDoMesProps) {
 
     const maiorTotal = resumo.porMembro.reduce((maior, membro) => Math.max(maior, membro.totalInCents), 0);
 
     const recebe = (saldoPessoal?.saldoInCents ?? 0) > 0;
     const paga = (saldoPessoal?.saldoInCents ?? 0) < 0;
+
+    //C.1 -> selo de 4 estados, alimentado pelo bloco settlement que já vem
+    //junto com o resumo -- nenhuma requisição extra.
+    const selo = descricaoSelo(resumo.isClosed, resumo.settlement);
+    const chamadaAcertos = resumo.settlement ? resumoMeusAcertos(resumo.settlement.mine) : null;
+    const linkAcertos = `/dashboard/residences/${codigo}/settlements?mes=${competencia.month}&ano=${competencia.year}`;
 
     const pontos = pontosDoGrafico(evolucao);
     const ultimo = evolucao.length > 0 ? pontos.split(" ").at(-1)?.split(",") : undefined;
@@ -73,6 +92,14 @@ export default function ResumoDoMes({ competencia, resumo, atividade, saldoPesso
                                 Você pagou <strong className="num">{formatarValor(saldoPessoal.gastoInCents)}</strong>
                                 {' '}e sua cota é <strong className="num">{formatarValor(saldoPessoal.cotaInCents)}</strong>.
                             </p>
+
+                            {/* C.1 -> chamada direta pro que falta acertar, só quando sobra
+                                alguma linha ainda não tocada (ver resumoMeusAcertos) */}
+                            {chamadaAcertos && (
+                                <Link href={linkAcertos} className={styles.chamadaAcertos}>
+                                    {chamadaAcertos.texto} · <span className={styles.chamadaAcertosLink}>Ver acertos</span>
+                                </Link>
+                            )}
                         </>
                     ) : (
                         <>
@@ -86,7 +113,9 @@ export default function ResumoDoMes({ competencia, resumo, atividade, saldoPesso
                 <section className={styles.cardTotal}>
                     <div className={styles.cardTotalTopo}>
                         <p className={styles.rotulo}>Total da residência</p>
-                        {resumo.isClosed && (<span className={styles.seloFechado}>fechado</span>)}
+                        {selo && (
+                            <span className={`${styles.selo} ${styles[CLASSE_POR_TOM[selo.tom]]}`}>{selo.texto}</span>
+                        )}
                     </div>
 
                     <p className={`${styles.totalValor} num`}>{formatarValor(resumo.totalInCents)}</p>

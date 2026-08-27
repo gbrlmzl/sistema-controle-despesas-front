@@ -12,51 +12,71 @@
     font-family: var(--font-body);
 }
 
-.profilePicture{
+.subContainer{
     display: flex;
-    width: 100%;
-    margin-bottom: 20px;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    background-color: rgb(100, 100, 100);
-    width: fit-content;
-    border-radius: 75px;
     
 }
 
 .profilePictureContainer{
-    display: flex;
-    width: 100%;
-    justify-content: center;
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin-bottom: 1.75rem;
+    
 }
 
-
-.profilePicture img{
-    display: block;
+.profilePicture{
     width: 150px;
     height: 150px;
     border-radius: 50%;
+    background-color: var(--surface-3);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.profilePicture img{
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .profilePictureEdit {
     position: absolute;
-    margin-left: 6rem;
-    margin-top: 6rem;
-    
+    right: -0.15rem;
+    bottom: -0.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    color: var(--accent-contrast);
+    background-color: var(--accent);
+    border: 2px solid var(--surface);
+    transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .profilePictureEdit:hover{
     cursor: pointer;
+    background-color: var(--accent-hover);
+    transform: scale(1.06);
 }
 
 .profileDetails{
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.4rem;
+    width: 100%;
 }
 
 .profileDetails span{
     background-color: var(--surface-3);
-    padding: 0.25rem;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
     width: 100%;
 }
 
@@ -136,14 +156,6 @@
 .logoutButton:disabled{
     opacity: 0.6;
     cursor: not-allowed;
-}
-
-.profilePictureChangeActionsContainer{
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 2rem;
-    margin-top: 1rem;
 }
 
 .profilePictureChangeButton:hover{

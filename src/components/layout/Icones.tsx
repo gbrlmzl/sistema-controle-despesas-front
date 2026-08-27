@@ -41,10 +41,33 @@ export function IconeMembros({ size = 19 }: IconeProps) {
     );
 }
 
+export function IconeAcertos({ size = 19 }: IconeProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 7h13M13 3l4 4-4 4" />
+            <path d="M20 17H7M11 21l-4-4 4-4" />
+        </svg>
+    );
+}
+
 export function IconeResidencias({ size = 19 }: IconeProps) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
             <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+        </svg>
+    );
+}
+
+//Mesmo traço do IconeResidencias, sem alterar sua escala — só acrescenta o
+//selo de "+" por cima, no canto inferior direito, no mesmo modelo usado em
+//outros ícones com selo: disco em --surface-3 (acompanha claro/escuro) e a
+//cruz herdando currentColor, então o selo sempre fica "acima" da casinha.
+export function IconeNovaResidencia({ size = 19 }: IconeProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+            <circle cx="19" cy="18" r="4.5" fill="var(--surface-3)" stroke="none" />
+            <path d="M19 16.1v3.8M17.1 18h3.8" strokeLinecap="round" />
         </svg>
     );
 }
@@ -91,6 +114,34 @@ export function IconeVoltar({ size = 18 }: IconeProps) {
     );
 }
 
+export function IconeAvancar({ size = 18 }: IconeProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m9 6 6 6-6 6" />
+        </svg>
+    );
+}
+
+export function IconeCopiar({ size = 18 }: IconeProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="12" height="12" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+    );
+}
+
+//Ícone da tela de convites e solicitações da residência (US-009/US-022): uma
+//caixa de entrada, o mesmo vocabulário visual de "pendência esperando decisão".
+export function IconeSolicitacoes({ size = 19 }: IconeProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 12h4l2 3h6l2-3h4" />
+            <path d="M5.5 5h13l2.5 7v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7z" />
+        </svg>
+    );
+}
+
 export function IconeSol({ size = 18 }: IconeProps) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
@@ -104,6 +155,15 @@ export function IconeLua({ size = 18 }: IconeProps) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+        </svg>
+    );
+}
+
+export function IconeCamera({ size = 18 }: IconeProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
         </svg>
     );
 }
