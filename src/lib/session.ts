@@ -9,7 +9,10 @@ import type { AuthUser } from "@/types/auth";
 //aplicação inteira. Falhas inesperadas (não-401) ainda são logadas, só não propagam.
 export async function getCurrentUser(): Promise<AuthUser | null> {
     try {
-        const { user } = await apiFetch<{ user: AuthUser }>("/users/me", { skipAuthRetry: false });
+        //Um 401 aqui já significa sessão encerrada: o proxy.ts roda antes deste render e
+        //é quem tenta renovar (ver o comentário em apiClient.ts sobre por que renovar
+        //durante o render queimava o refresh token em vez de recuperá-lo).
+        const { user } = await apiFetch<{ user: AuthUser }>("/users/me");
         return user;
     } catch (error) {
         //Erros internos do Next.js (redirect(), notFound(), a marcação de rota
