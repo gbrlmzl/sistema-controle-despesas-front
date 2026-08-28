@@ -1,14 +1,16 @@
 import registerAction from "./registerAction";
-import { apiFetch } from "@/lib/apiClient";
+import { apiFetchClient } from "@/lib/apiClient.client";
 import { ApiError } from "@/lib/apiError";
 import type { AuthUser } from "@/types/auth";
 
-jest.mock("@/lib/apiClient", () => ({
-    apiFetch: jest.fn(),
-    ApiError: jest.requireActual("@/lib/apiError").ApiError,
+//O cadastro fala com a API pelo client (ver registerAction.ts) — mesmo desenho
+//do login, e é o que tira o render RSC da Server Action da disputa com o
+//router.push("/") que vem logo depois.
+jest.mock("@/lib/apiClient.client", () => ({
+    apiFetchClient: jest.fn(),
 }));
 
-const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
+const mockApiFetch = apiFetchClient as jest.MockedFunction<typeof apiFetchClient>;
 
 const USUARIO_CADASTRADO: AuthUser = {
     id: 1,

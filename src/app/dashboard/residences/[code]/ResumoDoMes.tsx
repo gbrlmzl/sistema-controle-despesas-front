@@ -191,7 +191,7 @@ export default function ResumoDoMes({ codigo, competencia, resumo, atividade, sa
                                 <span className={styles.atividadeDot} style={{ background: corCategoria(item.category) }} />
                                 <span className={styles.atividadeGrow}>
                                     <span className={styles.atividadeTitulo}>{item.name}</span>
-                                    <span className={styles.atividadeMeta}>{item.autor} · {formatarMomento(item.createdAt)}</span>
+                                    <span className={styles.atividadeMeta} suppressHydrationWarning>{item.autor} · {formatarMomento(item.createdAt)}</span>
                                 </span>
                                 <span className={`${styles.atividadeValor} num`}>{formatarValor(item.valueInCents)}</span>
                             </li>
