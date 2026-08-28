@@ -65,12 +65,12 @@ function LinhaAcerto({ acerto, residencia, competencia, podeAgir, podeDispensar,
             ) : (
                 <>
                     <div className={styles.indicadores}>
-                        <span className={`${styles.indicador} ${acerto.paidAt ? styles.indicadorFeito : ''}`}>
+                        <span className={`${styles.indicador} ${acerto.paidAt ? styles.indicadorFeito : ''}`} suppressHydrationWarning>
                             {acerto.paidAt
                                 ? `Comprovante anexado · ${formatarMomento(acerto.paidAt)}`
                                 : 'Comprovante ainda não anexado'}
                         </span>
-                        <span className={`${styles.indicador} ${acerto.confirmedAt ? styles.indicadorFeito : ''}`}>
+                        <span className={`${styles.indicador} ${acerto.confirmedAt ? styles.indicadorFeito : ''}`} suppressHydrationWarning>
                             {acerto.confirmedAt
                                 ? `Recebimento confirmado · ${formatarMomento(acerto.confirmedAt)}`
                                 : 'Recebimento ainda não confirmado'}
@@ -200,7 +200,7 @@ export default function AcertosDaCompetencia({ residencia, resumo, competencias 
                 competencias={competencias}
                 onSelecionar={trocarCompetencia} />
 
-            <p className={styles.metaFechamento}>
+            <p className={styles.metaFechamento} suppressHydrationWarning>
                  Mês fechado por {resumo.closedByName} {formatarMomento(resumo.closedAt)}
             </p>
 

@@ -44,7 +44,7 @@ export default function SolicitacoesConvites({ residencia, solicitacoes, convite
                             <li key={solicitacao.id} className={styles.pendencia}>
                                 <div className={styles.pendenciaInfo}>
                                     <span className={styles.pendenciaTitulo}>{solicitacao.requesterName}</span>
-                                    <span className={styles.pendenciaDetalhe}>
+                                    <span className={styles.pendenciaDetalhe} suppressHydrationWarning>
                                         {solicitacao.requesterUsername ? `@${solicitacao.requesterUsername} · ` : ''}
                                         {formatarMomento(solicitacao.createdAt)}
                                     </span>
@@ -75,7 +75,7 @@ export default function SolicitacoesConvites({ residencia, solicitacoes, convite
                             <li key={convite.id} className={styles.pendencia}>
                                 <div className={styles.pendenciaInfo}>
                                     <span className={styles.pendenciaTitulo}>{convite.invitedUserName}</span>
-                                    <span className={styles.pendenciaDetalhe}>
+                                    <span className={styles.pendenciaDetalhe} suppressHydrationWarning>
                                         {convite.invitedUserUsername ? `@${convite.invitedUserUsername} · ` : ''}
                                         {formatarMomento(convite.createdAt)}
                                     </span>

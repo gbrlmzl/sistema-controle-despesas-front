@@ -1,10 +1,32 @@
-'use server'
+"use client";
 
-import { apiFetch, ApiError } from "@/lib/apiClient";
+import { apiFetchClient } from "@/lib/apiClient.client";
+import { ApiError } from "@/lib/apiError";
 import { registerSchema } from "@/schemas/usuarios";
 import type { ActionState } from "@/types/actions";
 import type { AuthUser } from "@/types/auth";
 
+//Roda no client, não como Server Action — mesma razão já registrada em
+//useLogin.ts: o cookie de sessão (JWT/REFRESH) vem no Set-Cookie da resposta de
+///auth/register e é o próprio navegador que o grava, então não há nada que
+//exija o servidor no meio (ver src/app/api/[...path]/route.ts, que proxia
+///api/* pra API na mesma origem).
+//
+//Era uma Server Action, e isso custava caro: a resposta de uma Server Action
+//carrega junto um render RSC da rota atual (/register), que chegava ao mesmo
+//tempo que o router.push("/") disparado no efeito de sucesso do RegisterForm.
+//Duas operações mexendo na árvore RSC ao mesmo tempo — exatamente a classe de
+//bug que docs/decisao-sincronizacao-usuario-pos-acao.md descreve na seção 2 e
+//que a remoção do router.refresh() resolveu só para o par refresh+push. Quando
+//as duas colidiam (carga alta ou primeira carga fria), a navegação morria no
+//boundary de erro: o usuário terminava o cadastro em "Não foi possível
+//carregar esta página", ainda em /register. Reproduzia em ~10% dos cadastros
+//num servidor recém-subido e em ~30% num servidor sob martelo (medido com
+//cypress/e2e/entrar-residencia-codigo.cy.ts em repetição).
+//
+//Sem a Server Action, o cadastro vira um fetch comum e o push("/") passa a ser
+//a única operação tocando a árvore RSC — o mesmo desenho que o login já usava
+//e que nunca apresentou essa falha.
 export default async function registerAction(_prevState: ActionState<AuthUser> | null, formData: FormData): Promise<ActionState<AuthUser>> {
     const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
@@ -40,7 +62,7 @@ export default async function registerAction(_prevState: ActionState<AuthUser> |
         //A API devolve o AuthUser atualizado no corpo da resposta (mesmo shape de
         //login/refresh/GET/PATCH users/me) — repassado no "data" pro chamador poder
         //atualizar o UserProvider direto, sem precisar de router.refresh().
-        const { user } = await apiFetch<{ user: AuthUser }>("/auth/register", {
+        const { user } = await apiFetchClient<{ user: AuthUser }>("/auth/register", {
             method: "POST",
             skipAuthRetry: true,
             body: {
