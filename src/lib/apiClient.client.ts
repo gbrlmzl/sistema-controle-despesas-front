@@ -1,9 +1,10 @@
 "use client";
 import { parseApiResponse } from "./apiError";
 
-//Base relativa: as chamadas passam pelo rewrite de /api/:path* (next.config.ts),
-//que proxia pra API real no servidor. Do ponto de vista do navegador é tudo
-//mesma origem — sem CORS, e o cookie de sessão pertence ao domínio do front.
+//Base relativa: as chamadas passam pelo Route Handler em src/app/api/[...path]/route.ts
+//(que substituiu o antigo rewrite de next.config.ts), e ele proxia pra API real no
+//servidor. Do ponto de vista do navegador é tudo mesma origem — sem CORS, e o cookie de
+//sessão pertence ao domínio do front.
 const BASE_URL = "/api";
 
 //Sem timeout, uma API travada (não só fora do ar) deixaria a chamada pendurada indefinidamente.

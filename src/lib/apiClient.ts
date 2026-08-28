@@ -17,10 +17,6 @@ const TIMEOUT_MS = 10_000;
 export interface ApiFetchOptions {
     method?: string;
     body?: unknown;
-    //Evita o retry silencioso em /auth/refresh (senão um refresh que falha tentaria
-    //se auto-atualizar em loop) e nas próprias rotas de login/registro (401 ali é
-    //"credenciais erradas", não "sessão expirada").
-    skipAuthRetry?: boolean;
 }
 
 //Repassa os cookies recebidos do navegador pra API — fetch() do lado do servidor
@@ -30,12 +26,11 @@ async function cookieHeader(): Promise<string> {
     return cookieStore.getAll().map(c => `${c.name}=${c.value}`).join("; ");
 }
 
-//Um Set-Cookie da API vira um cookie no navegador só se a gente o repetir aqui.
-//Fora de Server Action/Route Handler (ex.: getCurrentUser rodando durante o render de
-//um Server Component), o Next.js proíbe escrever cookie e cookieStore.set() lança —
-//nesse caso o proxy.ts (middleware) já devia ter renovado a sessão antes do render (é
-//o único ponto do fluxo onde dá pra persistir cookie a tempo); se mesmo assim sobrar um
-//401 aqui, só falha graciosamente em vez de derrubar a página inteira.
+//Um Set-Cookie da API vira um cookie no navegador só se a gente o repetir aqui. Vale
+//pros endpoints que reabrem a sessão (troca de senha, por exemplo) quando chamados de
+//uma Server Action. Fora de Server Action/Route Handler (ex.: getCurrentUser rodando
+//durante o render de um Server Component), o Next.js proíbe escrever cookie e
+//cookieStore.set() lança — aí só falha graciosamente em vez de derrubar a página.
 function applySetCookies(rawSetCookies: string[], cookieStore: Awaited<ReturnType<typeof cookies>>): void {
     try {
         for (const raw of rawSetCookies) {
@@ -58,8 +53,17 @@ async function doFetch(path: string, init: RequestInit): Promise<Response> {
     });
 }
 
+//Sem retry de /auth/refresh aqui de propósito. O refresh token da API é rotativo com
+//detecção de reuso: renovar gera um token novo e revoga o anterior, então um refresh
+//cujo Set-Cookie não chega ao navegador não é só inútil — ele DESTRÓI a sessão. E era
+//exatamente isso que acontecia, porque o consumidor mais frequente deste módulo é o
+//getCurrentUser() do layout raiz, que roda durante o render, onde applySetCookies não
+//consegue persistir nada. O navegador seguia com o token já revogado e a próxima
+//renovação era lida pela API como reuso (roubo), derrubando a sessão em todos os
+//dispositivos. Renovar é responsabilidade exclusiva do src/proxy.ts, que roda antes do
+//render e consegue gravar o cookie; um 401 que chegue aqui é sessão realmente encerrada.
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
-    const { method = "GET", body, skipAuthRetry = false } = options;
+    const { method = "GET", body } = options;
 
     const init: RequestInit = {
         method,
@@ -67,16 +71,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
         body: body !== undefined ? JSON.stringify(body) : undefined,
     };
 
-    let res = await doFetch(path, init);
-
-    if (res.status === 401 && !skipAuthRetry && !path.startsWith("/auth")) {
-        const refreshed = await doFetch("/auth/refresh", { method: "POST" });
-        applySetCookies(refreshed.headers.getSetCookie(), await cookies());
-
-        if (refreshed.ok) {
-            res = await doFetch(path, init);
-        }
-    }
+    const res = await doFetch(path, init);
 
     applySetCookies(res.headers.getSetCookie(), await cookies());
 

@@ -32,7 +32,6 @@ const config: Config = {
     "!src/**/layout.tsx",
     "!src/types/**",
     "!src/**/*.d.ts",
-    "!src/proxy.ts",
     "!src/utils/resumoImagem.ts",
   ],
 };
