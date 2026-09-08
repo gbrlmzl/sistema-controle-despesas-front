@@ -1,0 +1,122 @@
+/* Peças de skeleton reutilizadas pelos loading.tsx das telas de residência.
+
+   As medidas abaixo são cópias deliberadas das regras reais (app/dashboard/app.css,
+   ResumoDoMes.module.css, AcertosDaCompetencia.module.css). Copiar e não importar é
+   uma escolha: os CSS Modules das telas geram nomes com hash e não são reutilizáveis
+   fora do componente dono. O contrato é o comentário — se a tela mudar de medida,
+   estas mudam junto. */
+
+.pagina {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Espelha .cabecalhoPagina de app/dashboard/app.css */
+.cabecalho {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.25rem;
+    margin-bottom: 1rem;
+}
+
+/* Espelha .botaoCanto / .espacoCanto — 2.25rem nos dois lados mantém o título
+   opticamente centralizado, exatamente como na tela pronta. */
+.canto {
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+}
+
+.tituloCentral {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+}
+
+/* Espelha .secao (ResumoDoMes e AcertosDaCompetencia usam os mesmos valores) */
+.secao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1.25rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+/* Usada como <ul>: sem zerar padding/margin, o recuo padrão do navegador (~40px)
+   desalinha a lista de todo o resto da tela. As listas reais fazem o mesmo. */
+.pilha {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* O seletor de competência é centralizado nas três telas que o usam */
+.seletor {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Espelha .lista de ListaMembros: cartões em surface-2, 0.5rem de gap */
+/* Também é um <ul> — mesmo motivo do .pilha acima. */
+.listaCartoes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.cartao {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 0.75rem;
+    background: var(--surface-2);
+}
+
+.cartaoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+    flex: 1;
+}
+
+/* Espelha .linha de AcertosDaCompetencia: separadas por borda, não por fundo */
+.linhaLista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.linhaLista:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.linhaTopo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
