@@ -4,7 +4,9 @@
 
 Aplicação web para **controle colaborativo de despesas de uma casa compartilhada**. Cada usuário cria ou entra em uma **residência**, os membros lançam suas despesas ao longo do mês, e o sistema consolida tudo por competência: total por membro, relatórios por categoria, comparativo entre meses e o **rateio** que aponta quem paga e quem recebe para todos ficarem quites.
 
-Este repositório contém o **front-end**. O back-end vive em um projeto separado: [`sistema-controle-despesas-api`](https://github.com/gbrlmzl/sistema-controle-despesas-api).
+Este repositório contém o **front-end**. O back-end vive em um projeto separado: [`sistema-controle-despesas-api`](https://github.com/gbrlmzl/sistema-controle-despesas-api), e a infraestrutura em [`sistema-controle-despesas-deploy`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy).
+
+Em produção o sistema roda em **`https://cronos.gabrielmizael.com`** — ECS sobre uma única instância EC2 Graviton, atrás da Cloudflare. Ver [Arquitetura na AWS](#-arquitetura-na-aws).
 
 ---
 
@@ -23,6 +25,8 @@ Este repositório contém o **front-end**. O back-end vive em um projeto separad
 - [Como rodar](#-como-rodar)
 - [Variáveis de ambiente](#-variáveis-de-ambiente)
 - [Convenções de código](#-convenções-de-código)
+- [Build de produção (Docker)](#-build-de-produção-docker)
+- [Arquitetura na AWS](#-arquitetura-na-aws)
 - [Documentação complementar](#-documentação-complementar)
 - [Pendências conhecidas](#-pendências-conhecidas)
 
@@ -194,7 +198,7 @@ src/
 ├── types/                          # Tipos compartilhados (auth, residencia, competencia, acerto, …)
 ├── utils/                          # dinheiro (centavos), competencia, categorias, csv, resumoImagem,
 │                                   # formatarMomento, acerto, comprimirImagem, converterParaPng, linkNotificacao
-└── proxy.ts                        # Guarda de rota + renovação de sessão (middleware do Next.js)
+└── proxy.ts / proxy.test.ts        # Guarda de rota + renovação de sessão (middleware do Next.js)
 
 public/
 ├── avatars/                        # avatar-01.svg … avatar-20.svg
@@ -232,7 +236,9 @@ Três áreas, três molduras: a landing tem cabeçalho próprio, `(auth)` não t
 | `/dashboard/residences/[code]/settlements` | Acertos de pagamento da competência fechada | ✅ |
 | `/dashboard/residences/[code]/reports` | Relatórios e gráficos | ✅ |
 
-> As rotas da aplicação viviam sob `/app` (dentro do route group `(auth)`) até a reformulação de UI de 11/08/2026; hoje o prefixo é `/dashboard`, e `(auth)` guarda só as telas de quem ainda não tem sessão. O que o middleware protege é exatamente `/dashboard/:path*` e `/profile/:path*` (ver `matcher` em [`src/proxy.ts`](src/proxy.ts)).
+> As rotas da aplicação viviam sob `/app` (dentro do route group `(auth)`) até a reformulação de UI de 11/08/2026; hoje o prefixo é `/dashboard`, e `(auth)` guarda só as telas de quem ainda não tem sessão.
+>
+> **O `matcher` do [`src/proxy.ts`](src/proxy.ts) cobre o site inteiro**, não só as rotas protegidas — porque o layout raiz chama `getCurrentUser()` em **toda** página, e o proxy é o único lugar capaz de persistir o cookie renovado. Enquanto a lista era `/dashboard` + `/profile`, `"/"` e `/change-password` caíam no `apiClient.ts`, que queimava o refresh token sem conseguir guardar o valor novo. Ficam de fora só o Route Handler `/api/*`, o `_next/`, os arquivos com ponto no caminho (favicon, sitemap, robots e todo o `public/`) e o prefetch de `<Link>`. **Quem decide o que redireciona para `/login` é a constante `ROTAS_PROTEGIDAS` dentro do arquivo** (`/dashboard` e `/profile`), não o `matcher`.
 
 ---
 
@@ -255,19 +261,25 @@ Cada refresh gera um token novo e revoga o anterior, todos agrupados por um `fam
 
 ### Como o front participa
 
+**Renovar a sessão é responsabilidade exclusiva do [`proxy.ts`](src/proxy.ts).** Essa exclusividade é o desenho, não uma coincidência de implementação — a razão está logo abaixo.
+
 ```
-1. proxy.ts (Edge)     → decodifica o exp do JWT (sem validar assinatura); se estiver
+1. proxy.ts            → decodifica o exp do JWT (sem validar assinatura); se estiver
                          perto de expirar e houver REFRESH, chama POST /auth/refresh
                          ANTES do render e propaga os cookies novos
 2. layout.tsx          → getCurrentUser() chama GET /users/me a cada render
-3. apiClient           → em 401, tenta POST /auth/refresh uma vez e repete a chamada
+3. apiClient.ts        → NÃO renova. Um 401 aqui é sessão realmente encerrada
+4. apiClient.client.ts → no navegador, renova em 401 (deduplicado + cooldown de 30s)
 ```
 
-Três detalhes que valem atenção:
+Quatro detalhes que valem atenção:
 
-- **O `proxy.ts` não é autorização.** Ele roda no Edge Runtime, onde a biblioteca de JWT da API não funciona, então só lê o `exp` do payload — uma heurística de "provavelmente expirado", nunca uma validação. A autorização de verdade é sempre da API, a cada chamada: um cookie presente mas inválido passa pelo proxy e falha depois. Ele é, porém, **o único ponto do fluxo que roda antes do render e onde o Next.js deixa escrever cookie de fato** — por isso a renovação proativa mora ali, e os cookies renovados são gravados tanto na resposta quanto no header `Cookie` do próprio request (o `cookies()` de `next/headers` lê o request, não o `Set-Cookie` do middleware).
-- **O `apiClient` do servidor repassa os cookies na mão** e reaplica os `Set-Cookie` da API via `next/headers`, porque nada disso é automático em `fetch` server-to-server.
-- **O `apiClient.client` deduplica o refresh**: se duas chamadas tomam 401 ao mesmo tempo, a segunda espera a promise que a primeira já disparou. Há ainda um cooldown de 30s após uma falha, para não entrar em loop.
+- **Renovar durante o render destruía a sessão.** O consumidor mais frequente do `apiClient.ts` é o `getCurrentUser()` do layout raiz, que roda **durante a renderização** de um Server Component — e ali o Next.js proíbe escrever cookie (`cookies().set()` lança). Com refresh token rotativo, um refresh cujo `Set-Cookie` não chega ao navegador não é apenas inútil: ele **revoga o token que o navegador ainda está usando**. A renovação seguinte era lida pela API como reuso — ou seja, roubo — e derrubava a sessão em **todos** os dispositivos, disparando um alerta de segurança falso. Por isso o `apiClient.ts` do servidor não tem mais retry de `/auth/refresh`.
+- **O `proxy.ts` não é autorização.** Ele só lê o `exp` do payload do JWT, sem validar assinatura — uma heurística de "provavelmente expirado". A ausência de validação é deliberada e não tem a ver com runtime (o proxy roda em Node desde o Next 16): o segredo de assinatura pertence à API e não deve existir no front. A autorização de verdade é sempre da API, a cada chamada: um cookie presente mas inválido passa pelo proxy e falha depois. Ele é, porém, **o único ponto do fluxo que roda antes do render e onde o Next.js deixa escrever cookie de fato** — daí a renovação morar ali. Os cookies renovados são gravados **tanto na resposta quanto no header `Cookie` do próprio request**, porque o `cookies()` de `next/headers` lê o request, não o `Set-Cookie` do middleware.
+- **Prefetch de `<Link>` não renova sessão.** O `matcher` do proxy exclui requisições com os headers de prefetch: o Next dispara vários em paralelo ao passar o mouse ou ao entrar no viewport, e cada um viraria um `POST /auth/refresh` com o **mesmo** token — exatamente a corrida que a API lê como reuso. Navegação de verdade não traz esses headers e continua renovando normalmente.
+- **O `apiClient.client` deduplica o refresh**: se duas chamadas tomam 401 ao mesmo tempo, a segunda espera a promise que a primeira já disparou; há um cooldown de 30s após uma falha, para não entrar em loop. No navegador isso é seguro — o `Set-Cookie` da resposta chega ao browser normalmente, que é justamente o que falta no caminho do servidor.
+
+> Do outro lado, a API abre uma **janela de graça de 10 segundos** na rotação: um token recém-rotacionado ainda é aceito nesse intervalo, desde que exista um sucessor vivo na mesma família. É a rede de segurança para as corridas que nenhum controle no cliente resolve sozinho (várias abas, várias instâncias do front). As duas medidas são complementares: o front **evita** disparar renovações concorrentes; a API **tolera** as que escaparem.
 
 ---
 
@@ -332,7 +344,7 @@ Base local: `http://localhost:8080`. Do front, tudo passa por `/api/*` — pelo 
 
 ### Acertos de pagamento — `/residences/:code/closures/:period` 🔒
 
-`:period` é a competência no formato `AAAAMM`. Só existe para competência **fechada**: período aberto (ou usuário que não é membro) responde `404`, e o front trata como `notFound()`.
+`:period` é a competência no formato `AAAA-MM` (ex.: `2026-08`). Só existe para competência **fechada**: período aberto (ou usuário que não é membro) responde `404`, e o front trata como `notFound()`.
 
 | Método | Rota | Descrição |
 |---|---|---|
@@ -352,7 +364,8 @@ O arquivo em si **não passa pela API**: o navegador comprime a imagem (PDF pass
 | `GET` | `/residences/:code/reports?month=&year=&tab=` | Relatório da competência. `tab` = `residence` (padrão) ou `personal` |
 | `GET` | `/notifications` | Notificações do usuário (paginadas) |
 | `PATCH` | `/notifications` | Marca notificações como lidas |
-| `GET` | `/health` | Health check (público) |
+| `GET` | `/health` | Liveness — não toca o banco (público) |
+| `GET` | `/ready` | Readiness — faz `SELECT 1`; `503` quando o banco não responde (público) |
 
 ---
 
@@ -447,6 +460,8 @@ npm test
 | `.env.test` | Necessário porque o Next.js **não carrega `.env.local` em `NODE_ENV=test`**, e o `next.config.ts` exige `API_URL` |
 
 > Testes ficam junto do código, em arquivos `*.test.tsx` / `*.spec.tsx` ou dentro de `__tests__/`.
+
+O [`src/proxy.test.ts`](src/proxy.test.ts) merece nota à parte: além dos caminhos de guarda de rota e renovação, ele **assere o `matcher`** — que a expressão cobre a landing e o `/change-password`, que não cobre `/api/*` nem estáticos, e que ignora o prefetch de `<Link>`. É a única proteção automatizada contra um refactor silencioso naquela configuração, cujo erro não aparece em nenhuma outra suíte: uma rota fora do matcher não quebra o build nem a página — ela só deixa de renovar a sessão, e o sintoma vira logout aparentemente aleatório.
 
 O plano de ampliação de cobertura — o que vale testar e em que ordem — está em [`docs/plano-cobertura-testes.md`](docs/plano-cobertura-testes.md); o catálogo de casos, em [`docs/backlog-e-casos-de-teste.md`](docs/backlog-e-casos-de-teste.md).
 
@@ -551,17 +566,17 @@ npm run dev                  # sobe em http://localhost:3000
 
 Definida em `.env.local` (desenvolvimento) e `.env.test` (testes, versionado por não conter segredo).
 
-**Em produção**, `API_URL` é lida do **ambiente do container em runtime** — trocar de API alvo é só mudar a variável e reiniciar o processo, sem rebuild. (Até 21/08/2026, o caminho do navegador passava por um `rewrite` do Next resolvido em **build-time**, congelado em `routes-manifest.json`; foi a causa de uma indisponibilidade em produção, corrigida trocando o rewrite pelo Route Handler acima.) No ECS, front e API rodam em **tasks separadas** (`cronos-front` e `cronos-app`, network mode `bridge`) e se acham pelo gateway da bridge do Docker (`172.17.0.1`), mapeado para o nome `api` via `extraHosts` na task definition do front — então essa variável deve valer:
+**Em produção**, `API_URL` é lida do **ambiente do container em runtime** — trocar de API alvo é só mudar a variável e reiniciar o processo, sem rebuild. (Até 21/08/2026, o caminho do navegador passava por um `rewrite` do Next resolvido em **build-time**, congelado em `routes-manifest.json`; foi a causa de uma indisponibilidade em produção, corrigida trocando o rewrite pelo Route Handler acima.) No ECS o valor é:
 
 ```
 API_URL=http://api:8080
 ```
 
-**Detalhe de build que sobrevive à mudança acima:** o `next build` ainda precisa de `API_URL` **presente** (não necessariamente correta) durante a etapa "Collecting page data" — o Next avalia o módulo de cada rota nessa etapa, e o Route Handler acima (como `apiClient.ts` e `proxy.ts`) lança erro se a variável estiver vazia. É só um guard de "não suba sem isso"; o valor usado no build não influencia mais o comportamento da imagem publicada, então o [`Dockerfile`](Dockerfile) e o [`ci.yml`](.github/workflows/ci.yml) continuam passando um placeholder via `--build-arg`, mas a antiga **Repository Variable** `API_URL` do GitHub deixou de ser necessária.
+Esse `api` não é DNS: é uma linha de `/etc/hosts` escrita pelo campo `extraHosts` da task definition, apontando para o gateway da bridge do Docker. Ver [Arquitetura na AWS](#-arquitetura-na-aws) — é uma constante da arquitetura, não algo que varia por ambiente.
 
-Esse valor é uma constante da arquitetura (o `extraHosts` garante que `api` resolva dentro do container em qualquer deploy), não algo que varia por ambiente.
+**Detalhe de build que sobrevive à mudança acima:** o `next build` ainda precisa de `API_URL` **presente** (não necessariamente correta) durante a etapa "Collecting page data" — o Next avalia o módulo de cada rota nessa etapa, e o Route Handler (como `apiClient.ts` e `proxy.ts`) lança erro se a variável estiver vazia. É só um guard de "não suba sem isso"; o valor usado no build não influencia o comportamento da imagem publicada, então o [`Dockerfile`](Dockerfile) e o [`ci.yml`](.github/workflows/ci.yml) passam um placeholder via `--build-arg` — e a antiga **Repository Variable** `API_URL` do GitHub deixou de ser necessária.
 
-> ⚠️ **`API_URL` precisa existir no ambiente do container em runtime**, não só como `--build-arg`. Os três consumidores (Route Handler, `apiClient.ts`, `proxy.ts`) lançam `Error: Variável de ambiente API_URL não configurada.` na primeira chamada se ela estiver ausente — e como `proxy.ts` roda a cada requisição para renovar a sessão, essa falha vira **toda página retornando 500**. Na task definition do ECS (repositório de deploy), o container do front precisa ter `API_URL=http://api:8080` configurada como variável de ambiente de runtime.
+> ⚠️ **`API_URL` precisa existir no ambiente do container em runtime**, não só como `--build-arg`. Os três consumidores (Route Handler, `apiClient.ts`, `proxy.ts`) lançam `Error: Variável de ambiente API_URL não configurada.` na primeira chamada se ela estiver ausente — e como `proxy.ts` roda a cada requisição para renovar a sessão, essa falha vira **toda página retornando 500**.
 
 ### API
 
@@ -574,9 +589,15 @@ Esse valor é uma constante da arquitetura (o `extraHosts` garante que `api` res
 | `FRONTEND_URL` | `http://localhost:3000` | Origem do front (CORS com credenciais + redirect do OAuth). |
 | `JWT_EXPIRES_IN` | `15m` | Vida do access token. |
 | `REFRESH_TOKEN_EXPIRES_IN` | `7d` | Vida do refresh token. |
-| `GOOGLE_CLIENT_ID`<br>`GOOGLE_CLIENT_SECRET`<br>`GOOGLE_CALLBACK_URL`<br>`COOKIE_SESSION_SECRET` | — | Login com Google. **Opcionais, mas tudo ou nada**: ou as quatro são preenchidas, ou nenhuma. Sem elas a API sobe normalmente só com login por credenciais. |
+| `GOOGLE_CLIENT_ID`<br>`GOOGLE_CLIENT_SECRET`<br>`GOOGLE_CALLBACK_URL`<br>`COOKIE_SESSION_SECRET` | — | Login com Google. **Opcionais, mas tudo ou nada.** Sem elas a API sobe normalmente só com login por credenciais, e `/auth/google` sequer é registrada. |
+| `SMTP_HOST`<br>`SMTP_PORT`<br>`SMTP_USER`<br>`SMTP_PASSWORD`<br>`MAIL_FROM` | — | Envio de email. **Tudo ou nada.** Sem elas a recuperação de senha completa o fluxo e o "envio" só vai para o log. |
+| `S3_REGION`<br>`S3_BUCKET` | — | Comprovantes de pagamento. **Tudo ou nada.** Sem as duas, só as rotas de comprovante respondem `503` — listar acertos, confirmar recebimento e dispensar continuam de pé. |
+
+A tabela acima é o recorte que importa para quem sobe o sistema; a lista completa (tetos de rate limit, validade dos links de redefinição, expiração das URLs pré-assinadas) está no [README da API](https://github.com/gbrlmzl/sistema-controle-despesas-api#variáveis-de-ambiente).
 
 As variáveis são validadas com Zod na subida ([`src/config/env.ts`](https://github.com/gbrlmzl/sistema-controle-despesas-api/blob/main/src/config/env.ts)): se algo estiver faltando ou malformado, a API falha imediatamente com a mensagem do erro, em vez de quebrar mais tarde.
+
+> ⚠️ **"Tudo ou nada" é literal, e o sintoma em produção é ruim.** Preencher um grupo pela metade não degrada a funcionalidade — **impede a API de subir**, e no ECS isso aparece como task que nunca fica `healthy`, sem relação óbvia com a variável esquecida.
 
 ---
 
@@ -607,9 +628,124 @@ O entrypoint é `node server.js` (não `npm start`/`next start`) — o `server.j
 - Para desenvolvimento local, isso não afeta nada — [`docker-compose.yml`](docker-compose.yml) builda a partir do `Dockerfile.dev` na sua própria arquitetura, não consome a imagem do GHCR.
 - Buildar a imagem de produção localmente funciona normalmente em qualquer arquitetura (`docker build --build-arg API_URL=... .`); só a imagem *publicada* é arm64-only.
 
+> A **API** seguiu o caminho oposto e voltou a publicar **manifest multi-arch** (amd64 + arm64). O motivo não é o deploy — é o e2e: ele roda num runner `ubuntu-latest` amd64 e, com só a variante ARM disponível, subia a API inteira emulada por QEMU, onde o bcrypt do cadastro estoura o timeout do Cypress e a suíte falha de forma intermitente. **O front não tem esse problema porque o e2e orquestrado o builda do código-fonte**, na arquitetura do runner, em vez de puxar a imagem publicada.
+
 ### Onde o E2E roda
 
 O CI **deste** repositório cobre lint, testes unitários (Jest) e build de produção — os specs do Cypress vivem aqui (`cypress/`), mas não rodam aqui. Depois de publicar a imagem, o job `dispatch` do [`ci.yml`](.github/workflows/ci.yml) avisa o [`sistema-controle-despesas-deploy`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy), que sobe a stack completa (front + API + Postgres) e roda os specs contra ela. Se passarem, aquele repositório re-taggeia **esta mesma imagem** como `:stable` — build once, promote everywhere. Localmente, `npm run test:e2e` continua funcionando contra uma API no host.
+
+---
+
+## ☁️ Arquitetura na AWS
+
+Onde o sistema roda em produção, e o que disso o front precisa saber. As decisões completas — custos, alternativas descartadas e o histórico de cada fase — vivem no repositório de deploy ([`sistema-controle-despesas-deploy/docs/`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy/tree/main/docs)).
+
+> **O que esta seção não traz, de propósito:** ID da conta AWS, o Elastic IP da instância, IDs de instância/security group e o valor de qualquer segredo. O IP em particular **não é detalhe cosmético** — o desenho depende de a origem ser inalcançável fora da borda, e publicá-lo desfaria isso. Nenhum segredo mora em arquivo versionado: tudo vem do SSM Parameter Store.
+
+### A topologia
+
+```mermaid
+flowchart TB
+    U[Navegador]
+    CF["Cloudflare · proxy · PoP GRU"]
+
+    subgraph EC2["EC2 t4g.small · Graviton ARM64 · 2 GB · us-east-2 · AZ única"]
+        subgraph ECS["Cluster ECS · launch type EC2 · networkMode bridge"]
+            E["cronos-edge<br/>Caddy :443 e :80"]
+            F["cronos-front<br/>este repositório :3000"]
+            A["cronos-app<br/>API Express :8080"]
+            D["cronos-data<br/>PostgreSQL 17 :5432"]
+        end
+        EBS[("EBS gp3 10 GB<br/>dedicado")]
+    end
+
+    S3[("S3 · bucket privado<br/>de comprovantes")]
+
+    U -->|HTTPS| CF
+    CF -->|"HTTPS 443 · cert Origin CA<br/>+ header X-Origin-Verify"| E
+    E --> F
+    F -->|"API_URL=http://api:8080"| A
+    A --> D
+    D -.dados.-> EBS
+    A -->|"presigned POST/GET"| S3
+```
+
+O sistema inteiro cabe numa **única instância EC2 `t4g.small`** (Graviton, ARM64, 2 GB), num cluster ECS com launch type EC2. São **quatro services, um container cada** — `cronos-edge` (Caddy), `cronos-front` (este repositório), `cronos-app` (API) e `cronos-data` (Postgres). Não há Application Load Balancer: ~US$ 16/mês para distribuir tráfego entre uma instância só não se paga.
+
+**Por que quatro tasks e não uma.** No ECS a task é a unidade atômica de implantação — ele não reinicia um container isolado dentro dela. Com front e API na mesma task, **todo deploy do front reiniciaria a API junto**, e um crash do front (`essential: true`) derrubaria a API com ele. Separar custa US$ 0,00.
+
+### Como o front encontra a API
+
+`networkMode: bridge` com portas fixas no host. O front acha a API pelo **gateway da bridge do Docker**, e a task definition escreve esse endereço no `/etc/hosts` do container via `extraHosts`:
+
+```json
+"extraHosts": [{ "hostname": "api", "ipAddress": "<gateway da bridge>" }]
+```
+
+É por isso que a variável continua sendo o `API_URL=http://api:8080` de sempre, e não um IP opaco. Três ganhos de graça: a variável é a mesma em qualquer ambiente, quem lê a task definition entende o valor sem comentário, e uma migração futura para Service Connect troca só o `extraHosts` — a variável fica intocada.
+
+> `extraHosts` **não existe** em `networkMode: awsvpc`. Como o desenho usa `bridge`, não há conflito — mas vale saber caso `awsvpc` volte à mesa.
+
+### O que a instância impõe a esta imagem
+
+| Restrição | Consequência aqui |
+| --- | --- |
+| **Graviton (ARM64)** | A imagem publicada é `linux/arm64`. Uma task amd64 morre com `exec format error` |
+| **2 GB de RAM para quatro containers** | O `output: 'standalone'` deixou de ser otimização e virou requisito — ver [Build de produção](#-build-de-produção-docker). O container tem limite **rígido** de 512 MiB: um vazamento no front mata o front, não o Postgres |
+| **`readonlyRootFilesystem: true`** | O filesystem raiz é travado (uma RCE não consegue gravar payload), mas o Next **escreve** cache de imagem e de fetch. Daí os `tmpfs` em `.next/cache` e `/tmp` — montados com `uid=1000,gid=1000`, porque o container roda como `USER node` e um `tmpfs` sem dono explícito monta como `root`, fazendo o Next falhar ao escrever no cache que acabamos de montar para ele |
+| **Porta fixa no host, `desiredCount=1`** | Obriga `minimumHealthyPercent=0`: a task antiga **sai antes** de a nova entrar. O deploy tem uma janela curta de indisponibilidade, por construção |
+| **Health check em `/`** | Com `startPeriod` generoso: falha de healthcheck durante a partida dispara o disjuntor de implantação e mascara a causa real |
+
+### A borda
+
+```
+Internet ──HTTPS──▶ Cloudflare ──HTTPS :443──▶ Caddy ──▶ front :3000 ──▶ api :8080
+                    (proxy, PoP GRU)  (Origin CA)  (valida X-Origin-Verify)
+```
+
+A origem é **fechada**: o Security Group libera a 443 apenas para a prefix list de IPs da Cloudflare, e o TLS até a origem usa um certificado **Origin CA** com a Cloudflare em modo *Full (strict)*. Como essa prefix list libera a Cloudflare **inteira**, uma Transform Rule injeta um header secreto que o Caddy valida — sem ele, qualquer cliente da Cloudflare poderia apontar um proxy para a origem.
+
+A borda ficou na Cloudflare por um motivo direto: o público é brasileiro, e o `PriceClass_100` do CloudFront **exclui** o PoP de São Paulo. Um caminho antigo via CloudFront (porta 80) continua vivo em paralelo, deliberadamente — enquanto os dois servem o mesmo sistema, o rollback é trocar de URL.
+
+Duas coisas que essa montagem cobra do front:
+
+- **Um domínio, não dois.** O proxy same-origin não é preferência estética: cookies de sessão pertencem ao domínio do front, e é isso que permite ao `proxy.ts` enxergá-los. Por consequência, a `GOOGLE_CALLBACK_URL` do OAuth aponta para `https://<domínio>/api/auth/google/callback` — o Route Handler, que remove o prefixo `/api` antes de repassar — e **não** para a rota da API. O Google compara essa string exatamente, sem curinga.
+- **Cookies `secure` em produção.** HTTPS de ponta a ponta é requisito, não enfeite: sem borda com TLS, a sessão simplesmente não é gravada.
+
+### Deploy: o que é automático e o que não é
+
+```
+push na main ──▶ CI (lint → test → build → publish GHCR) ──▶ dispatch
+                                                                │
+                    repo de deploy: e2e da stack completa ◀─────┘
+                                   │ passou
+                                   ▼
+                            re-tag :stable no GHCR
+                                   │
+                  ─────────────────┼─────────  daqui para baixo é manual
+                                   ▼
+            espelhar :stable → ECR ──▶ update-service cronos-front
+```
+
+**Não existe CD para o ECS.** Publicar no GHCR e passar no e2e não coloca nada em produção — o espelhamento para o ECR e o `update-service` são manuais. Duas armadilhas conhecidas desse trecho:
+
+- **Espelhar `:stable`, nunca `:latest`.** O `:latest` é publicado **antes** de o e2e rodar; o `:stable` só existe **depois** que ele passa. Espelhar `:latest` manda para produção um artefato que a validação de ponta a ponta ainda não aprovou.
+- **O espelhamento não pode achatar a arquitetura.** Um `docker pull` baixa a arquitetura do host que roda o comando; feito de uma máquina x86, manda uma imagem amd64 para uma instância Graviton. O caminho correto é `docker buildx imagetools create`, que copia os manifests registry→registry sem escolher plataforma.
+
+O front **não recebe variável de ambiente nova** em nenhum desses deploys: a única `process.env` do código é `API_URL`, e ela já está na task definition. Um deploy do front é literalmente trocar a imagem.
+
+### Pendências de infraestrutura
+
+Estado documentado em **29/08/2026** — confira o repositório de deploy antes de agir sobre qualquer item.
+
+| Pendência | Impacto no front |
+| --- | --- |
+| **Grupos Google OAuth, SMTP e S3 ausentes da task definition da API** | Código pronto nos dois repositórios e inerte em produção: o botão "Continuar com Google" **já aparece na UI** e leva a um 404; a recuperação de senha completa o fluxo **sem enviar o email**; os comprovantes respondem `503`. Nada disso é configurável aqui — as variáveis moram na task da API |
+| **`FRONTEND_URL` da API ainda é placeholder** | Cookies `secure` e os links dos emails dependem dele |
+| **CORS do bucket de comprovantes sem `GET`** | Quebra **só** o botão de baixar comprovante-imagem, que usa `fetch` para converter em PNG antes de salvar. O PDF sai por navegação (`Content-Disposition: attachment`) e não passa por CORS; a lupa é `<img src>` e também não |
+| **Espelhamento no ECR e `update-service` manuais** | Merge na `main` com CI verde **não** significa "está no ar" |
+| **Sem WAF e sem rate limiting na borda** | Decisão de orçamento. O rate limiting da API é a única proteção contra abuso de rota |
+| **`Caddyfile` e certificados não sobrevivem à troca da instância** | Criados à mão no host, fora do versionamento da task definition |
 
 ---
 
@@ -624,6 +760,7 @@ O CI **deste** repositório cobre lint, testes unitários (Jest) e build de prod
 | [`docs/estrategia-tratamento-erros-api.md`](docs/estrategia-tratamento-erros-api.md) | Estratégia de tratamento de erros nas chamadas à API |
 | [`docs/migracao-typescript.md`](docs/migracao-typescript.md) | Registro da migração de JavaScript para TypeScript |
 | [`docs/decisao-sincronizacao-usuario-pos-acao.md`](docs/decisao-sincronizacao-usuario-pos-acao.md) | Como o usuário do contexto é sincronizado após login/cadastro/logout/perfil, e por que |
+| [`docs/refatoracao-contexto-usuario.md`](docs/refatoracao-contexto-usuario.md) | Por que o contexto passou a guardar a *promise* da sessão em vez do usuário resolvido — e como isso destravou os `loading.tsx` |
 | [`docs/backlog-e-casos-de-teste.md`](docs/backlog-e-casos-de-teste.md) | Backlog de funcionalidades com cobertura de teste, e documentação de cada caso de teste do front-end |
 | [`docs/plano-cobertura-testes.md`](docs/plano-cobertura-testes.md) | Sequência de trabalho para elevar a cobertura, priorizando Server Actions e hooks |
 | [`docs/plano-recuperacao-de-senha-frontend.md`](docs/plano-recuperacao-de-senha-frontend.md) | Plano do fluxo de recuperação de senha no front |
@@ -637,14 +774,15 @@ O CI **deste** repositório cobre lint, testes unitários (Jest) e build de prod
 
 - **O `docker-compose.yml` deste repositório só sobe o front** — e isso é uma decisão, não uma limitação: a API tem compose próprio, que sobe ela junto com o Postgres dela. Ver "Como rodar" acima para as três formas de subir o sistema.
 - **Épico de administração e auditoria** (papel ADMIN, trilha de auditoria, monitoramento de acessos) está fora do escopo da V2.0 e não iniciado.
+- **As pendências de infraestrutura** — variáveis de Google OAuth, SMTP e S3 ausentes em produção, CORS do bucket, deploy manual — estão em [Arquitetura na AWS → Pendências de infraestrutura](#pendências-de-infraestrutura). Nenhuma delas é configurável neste repositório.
 
-### Pendências de produção (AWS)
+### Resolvidas, e por que ficam registradas
 
-Levantadas durante o incidente de 20-21/08/2026.
+Duas quebras de produção de 20-21/08/2026 moldaram partes do desenho atual. Ficam aqui porque o código carrega as cicatrizes, e removê-las tornaria decisões estranhas incompreensíveis:
 
-- ~~O rewrite `/api/*` continua congelado em build-time.~~ **Resolvido em código**: o antigo `rewrite` de `next.config.ts` deu lugar ao Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>), que lê `API_URL` em runtime a cada requisição — a mesma imagem passa a servir qualquer ambiente, sem rebuild. Falta **validar via e2e e fazer o deploy**; até lá, produção continua rodando a correção mínima aplicada em 21/08/2026.
-- **Google OAuth e SMTP dependem de variáveis na task `cronos-app`.** O código dos dois está pronto nos dois repositórios; falta preencher os dois grupos de variáveis de ambiente da API. O `env.ts` trata cada grupo como "tudo ou nada" — preencher pela metade **impede a API de subir**. Enquanto o grupo do OAuth estiver ausente, `/auth/google` nem é registrada no Express e o botão "Continuar com Google" leva a um 404; enquanto o grupo SMTP estiver ausente, a recuperação de senha completa o fluxo **sem nunca enviar o email**. Nada disso é configurável neste repositório: as 4 + 5 variáveis moram na task definition da API, no [repositório de deploy](https://github.com/gbrlmzl/sistema-controle-despesas-deploy).
-- ~~A porta da API (`3001`) difere da do front (`3000`) em um dígito.~~ **Resolvido**: a API foi padronizada em **`8080`**, e o repositório inteiro passou a refletir isso — `.env.example`, `.env.test`, o placeholder do [`Dockerfile`](Dockerfile), o do [`ci.yml`](.github/workflows/ci.yml), o [`docker-compose.yml`](docker-compose.yml) e esta documentação. Em produção, isso implica `API_URL=http://api:8080` na task definition do front e `PORT=8080` na da API — as duas moram no [repositório de deploy](https://github.com/gbrlmzl/sistema-controle-despesas-deploy), então **confira se as duas foram atualizadas junto**; mudar uma só derruba a integração.
+- ~~**O rewrite `/api/*` congelado em build-time.**~~ O `rewrite` de `next.config.ts` deu lugar ao Route Handler [`src/app/api/[...path]/route.ts`](<src/app/api/[...path]/route.ts>), que lê `API_URL` em runtime a cada requisição. A imagem deixou de carregar a topologia da rede e passou a servir qualquer ambiente sem rebuild. **É a razão de o `next.config.ts` hoje conter só o `output: 'standalone'`** — e de o `API_URL` do build ser um placeholder assumido.
+- ~~**A porta da API (`3001`) diferia da do front (`3000`) em um dígito.**~~ A API foi padronizada em **`8080`** em todo o repositório. Em produção isso implica `API_URL=http://api:8080` na task do front e `PORT=8080` na da API: **mudar uma só derruba a integração**, e as duas moram no [repositório de deploy](https://github.com/gbrlmzl/sistema-controle-despesas-deploy).
+- ~~**Renovação de sessão espalhada entre `proxy.ts` e `apiClient.ts`.**~~ O `apiClient.ts` do servidor renovava em 401 sem conseguir persistir o cookie, queimando um refresh token rotativo a cada tentativa — o que a API lia como reuso e tratava como roubo, deslogando o usuário de todos os dispositivos. Hoje renovar é responsabilidade **exclusiva** do `proxy.ts`, cujo `matcher` cobre o site inteiro e ignora prefetch. Ver [Autenticação e sessão](#-autenticação-e-sessão).
 
 ---
 
