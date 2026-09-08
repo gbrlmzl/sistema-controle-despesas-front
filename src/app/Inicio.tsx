@@ -1,13 +1,68 @@
 'use client'
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 
 import { useCurrentUser } from '@/components/providers/UserProvider';
+import { Skeleton } from '@/components/ui/Skeleton';
 import styles from './Inicio.module.css';
 
-export default function Inicio() {
+/* As duas chamadas para ação são o único ponto da landing que depende da sessão.
+   Isoladas em componentes próprios, o hero (título, texto e a prévia do produto)
+   aparece sem esperar o GET /users/me — e ele é o conteúdo que importa aqui. */
+function AcoesCabecalho() {
     const usuario = useCurrentUser();
 
+    if (usuario) {
+        return <Link href="/dashboard/residences" className={styles.botaoPrimario}>Ir para o app</Link>;
+    }
+
+    return (
+        <div className={styles.cabecalhoAcoes}>
+            <Link href="/login" className={styles.botaoTexto}>Entrar</Link>
+            <Link href="/register" className={styles.botaoPrimario}>Criar conta</Link>
+        </div>
+    );
+}
+
+function AcoesHero() {
+    const usuario = useCurrentUser();
+
+    if (usuario) {
+        return <Link href="/dashboard/residences" className={styles.botaoPrimario}>Começar a utilizar</Link>;
+    }
+
+    return (
+        <>
+            <Link href="/register" className={styles.botaoPrimario}>Criar conta grátis</Link>
+            <Link href="/login" className={styles.botaoSecundario}>Já tenho conta</Link>
+        </>
+    );
+}
+
+/* Os fallbacks reservam a área do estado DESLOGADO — que é o de quase todo mundo
+   que chega numa landing pública. Assim o caso comum não tem salto nenhum quando a
+   sessão resolve; o visitante já logado vê os botões encolherem uma vez, o que é
+   preferível a mostrar "Criar conta" para quem já tem conta. */
+function AcoesCabecalhoCarregando() {
+    return (
+        <div className={styles.cabecalhoAcoes} aria-hidden="true">
+            <Skeleton largura="5.5rem" altura="2.3rem" raio="var(--r-md)" />
+            <Skeleton largura="8.5rem" altura="2.4rem" raio="var(--r-md)" />
+        </div>
+    );
+}
+
+function AcoesHeroCarregando() {
+    return (
+        <>
+            <Skeleton largura="11rem" altura="2.4rem" raio="var(--r-md)" />
+            <Skeleton largura="9.5rem" altura="2.4rem" raio="var(--r-md)" />
+        </>
+    );
+}
+
+export default function Inicio() {
     return (
         <div className={styles.pagina}>
             <header className={styles.cabecalho}>
@@ -16,14 +71,9 @@ export default function Inicio() {
                     Cronos
                 </Link>
 
-                {usuario ? (
-                    <Link href="/dashboard/residences" className={styles.botaoPrimario}>Ir para o app</Link>
-                ) : (
-                    <div className={styles.cabecalhoAcoes}>
-                        <Link href="/login" className={styles.botaoTexto}>Entrar</Link>
-                        <Link href="/register" className={styles.botaoPrimario}>Criar conta</Link>
-                    </div>
-                )}
+                <Suspense fallback={<AcoesCabecalhoCarregando />}>
+                    <AcoesCabecalho />
+                </Suspense>
             </header>
 
             <main className={styles.hero}>
@@ -35,14 +85,9 @@ export default function Inicio() {
                     </p>
 
                     <div className={styles.heroAcoes}>
-                        {usuario ? (
-                            <Link href="/dashboard/residences" className={styles.botaoPrimario}>Começar a utilizar</Link>
-                        ) : (
-                            <>
-                                <Link href="/register" className={styles.botaoPrimario}>Criar conta grátis</Link>
-                                <Link href="/login" className={styles.botaoSecundario}>Já tenho conta</Link>
-                            </>
-                        )}
+                        <Suspense fallback={<AcoesHeroCarregando />}>
+                            <AcoesHero />
+                        </Suspense>
                     </div>
                 </div>
 

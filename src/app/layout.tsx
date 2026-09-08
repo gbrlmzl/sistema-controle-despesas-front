@@ -4,7 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import UserProvider from "@/components/providers/UserProvider";
 import ThemeProvider, { SCRIPT_INICIALIZACAO_TEMA } from "@/components/providers/ThemeProvider";
-import { getCurrentUser } from "@/lib/session";
+import { getSessionPromise } from "@/lib/session";
 import type { ReactNode } from "react";
 
 //Duas famílias cobrem o app inteiro: Montserrat nos títulos, Roboto no corpo e nos
@@ -26,8 +26,19 @@ export const metadata = {
   description: "O amigo que te ajuda a controlar suas despesas!",
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const user = await getCurrentUser();
+export default function RootLayout({ children }: { children: ReactNode }) {
+  /* SEM await, e o layout deixou de ser async por causa disso. Um `await` aqui
+     bloqueava a navegação inteira: o App Router não mostra nenhum loading.tsx
+     enquanto o layout que lê dado de runtime não termina de renderizar ("Without
+     Cache Components: Navigation blocks until the layout finishes rendering" —
+     nextjs.org/docs/app/api-reference/file-conventions/loading). Como este layout
+     é a raiz, TODA página do app pagava esse bloqueio: medimos 354 ms de tela
+     congelada, sem um pixel de mudança, ao trocar de aba dentro da residência.
+
+     Passando a promise adiante, o layout termina imediatamente, a casca vai pro
+     navegador, e só quem lê o usuário suspende — dentro do <Suspense> de cada um.
+     Ver docs/refatoracao-contexto-usuario.md. */
+  const sessao = getSessionPromise();
 
   //A navegação não vive mais aqui: cada área tem a sua (landing tem cabeçalho
   //próprio, /dashboard e /profile usam o AppShell, e (auth) não tem nenhuma).
@@ -43,7 +54,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {SCRIPT_INICIALIZACAO_TEMA}
         </Script>
         <ThemeProvider>
-          <UserProvider user={user}>
+          <UserProvider sessao={sessao}>
             {children}
           </UserProvider>
         </ThemeProvider>

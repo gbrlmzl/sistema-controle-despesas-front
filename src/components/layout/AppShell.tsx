@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useCurrentUser } from "@/components/providers/UserProvider";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import useNotificacoes from "@/hooks/useNotificacoes";
 import SinoNotificacoes from "@/components/ui/SinoNotificacoes";
@@ -72,13 +73,41 @@ function BotaoTema({ className }: BotaoTemaProps) {
     );
 }
 
+/* O usuário é a ÚNICA coisa da casca que depende da sessão, e ela é resolvida de
+   forma assíncrona (ver UserProvider). Isolar o avatar num componente próprio faz
+   com que só ele suspenda: a navegação, o tema, o sino e o conteúdo da página
+   renderizam sem esperar o GET /users/me.
+
+   Se useCurrentUser() fosse chamado direto no AppShell, o boundary mais próximo
+   subiria e a casca inteira voltaria a esperar — que é exatamente o bloqueio que
+   esta mudança elimina. */
+function AvatarUsuario({ comTitulo }: { comTitulo?: boolean }) {
+    const usuario = useCurrentUser();
+
+    return (
+        <Link href="/profile" className={styles.avatar}
+            title={comTitulo ? usuario?.name ?? "Minha conta" : undefined}
+            aria-label="Minha conta">
+            {usuario?.profilePic
+                ? <img src={usuario.profilePic} alt="" />
+                : iniciaisDoNome(usuario?.name ?? "?")}
+        </Link>
+    );
+}
+
+/* O fallback tem exatamente as medidas do .avatar (30×30, var(--r-md)). Um
+   fallback de tamanho diferente trocaria a tela congelada por um salto de layout
+   quando a sessão chegasse — o mesmo problema com outra roupa. */
+function AvatarCarregando() {
+    return <Skeleton largura="30px" altura="30px" raio="var(--r-md)" />;
+}
+
 interface AppShellProps {
     children: ReactNode;
 }
 
 export default function AppShell({ children }: AppShellProps) {
     const pathname = usePathname();
-    const usuario = useCurrentUser();
     //Chamado uma vez só: o sino é renderizado duas vezes (rail e topo) e cada instância
     //com o próprio hook duplicaria o polling do endpoint de notificações.
     const notificacoes = useNotificacoes();
@@ -143,12 +172,9 @@ export default function AppShell({ children }: AppShellProps) {
                 <div className={styles.railRodape}>
                     <BotaoTema className={styles.railLink} />
                     <SinoNotificacoes {...notificacoes} />
-                    <Link href="/profile" className={styles.avatar} title={usuario?.name ?? "Minha conta"}
-                        aria-label="Minha conta">
-                        {usuario?.profilePic
-                            ? <img src={usuario.profilePic} alt="" />
-                            : iniciaisDoNome(usuario?.name ?? "?")}
-                    </Link>
+                    <Suspense fallback={<AvatarCarregando />}>
+                        <AvatarUsuario comTitulo />
+                    </Suspense>
                 </div>
             </nav>
 
@@ -159,11 +185,9 @@ export default function AppShell({ children }: AppShellProps) {
                 </Link>
                 <BotaoTema className={styles.botaoIcone} />
                 <SinoNotificacoes {...notificacoes} />
-                <Link href="/profile" className={styles.avatar} aria-label="Minha conta">
-                    {usuario?.profilePic
-                        ? <img src={usuario.profilePic} alt="" />
-                        : iniciaisDoNome(usuario?.name ?? "?")}
-                </Link>
+                <Suspense fallback={<AvatarCarregando />}>
+                    <AvatarUsuario />
+                </Suspense>
             </header>
 
             <main className={styles.conteudo}>

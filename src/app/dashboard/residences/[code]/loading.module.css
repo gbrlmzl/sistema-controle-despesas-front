@@ -1,0 +1,143 @@
+/* Espelha PainelResidencia.module.css e ResumoDoMes.module.css. Ver a nota em
+   SkeletonPagina.module.css sobre por que as medidas são copiadas e não importadas. */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+}
+
+.identidade {
+    display: flex;
+    flex-direction: column;
+    /* min-width: 0 impede que o bloco do título empurre a engrenagem para fora
+       quando a largura disponível é pequena */
+    min-width: 0;
+    flex: 1;
+}
+
+.tituloLinha {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* .container do ResumoDoMes */
+.resumo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+    margin-top: 1.25rem;
+}
+
+.linhaCards {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.4rem 1.25rem;
+    border-radius: var(--r-xl);
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+/* O card de saldo tem borda mais forte e o gradiente sutil — reproduzir o
+   contorno já basta para o olho reconhecer a hierarquia entre os dois cards. */
+.cardSaldo {
+    background: linear-gradient(150deg, var(--surface-2), var(--surface) 60%);
+    border-color: var(--border-strong);
+}
+
+.secao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+/* .membro + .barraFundo de ResumoDoMes */
+.membro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.membroTopo {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.listaMembros {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.listaAtividade {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.atividade {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.atividade:first-child {
+    padding-top: 0;
+    border-top: none;
+}
+
+.atividade:last-child {
+    padding-bottom: 0;
+}
+
+.atividadeGrow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.graficoRotulos {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.35rem;
+}
+
+@media (min-width: 900px) {
+    .linhaCards {
+        grid-template-columns: 1.15fr 1fr;
+        align-items: stretch;
+    }
+}

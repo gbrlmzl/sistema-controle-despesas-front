@@ -1,0 +1,74 @@
+/* Primitivas de carregamento. Um skeleton só cumpre o papel dele se ocupar o MESMO
+   espaço que o conteúdo real vai ocupar — caso contrário troca a tela congelada por
+   um salto de layout, que é igualmente ruim. Por isso as medidas aqui vêm dos mesmos
+   tokens (--r-*, --surface-*) que as telas usam. */
+
+.bloco {
+    /* surface-3 sobre surface-2 é o contraste mais baixo que ainda se enxerga nos dois
+       temas — o skeleton precisa ser perceptível sem competir com o conteúdo ao redor. */
+    background: var(--surface-3);
+    border-radius: var(--r-sm);
+    flex-shrink: 0;
+    /* Nada de align-self aqui: largura e altura já são sempre explícitas, então não
+       há o que esticar — e um `align-self: flex-start` sobrescreveria o
+       `align-items: center` dos contêineres que centralizam (o nome da residência
+       em Membros e Configurações, por exemplo), jogando o bloco para a esquerda. */
+}
+
+/* O brilho corre por cima com ::after em vez de animar background-position no
+   próprio elemento: mantém a animação em compositing (transform), sem repaint. */
+.animado {
+    position: relative;
+    overflow: hidden;
+}
+
+.animado::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg,
+            transparent,
+            color-mix(in srgb, var(--ink-3) 14%, transparent),
+            transparent);
+    animation: varrer 1.4s ease-in-out infinite;
+}
+
+@keyframes varrer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Movimento é o primeiro item que quem tem sensibilidade vestibular desliga.
+   Sem animação o skeleton continua legível — ele já é um bloco cinza. */
+@media (prefers-reduced-motion: reduce) {
+    .animado::after {
+        animation: none;
+    }
+}
+
+.texto {
+    /* Altura de uma linha de texto real, não um valor arbitrário: 1em da fonte do
+       contexto + o respiro que o line-height daria. */
+    height: 0.85em;
+    margin: 0.15em 0;
+    border-radius: var(--r-sm);
+}
+
+.circulo {
+    border-radius: var(--r-full);
+}
+
+/* Só para leitores de tela: o bloco cinza não comunica nada a quem não o vê. */
+.somenteLeitorDeTela {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}

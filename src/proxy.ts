@@ -157,22 +157,7 @@ export default async function proxy(req: NextRequest): Promise<NextResponse> {
 export const config = {
     matcher: [
         {
-            //Cobre o site inteiro, e não só /dashboard, /profile e as rotas de auth: o
-            //layout raiz chama getCurrentUser() em TODA página, e o proxy é o único
-            //lugar capaz de persistir o cookie renovado. Com a lista antiga, "/" e
-            ///change-password ficavam de fora e caíam no apiClient.ts, que renovava um
-            //refresh token rotativo sem conseguir guardar o valor novo: o navegador
-            //seguia com um token já revogado e a renovação seguinte era lida pela API
-            //como reuso — derrubando a sessão em todos os dispositivos e disparando um
-            //alerta de roubo falso.
-            //A exclusão por ponto no path cobre de uma vez favicon/sitemap/robots e todo
-            //o public/ (assets, avatars, fonts, icons) — rotas de página nunca têm ponto.
             source: "/((?!api/|_next/|.*\\.).*)",
-            //Prefetch de <Link> não renova sessão. O Next dispara vários em paralelo ao
-            //passar o mouse ou ao entrar no viewport, e cada um viraria um POST
-            ///auth/refresh com o MESMO refresh token — exatamente a corrida que a API
-            //interpreta como reuso de token roubado. A navegação de verdade não traz
-            //esses headers e continua renovando normalmente.
             missing: [
                 { type: "header", key: "next-router-prefetch" },
                 { type: "header", key: "purpose", value: "prefetch" },
