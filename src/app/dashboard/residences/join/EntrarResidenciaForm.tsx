@@ -20,6 +20,13 @@ export default function EntrarResidenciaForm() {
         setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6));
     }
 
+    //O FormData já foi montado quando a action é chamada, então limpar o campo aqui
+    //não afeta o envio: o código sai da tela assim que a solicitação parte.
+    const handleAction = (formData: FormData) => {
+        formAction(formData);
+        setCode('');
+    }
+
     return (
         <div className={styles.container}>
             <div className={styles.cabecalho}>
@@ -42,7 +49,7 @@ export default function EntrarResidenciaForm() {
                 </div>
             )}
 
-            <Form action={formAction}>
+            <Form action={handleAction}>
                 <div className={styles.formFields}>
                     <input type="text" name="code" placeholder="CÓDIGO" value={code} onChange={handleCodeChange}
                         className={styles.campoCodigo} autoComplete="off" />
