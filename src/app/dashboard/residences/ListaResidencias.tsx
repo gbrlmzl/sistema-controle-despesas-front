@@ -52,10 +52,6 @@ export default function ListaResidencias() {
     const cabecalho = (
         <div className={styles.cabecalho}>
             <h1>Residências</h1>
-            <div className={styles.cabecalhoAcoes}>
-                <Link href="/dashboard/residences/new" className={styles.botaoPrimario}>Criar residência</Link>
-                <Link href="/dashboard/residences/join" className={styles.botaoSecundario}>Entrar em residência</Link>
-            </div>
         </div>
     );
 

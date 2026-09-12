@@ -7,13 +7,14 @@ import type { ReactNode } from "react";
 
 import { useCurrentUser } from "@/components/providers/UserProvider";
 import { Skeleton } from "@/components/ui/Skeleton";
+import LogoCronos from "@/components/ui/LogoCronos";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import useNotificacoes from "@/hooks/useNotificacoes";
 import SinoNotificacoes from "@/components/ui/SinoNotificacoes";
 import CadastrarDespesaModal from "@/components/despesas/CadastrarDespesaModal";
 import {
     IconePainel, IconeDespesas, IconeRelatorios, IconeMembros, IconeAcertos,
-    IconeResidencias, IconeConfiguracoes, IconeMais, IconeNovaResidencia, IconeAvancar,
+    IconeResidencias, IconeMais, IconeNovaResidencia, IconeAvancar,
     IconeSol, IconeLua,
 } from "./Icones";
 import styles from "./AppShell.module.css";
@@ -60,8 +61,8 @@ interface BotaoTemaProps {
     className: string;
 }
 
-//Compartilhado entre o rail (desktop) e o header (mobile) — os dois precisam do
-//mesmo botão, só com a classe de tamanho/formato trocada por CSS Module.
+//Compartilhado entre a barra superior (desktop) e o header (mobile) — os dois
+//precisam do mesmo botão, só com a classe de tamanho/formato trocada por CSS Module.
 function BotaoTema({ className }: BotaoTemaProps) {
     const { tema, alternarTema } = useTheme();
     const rotulo = tema === "dark" ? "Ativar tema claro" : "Ativar tema escuro";
@@ -141,46 +142,53 @@ export default function AppShell({ children }: AppShellProps) {
 
     return (
         <div className={styles.shell}>
+            {/* Barra superior do desktop: uma linha só, com os destinos escritos por
+                extenso. Os ícones continuam existindo, mas só na tab bar do mobile,
+                onde não há largura para o nome ao lado do rótulo. */}
             <nav className={styles.rail} aria-label="Navegação principal">
-                <div className={styles.railTopo}>
-                    <Link href="/dashboard/residences" className={styles.marca} aria-label="Cronos — início">C</Link>
+                <div className={styles.railInterno}>
+                    <Link href="/dashboard/residences" className={styles.railMarca} aria-label="Cronos — início">
+                        <span className={styles.marca}><LogoCronos /></span>
+                        <span className={styles.railMarcaNome}>Cronos</span>
+                    </Link>
 
-                    {navegacao.map(item => (
-                        <Link key={item.href} href={item.href} title={item.rotulo} aria-label={item.rotulo}
-                            aria-current={estaAtivo(item) ? "page" : undefined}
-                            className={`${styles.railLink} ${estaAtivo(item) ? styles.railAtivo : ''}`}>
-                            {item.icone}
-                        </Link>
-                    ))}
-
-                    {base && (
-                        <>
-                            <span className={styles.railSeparador} />
-                            <Link href={`${base}/settings`} title="Configurações" aria-label="Configurações"
-                                aria-current={pathname.startsWith(`${base}/settings`) ? "page" : undefined}
-                                className={`${styles.railLink} ${pathname.startsWith(`${base}/settings`) ? styles.railAtivo : ''}`}>
-                                <IconeConfiguracoes />
+                    <div className={styles.railLinks}>
+                        {navegacao.map(item => (
+                            <Link key={item.href} href={item.href}
+                                aria-current={estaAtivo(item) ? "page" : undefined}
+                                className={`${styles.railLink} ${estaAtivo(item) ? styles.railAtivo : ''}`}>
+                                {item.rotulo}
                             </Link>
-                            <Link href="/dashboard/residences" title="Todas as residências" aria-label="Todas as residências"
-                                className={styles.railLink}>
-                                <IconeResidencias />
-                            </Link>
-                        </>
-                    )}
-                </div>
+                        ))}
 
-                <div className={styles.railRodape}>
-                    <BotaoTema className={styles.railLink} />
-                    <SinoNotificacoes {...notificacoes} />
-                    <Suspense fallback={<AvatarCarregando />}>
-                        <AvatarUsuario comTitulo />
-                    </Suspense>
+                        {base && (
+                            <>
+                                <span className={styles.railSeparador} />
+                                <Link href={`${base}/settings`}
+                                    aria-current={pathname.startsWith(`${base}/settings`) ? "page" : undefined}
+                                    className={`${styles.railLink} ${pathname.startsWith(`${base}/settings`) ? styles.railAtivo : ''}`}>
+                                    Configurações
+                                </Link>
+                                <Link href="/dashboard/residences" className={styles.railLink}>
+                                    Todas as residências
+                                </Link>
+                            </>
+                        )}
+                    </div>
+
+                    <div className={styles.railRodape}>
+                        <BotaoTema className={styles.botaoIcone} />
+                        <SinoNotificacoes {...notificacoes} />
+                        <Suspense fallback={<AvatarCarregando />}>
+                            <AvatarUsuario comTitulo />
+                        </Suspense>
+                    </div>
                 </div>
             </nav>
 
             <header className={styles.topo}>
                 <Link href="/dashboard/residences" className={styles.topoMarca}>
-                    <span className={styles.marca}>C</span>
+                    <span className={styles.marca}><LogoCronos /></span>
                     Cronos
                 </Link>
                 <BotaoTema className={styles.botaoIcone} />

@@ -7,17 +7,51 @@
 }
 
 /* ============================================================
-   RAIL — só existe no desktop
+   BARRA SUPERIOR (NAVBAR) — só existe no desktop
    ============================================================ */
 .rail {
     display: none;
 }
 
-.railTopo {
+/* Alinha a navegação com a coluna de conteúdo (.interno) em telas largas */
+.railInterno {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: 1.4rem;
+    width: 100%;
+    max-width: 66rem;
+    margin: 0 auto;
+}
+
+.railMarca {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--ink);
+}
+
+.railMarca .marca {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 0;
+    font-size: 0.85rem;
+}
+
+.railMarcaNome {
+    white-space: nowrap;
+}
+
+/* Sem overflow aqui de propósito: o marcador do item ativo desce até a borda da
+   barra e um contexto de rolagem o cortaria. */
+.railLinks {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
 }
 
 .marca {
@@ -34,14 +68,18 @@
     font-size: 0.95rem;
 }
 
+/* Item de navegação: nome por extenso, não mais o ícone */
 .railLink {
     position: relative;
-    width: 42px;
-    height: 42px;
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 0.75rem;
     border-radius: var(--r-md);
-    display: grid;
-    place-items: center;
     color: var(--ink-2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .railLink:hover {
@@ -54,35 +92,36 @@
     color: var(--accent);
 }
 
-/* Marcador na borda do rail: reforça o item ativo sem depender só de cor */
+/* Marcador na borda inferior da barra: reforça o item ativo sem depender só de cor */
 .railAtivo::before {
     content: '';
     position: absolute;
-    left: -13px;
-    top: 10px;
-    bottom: 10px;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: -0.7rem;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
     background: var(--accent);
 }
 
 .railSeparador {
-    width: 24px;
-    height: 1px;
+    width: 1px;
+    height: 20px;
+    flex-shrink: 0;
     background: var(--border);
-    margin: 0.6rem 0;
+    margin: 0 0.45rem;
 }
 
 .railRodape {
-    margin-top: auto;
+    margin-left: auto;
     display: flex;
-    flex-direction: column;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
 }
 
 /* ============================================================
-   TOPO — só existe no mobile
+   TOPO — só existe no mobile (.botaoIcone é compartilhado com a barra do desktop)
    ============================================================ */
 .topo {
     display: flex;
@@ -219,24 +258,17 @@
    DESKTOP
    ============================================================ */
 @media (min-width: 900px) {
-    .shell {
-        flex-direction: row;
-    }
-
     .rail {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 0.35rem;
-        width: 68px;
-        flex-shrink: 0;
-        padding: 1.25rem 0;
+        width: 100%;
+        padding: 0.7rem 2rem;
         background: var(--surface);
-        border-right: 1px solid var(--border);
-        /* O rail acompanha a rolagem do conteúdo em telas altas */
+        border-bottom: 1px solid var(--border);
+        /* A barra acompanha a rolagem do conteúdo em telas altas */
         position: sticky;
         top: 0;
-        height: 100vh;
+        z-index: 30;
     }
 
     .topo {
@@ -250,5 +282,27 @@
 
     .conteudo {
         padding: 1.6rem 2rem 2.5rem;
+    }
+}
+
+/* Faixa estreita do desktop: a linha precisa caber sem quebrar, então o nome da
+   marca sai e os itens se aproximam. */
+@media (min-width: 900px) and (max-width: 1099px) {
+    .railInterno {
+        gap: 0.9rem;
+    }
+
+    .railMarcaNome {
+        display: none;
+    }
+
+    .railLink {
+        padding: 0 0.55rem;
+        font-size: 0.8rem;
+    }
+
+    .railAtivo::before {
+        left: 0.55rem;
+        right: 0.55rem;
     }
 }

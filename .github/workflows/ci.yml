@@ -86,10 +86,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Habilita a emulação necessária pro buildx cross-compilar arm64 neste
-      # runner amd64 (ubuntu-latest). Sem QEMU, "platforms: linux/arm64" abaixo
-      # falha — mesma peça usada na API (sistema-controle-despesas-api,
-      # commit 365de83).
+      # Habilita a emulação necessária pro buildx cross-compilar o leg arm64
+      # neste runner amd64 (ubuntu-latest) — o leg amd64 abaixo é nativo. Sem
+      # QEMU, o leg arm64 de "platforms" abaixo falha — mesma peça usada na
+      # API (sistema-controle-despesas-api, commit 365de83).
       - uses: docker/setup-qemu-action@v3
 
       - uses: docker/setup-buildx-action@v3
@@ -113,13 +113,13 @@ jobs:
         with:
           context: .
           push: true
-          # Só linux/arm64: o único destino de deploy é uma instância Graviton
-          # (t4g.small). Multi-arch (linux/amd64,linux/arm64) foi cogitado, mas
-          # custaria tempo extra de build via emulação QEMU sem uso real hoje —
-          # mesma escolha feita na API (sistema-controle-despesas-api, commit
-          # 365de83). Se o front um dia precisar rodar em x86, é só somar
-          # "linux/amd64" aqui.
-          platforms: linux/arm64
+          # Multi-arch: o destino de deploy continua sendo só a instância
+          # Graviton (t4g.small, arm64), mas o e2e do repo de deploy roda num
+          # runner amd64 e consome esta mesma imagem publicada — sem o leg
+          # amd64, o Next inteiro rodaria sob QEMU ali, só trocando a
+          # emulação de lugar. O leg amd64 é nativo neste runner e some no
+          # ruído; o arm64 continua emulado, como antes.
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Placeholder fixo, não a Repository Variable "API_URL" de antes: o

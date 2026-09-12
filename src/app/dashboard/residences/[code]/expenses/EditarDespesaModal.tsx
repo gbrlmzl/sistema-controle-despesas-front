@@ -11,7 +11,7 @@ import type { Residencia, DespesaItem } from "@/types/residencia";
 
 interface EditarDespesaModalProps {
     residencia: Pick<Residencia, "code">;
-    despesa: Pick<DespesaItem, "id" | "name" | "valueInCents" | "category">;
+    despesa: Pick<DespesaItem, "id" | "name" | "valueInCents" | "category" | "isRecurring">;
     onFechar: () => void;
 }
 
@@ -46,6 +46,10 @@ export default function EditarDespesaModal({ residencia, despesa, onFechar }: Ed
                 <Form action={formAction} className={styles.form}>
                     <input type="hidden" name="code" value={residencia.code} />
                     <input type="hidden" name="expenseId" value={despesa.id} />
+                    {/* Editar corrige o lançamento, não muda a natureza dele: sem este campo
+                        o PATCH mandaria isRecurring=false e a despesa recorrente deixaria de
+                        ser recorrente, sumindo do painel de recorrentes (FEAT-025). */}
+                    {despesa.isRecurring && <input type="hidden" name="isRecurring" value="on" />}
 
                     <input type="text" name="name" value={name} maxLength={60}
                         onChange={(e) => setName(e.target.value)} autoComplete="off" />
@@ -59,11 +63,6 @@ export default function EditarDespesaModal({ residencia, despesa, onFechar }: Ed
                         ))}
                     </select>
 
-                    {/*<label className={styles.recorrente}>
-                        <input type="checkbox" name="isRecurring" defaultChecked={despesa.isRecurring} />
-                        <span>Repetir nos próximos meses</span>
-                    </label>
-                       */}
                     <div className={styles.botoesContainer}>
                         <button type="button" className={styles.botaoSecundario} onClick={onFechar} disabled={isPending}>Cancelar</button>
                         <button type="submit" className={styles.botaoPrimario} disabled={isPending || !dadosPreenchidos}>Salvar</button>

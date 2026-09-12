@@ -196,10 +196,15 @@ export default function ConsultaDespesas({ residencia, usuarioId, competencias, 
                                                 onClick={() => setEditando(despesa)} disabled={processando}>
                                                 Editar
                                             </button>
-                                            <button type="button" className={styles.botaoExcluir}
-                                                onClick={() => confirmarExclusao(despesa)} disabled={processando}>
-                                                Excluir
-                                            </button>
+                                            {/* Despesa recorrente não se exclui por aqui: o lançamento
+                                                do mês voltaria no mês seguinte. Quem manda nela é o
+                                                painel de recorrentes (FEAT-025), que para a repetição. */}
+                                            {!despesa.isRecurring && (
+                                                <button type="button" className={styles.botaoExcluir}
+                                                    onClick={() => confirmarExclusao(despesa)} disabled={processando}>
+                                                    Excluir
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
