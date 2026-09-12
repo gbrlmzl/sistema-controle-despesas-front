@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import LogoCronos from "@/components/ui/LogoCronos";
 import styles from "./layout.module.css";
 
 //Login e cadastro compartilham a mesma moldura: apresentação à esquerda no desktop,
@@ -11,7 +12,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className={styles.layout}>
             <aside className={styles.pitch}>
                 <Link href="/" className={styles.pitchMarca}>
-                    <span className={styles.pitchIcone}>C</span>
+                    <span className={styles.pitchIcone}><LogoCronos /></span>
                     Cronos
                 </Link>
 
@@ -43,7 +44,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div className={styles.formulario}>
                 <div className={styles.formularioInterno}>
                     <Link href="/" className={styles.marcaMobile}>
-                        <span className={styles.pitchIcone}>C</span>
+                        <span className={styles.pitchIcone}><LogoCronos /></span>
                         Cronos
                     </Link>
 

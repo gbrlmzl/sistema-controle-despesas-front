@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { useCurrentUser } from '@/components/providers/UserProvider';
 import { Skeleton } from '@/components/ui/Skeleton';
+import LogoCronos from '@/components/ui/LogoCronos';
 import styles from './Inicio.module.css';
 
 /* As duas chamadas para ação são o único ponto da landing que depende da sessão.
@@ -67,7 +68,7 @@ export default function Inicio() {
         <div className={styles.pagina}>
             <header className={styles.cabecalho}>
                 <Link href="/" className={styles.marca}>
-                    <span className={styles.marcaIcone}>C</span>
+                    <span className={styles.marcaIcone}><LogoCronos /></span>
                     Cronos
                 </Link>
 
