@@ -61,19 +61,6 @@
     box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.85);
 }
 
-/* No desktop o sino mora no rail, colado à borda esquerda da tela: um painel
-   ancorado por "right: 0" (pensado para o topo do mobile) abriria para fora da
-   viewport. A partir daqui ele vira um flyout para a direita do rail, com a base
-   alinhada ao botão — o mesmo ponto onde o sino já fica perto do rodapé. */
-@media (min-width: 900px) {
-    .painel {
-        top: auto;
-        bottom: 0;
-        right: auto;
-        left: calc(100% + 0.5rem);
-    }
-}
-
 .vazio {
     margin: 0;
     padding: 1.5rem 0.75rem;
