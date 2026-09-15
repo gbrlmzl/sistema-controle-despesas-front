@@ -49,7 +49,7 @@ export default function LoginForm() {
 
                 <Link href="/forgot-password" className={styles.esqueciSenha}>Esqueci minha senha</Link>
 
-                <button type="submit" className={styles.botaoEnviar} disabled={isPending || !dadosPreenchidos}>
+                <button type="submit" className={styles.botaoEnviar} disabled={isPending && !dadosPreenchidos}>
                     {isPending ? "Entrando..." : "Entrar"}
                 </button>
             </Form>
