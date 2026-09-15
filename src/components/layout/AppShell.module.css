@@ -104,14 +104,6 @@
     background: var(--accent);
 }
 
-.railSeparador {
-    width: 1px;
-    height: 20px;
-    flex-shrink: 0;
-    background: var(--border);
-    margin: 0 0.45rem;
-}
-
 .railRodape {
     margin-left: auto;
     display: flex;
