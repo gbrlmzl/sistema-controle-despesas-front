@@ -19,10 +19,9 @@ export default function CriarResidenciaForm() {
     //Mesmo mínimo exigido pelo residenceNameSchema, para o usuário não enviar um nome que já se sabe inválido
     const nomePreenchido = name.trim().length >= 3;
 
-    //Ao confirmar o modal, o usuário é levado ao painel da residência recém-criada.
-    //Só é chamado quando o modal está montado, e o modal só monta com state.data presente.
+    //Ao confirmar o modal, o usuário volta para a lista de residências.
     const handleConfirmar = () => {
-        router.push(`/dashboard/residences/${state!.data!.code}`);
+        router.push('/dashboard/residences');
     }
 
     //CA-1 da US-007 -> convidar leva à lista de membros da residência com o modal de
