@@ -622,17 +622,15 @@ A imagem de produção ([`Dockerfile`](Dockerfile)) é multi-stage e usa `output
 
 O entrypoint é `node server.js` (não `npm start`/`next start`) — o `server.js` é gerado pelo próprio Next dentro de `.next/standalone`. O endereço da API **não** fica embutido nele: o Route Handler que faz proxy de `/api/*` lê `API_URL` do ambiente do container a cada requisição (ver seção anterior), então a mesma imagem serve qualquer ambiente — só muda a variável passada na hora de rodar o container.
 
-**A imagem publicada no GHCR é `linux/arm64` puro** ([`ci.yml`](.github/workflows/ci.yml), job `docker-publish`), porque o único destino de deploy hoje é uma instância Graviton (ARM64). Isso significa que:
+**A imagem publicada no GHCR é multi-arch** (`linux/amd64` + `linux/arm64`, [`ci.yml`](.github/workflows/ci.yml), job `docker-publish`), com as tags `:latest`, `:sha-<sha7>` e `:sha-<sha completo>`. Cada arquitetura tem um consumidor:
 
-- Rodar `docker pull ghcr.io/gbrlmzl/sistema-controle-despesas-front` numa máquina x86 (Intel/AMD) só funciona via emulação (QEMU/Rosetta), mais lento.
-- Para desenvolvimento local, isso não afeta nada — [`docker-compose.yml`](docker-compose.yml) builda a partir do `Dockerfile.dev` na sua própria arquitetura, não consome a imagem do GHCR.
-- Buildar a imagem de produção localmente funciona normalmente em qualquer arquitetura (`docker build --build-arg API_URL=... .`); só a imagem *publicada* é arm64-only.
-
-> A **API** seguiu o caminho oposto e voltou a publicar **manifest multi-arch** (amd64 + arm64). O motivo não é o deploy — é o e2e: ele roda num runner `ubuntu-latest` amd64 e, com só a variante ARM disponível, subia a API inteira emulada por QEMU, onde o bcrypt do cadastro estoura o timeout do Cypress e a suíte falha de forma intermitente. **O front não tem esse problema porque o e2e orquestrado o builda do código-fonte**, na arquitetura do runner, em vez de puxar a imagem publicada.
+- **arm64** é o que roda em produção, na instância Graviton. O leg é cross-compilado com QEMU no runner, e o cache `type=gha` cobre as camadas de `npm ci`.
+- **amd64** é o que o e2e do repositório de deploy executa, nativamente, no runner `ubuntu-latest`. Antes de 11/09/2026 a imagem era arm64 puro, e por isso o e2e buildava o front do código-fonte: puxar a imagem publicada rodaria o Next inteiro sob QEMU. A consequência era silenciosa, porque o Cypress testava um binário e o `:stable` marcava outro. Com o manifest multi-arch, o e2e passou a testar exatamente a imagem que vai para produção, como já acontecia com a API.
+- Para desenvolvimento local, nada muda — [`docker-compose.yml`](docker-compose.yml) builda a partir do `Dockerfile.dev` na sua própria arquitetura, e `docker pull` da imagem publicada baixa a variante nativa da sua máquina.
 
 ### Onde o E2E roda
 
-O CI **deste** repositório cobre lint, testes unitários (Jest) e build de produção — os specs do Cypress vivem aqui (`cypress/`), mas não rodam aqui. Depois de publicar a imagem, o job `dispatch` do [`ci.yml`](.github/workflows/ci.yml) avisa o [`sistema-controle-despesas-deploy`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy), que sobe a stack completa (front + API + Postgres) e roda os specs contra ela. Se passarem, aquele repositório re-taggeia **esta mesma imagem** como `:stable` — build once, promote everywhere. Localmente, `npm run test:e2e` continua funcionando contra uma API no host.
+O CI **deste** repositório cobre lint, testes unitários (Jest) e build de produção — os specs do Cypress vivem aqui (`cypress/`), mas não rodam aqui. Depois de publicar a imagem, o job `dispatch` do [`ci.yml`](.github/workflows/ci.yml) avisa o [`sistema-controle-despesas-deploy`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy), que sobe a stack completa (front + API + Postgres) **com a imagem publicada** e roda os specs, checados no mesmo commit dela, contra essa stack. Se passarem, aquele repositório re-taggeia **esta mesma imagem** como `:stable`, espelha no ECR e a implanta no ECS depois de uma aprovação manual — build once, promote everywhere. Localmente, `npm run test:e2e` continua funcionando contra uma API no host.
 
 ---
 
@@ -690,7 +688,7 @@ O sistema inteiro cabe numa **única instância EC2 `t4g.small`** (Graviton, ARM
 
 | Restrição | Consequência aqui |
 | --- | --- |
-| **Graviton (ARM64)** | A imagem publicada é `linux/arm64`. Uma task amd64 morre com `exec format error` |
+| **Graviton (ARM64)** | O ECS puxa a variante `linux/arm64` do manifest multi-arch. Uma imagem só amd64 morreria com `exec format error` |
 | **2 GB de RAM para quatro containers** | O `output: 'standalone'` deixou de ser otimização e virou requisito — ver [Build de produção](#-build-de-produção-docker). O container tem limite **rígido** de 512 MiB: um vazamento no front mata o front, não o Postgres |
 | **`readonlyRootFilesystem: true`** | O filesystem raiz é travado (uma RCE não consegue gravar payload), mas o Next **escreve** cache de imagem e de fetch. Daí os `tmpfs` em `.next/cache` e `/tmp` — montados com `uid=1000,gid=1000`, porque o container roda como `USER node` e um `tmpfs` sem dono explícito monta como `root`, fazendo o Next falhar ao escrever no cache que acabamos de montar para ele |
 | **Porta fixa no host, `desiredCount=1`** | Obriga `minimumHealthyPercent=0`: a task antiga **sai antes** de a nova entrar. O deploy tem uma janela curta de indisponibilidade, por construção |
@@ -715,35 +713,40 @@ Duas coisas que essa montagem cobra do front:
 ### Deploy: o que é automático e o que não é
 
 ```
-push na main ──▶ CI (lint → test → build → publish GHCR) ──▶ dispatch
-                                                                │
-                    repo de deploy: e2e da stack completa ◀─────┘
+push na main ──▶ CI (lint + test → build → publish GHCR) ──▶ dispatch
+                                                                  │
+                    repo de deploy: e2e da stack completa ◀───────┘
                                    │ passou
                                    ▼
                             re-tag :stable no GHCR
-                                   │
-                  ─────────────────┼─────────  daqui para baixo é manual
                                    ▼
-            espelhar :stable → ECR ──▶ update-service cronos-front
+                espelhar :stable → ECR (:sha-<sha> + :stable)
+                                   │
+                  ─────────────────┼─────────  aprovação manual (environment production)
+                                   ▼
+          revisão nova de cronos-front ──▶ update-service + wait stable
 ```
 
-**Não existe CD para o ECS.** Publicar no GHCR e passar no e2e não coloca nada em produção — o espelhamento para o ECR e o `update-service` são manuais. Duas armadilhas conhecidas desse trecho:
+**Tudo é automático até o portão de aprovação.** Depois do e2e verde, o repositório de deploy promove a imagem, espelha no ECR e para o job de deploy em *Waiting for review*. Com a aprovação, registra uma revisão da `cronos-front` apontando para a tag imutável `sha-<sha>` e troca o service. Se a revisão nova não estabilizar, o circuit breaker volta para a anterior. O deploy do front **não** roda migration. Esse caminho está em produção desde 12/09/2026. Detalhes, mapa de erros e rollback: [`pipeline-ci-cd.md`](https://github.com/gbrlmzl/sistema-controle-despesas-deploy/blob/main/docs/pipeline-ci-cd.md).
 
-- **Espelhar `:stable`, nunca `:latest`.** O `:latest` é publicado **antes** de o e2e rodar; o `:stable` só existe **depois** que ele passa. Espelhar `:latest` manda para produção um artefato que a validação de ponta a ponta ainda não aprovou.
-- **O espelhamento não pode achatar a arquitetura.** Um `docker pull` baixa a arquitetura do host que roda o comando; feito de uma máquina x86, manda uma imagem amd64 para uma instância Graviton. O caminho correto é `docker buildx imagetools create`, que copia os manifests registry→registry sem escolher plataforma.
+Duas consequências para quem mexe neste código:
+
+- **Merge na `main` com CI verde não é "está no ar".** Falta o e2e, a aprovação e a estabilização do service.
+- **O e2e roda contra o `:stable` da API**, e `:stable` quer dizer "aprovado no e2e", não "em produção". Uma tela que depende de endpoint novo só deve ser mergeada depois que o **deploy** da API terminou, não só o e2e dela.
 
 O front **não recebe variável de ambiente nova** em nenhum desses deploys: a única `process.env` do código é `API_URL`, e ela já está na task definition. Um deploy do front é literalmente trocar a imagem.
 
 ### Pendências de infraestrutura
 
-Estado documentado em **29/08/2026** — confira o repositório de deploy antes de agir sobre qualquer item.
+Estado documentado em **29/08/2026**, com a parte de deploy revista em **14/09/2026** — confira o repositório de deploy antes de agir sobre qualquer item.
 
 | Pendência | Impacto no front |
 | --- | --- |
 | **Grupos Google OAuth, SMTP e S3 ausentes da task definition da API** | Código pronto nos dois repositórios e inerte em produção: o botão "Continuar com Google" **já aparece na UI** e leva a um 404; a recuperação de senha completa o fluxo **sem enviar o email**; os comprovantes respondem `503`. Nada disso é configurável aqui — as variáveis moram na task da API |
 | **`FRONTEND_URL` da API ainda é placeholder** | Cookies `secure` e os links dos emails dependem dele |
 | **CORS do bucket de comprovantes sem `GET`** | Quebra **só** o botão de baixar comprovante-imagem, que usa `fetch` para converter em PNG antes de salvar. O PDF sai por navegação (`Content-Disposition: attachment`) e não passa por CORS; a lupa é `<img src>` e também não |
-| **Espelhamento no ECR e `update-service` manuais** | Merge na `main` com CI verde **não** significa "está no ar" |
+| **`api:stable` à frente da API em produção** | O primeiro deploy automatizado da API (14/09) falhou no passo de migration, depois de o `:stable` já ter sido promovido. A correção entrou no repositório de deploy no mesmo dia, e o próximo deploy da API fecha a diferença. Até lá, o e2e disparado por este repositório valida contra uma API mais nova que a que está no ar |
+| **Todo deploy derruba o front por alguns segundos** | Porta fixa no host obriga `minimumHealthyPercent=0` — a task antiga sai antes de a nova entrar |
 | **Sem WAF e sem rate limiting na borda** | Decisão de orçamento. O rate limiting da API é a única proteção contra abuso de rota |
 | **`Caddyfile` e certificados não sobrevivem à troca da instância** | Criados à mão no host, fora do versionamento da task definition |
 
@@ -774,7 +777,7 @@ Estado documentado em **29/08/2026** — confira o repositório de deploy antes 
 
 - **O `docker-compose.yml` deste repositório só sobe o front** — e isso é uma decisão, não uma limitação: a API tem compose próprio, que sobe ela junto com o Postgres dela. Ver "Como rodar" acima para as três formas de subir o sistema.
 - **Épico de administração e auditoria** (papel ADMIN, trilha de auditoria, monitoramento de acessos) está fora do escopo da V2.0 e não iniciado.
-- **As pendências de infraestrutura** — variáveis de Google OAuth, SMTP e S3 ausentes em produção, CORS do bucket, deploy manual — estão em [Arquitetura na AWS → Pendências de infraestrutura](#pendências-de-infraestrutura). Nenhuma delas é configurável neste repositório.
+- **As pendências de infraestrutura** — variáveis de Google OAuth, SMTP e S3 ausentes em produção, CORS do bucket, deploy da API pendente — estão em [Arquitetura na AWS → Pendências de infraestrutura](#pendências-de-infraestrutura). Nenhuma delas é configurável neste repositório.
 
 ### Resolvidas, e por que ficam registradas
 
