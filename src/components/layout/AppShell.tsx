@@ -160,20 +160,6 @@ export default function AppShell({ children }: AppShellProps) {
                                 {item.rotulo}
                             </Link>
                         ))}
-
-                        {base && (
-                            <>
-                                <span className={styles.railSeparador} />
-                                <Link href={`${base}/settings`}
-                                    aria-current={pathname.startsWith(`${base}/settings`) ? "page" : undefined}
-                                    className={`${styles.railLink} ${pathname.startsWith(`${base}/settings`) ? styles.railAtivo : ''}`}>
-                                    Configurações
-                                </Link>
-                                <Link href="/dashboard/residences" className={styles.railLink}>
-                                    Todas as residências
-                                </Link>
-                            </>
-                        )}
                     </div>
 
                     <div className={styles.railRodape}>
